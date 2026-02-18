@@ -6,15 +6,21 @@ import { createClient } from '@/utils/supabase/client'
 const supabase= createClient()
 
 export default function InventoryView({ initialItems, playerId }: { initialItems: any[], playerId: string }) {
-    const [items, setItems] = useState<any[]>(initialItems)
+    const [items, setItems] = useState<any[]>(() => {
+        return [...initialItems].sort((a, b) =>
+            (a.item?.name || '').localeCompare(b.item?.name || '')
+        );
+    })
 
     useEffect(() => {
         let channel: any;
 
         const fetchItems = async () => {
+            if (!playerId) return;
+
             const { data, error } = await supabase
                 .from('player_item')
-                .select(`id, item:item_id (name, type, intel, heat)`)
+                .select(`player_id, item_id, item:item_id (name, type, intel, heat)`)
                 .eq('player_id', playerId);
 
             if (error) {
@@ -71,9 +77,9 @@ export default function InventoryView({ initialItems, playerId }: { initialItems
             <h2 className="text-2xl font-bold mb-4">Inventory</h2>
             <ul className="space-y-2">
                 {items.map(i => (
-                    <li key={i.id} className="p-3 bg-gray-800 rounded-lg flex justify-between">
-                        <span>{i.name} <span className="text-xs text-blue-400">({i.type})</span></span>
-                        {/* <span className="font-mono text-yellow-500">{i.intel}/{i.heat}</span> */}
+                    <li key={`${i.player_id}-${i.item_id}`} className="p-3 bg-gray-800 rounded-lg flex justify-between">
+                        <span>{i.item?.name} <span className="text-xs text-blue-400">({i.item?.type})</span></span>
+                        {/* <span className="font-mono text-yellow-500">{i.item?.intel}/{i.item?.heat}</span> */}
                     </li>
                 ))}
             </ul>

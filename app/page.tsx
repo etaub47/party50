@@ -26,7 +26,7 @@ export default function WelcomePage() {
       if (user) {
         const { data: player } = await supabase
             .from('player')
-            .select('*, player_item(*)')
+            .select('*, player_item(player_id, item_id, item:item_id (name, type, intel, heat))')
             .eq('id', user.id)
             .single() as any;
 
@@ -36,7 +36,7 @@ export default function WelcomePage() {
           setItems(player.player_item || []);
           setIsRegistered(true);
           setHasDossier(player.player_item?.some(
-              (i: any) => i.name === 'Agent Dossier'
+              (pi: any) => pi.item?.name === 'Agent Dossier'
           ) || false);
         }
 
@@ -112,9 +112,15 @@ export default function WelcomePage() {
           </div>
 
           <div className="tab-content">
-            {activeTab === 'profile' && <ProfileView initialPlayerData={playerData} />}
-            {activeTab === 'inventory' && <InventoryView initialItems={items} playerId={playerData?.id} />}
-            {activeTab === 'leaderboard' && <Leaderboard hasDossier={hasDossier} />}
+            <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
+              <ProfileView initialPlayerData={playerData} />
+            </div>
+            <div className={activeTab === 'inventory' ? 'block' : 'hidden'}>
+              <InventoryView initialItems={items} playerId={playerData?.id} />
+            </div>
+            <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
+              <Leaderboard hasDossier={hasDossier} />
+            </div>
           </div>
         </div>
     )
