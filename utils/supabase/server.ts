@@ -15,11 +15,10 @@ export async function createClient() {
                 setAll(cookiesToSet) {
                     try {
                         cookiesToSet.forEach(({ name, value, options }) =>
-                            // Cast 'options' to 'any' or a compatible type to bypass the strict check
                             cookieStore.set({ name, value, ...(options as any) })
                         )
                     } catch {
-                        // This can be ignored if middleware is handling session refreshes
+                        // this can be ignored if proxy is handling session refreshes
                     }
                 }
             },

@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { registerPlayer } from '@/app/actions/register'
 
+import ProfileView from '@/components/ProfileView'
+import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
 
 export default function WelcomePage() {
@@ -11,52 +13,76 @@ export default function WelcomePage() {
   const [role, setRole] = useState('')
   const [isRegistered, setIsRegistered] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'profile' | 'inventory' | 'leaderboard'>('profile');
+  const [playerData, setPlayerData] = useState<any | null>(null);
+  const [items, setItems] = useState<any[]>([]);
+  const [hasDossier, setHasDossier] = useState(false);
   const supabase = createClient()
 
   useEffect(() => {
     const checkUser = async () => {
-      // 1. Check if we already have a session
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // 2. If user exists, fetch their profile to see if they have a name/role
-        const { data: profile } = await supabase
+        const { data: player } = await supabase
             .from('player')
-            .select('name')
+            .select('*, player_item(*)')
             .eq('id', user.id)
-            .single() as { data: { name: string } | null };
+            .single() as any;
 
-        if (profile?.name) {
-          setName(profile.name);
+        if (player?.name) {
+          setName(player.name);
+          setPlayerData(player);
+          setItems(player.player_item || []);
           setIsRegistered(true);
+          setHasDossier(player.player_item?.some(
+              (i: any) => i.name === 'Agent Dossier'
+          ) || false);
         }
+
       } else {
-        // 3. Only sign in anonymously if no user exists at all
         await supabase.auth.signInAnonymously();
       }
       setIsLoading(false);
     };
 
-    checkUser();
+    const ignored = checkUser();
   }, [supabase]);
 
   const handleStartGame = async (e: any) => {
     e.preventDefault();
 
-    // 2. Call your Server Action to save the name to the DB
     const formData = new FormData()
     formData.append('playerName', name)
     formData.append('playerRole', role)
 
     const result = await registerPlayer(formData as any)
-    if (result.success) {
-      setIsRegistered(true)
+    if (result.success && result.player) {
+      setPlayerData(result.player);
+      setItems([]);
+      setHasDossier(false);
+      setIsRegistered(true);
     } else {
       alert("Error joining game: " + result.error)
     }
   }
 
-  // 3. Show a clean screen while checking the cookie
+  const handleTabChange = async (tab: 'profile' | 'inventory' | 'leaderboard') => {
+    setActiveTab(tab);
+
+    // if they click leaderboard, do a quick check to see if they acquired the dossier
+    if (tab === 'leaderboard' && playerData?.id) {
+      const { data, error } = await supabase
+          .from('player_item')
+          .select(`item:item_id (name)`)
+          .eq('player_id', playerData.id);
+      if (error)
+        console.error("Dossier check error:", error.message);
+      const hasDossier = data?.some(row => row.item?.name === 'Agent Dossier');
+      setHasDossier(!!hasDossier);
+    }
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading Game...</div>;
   }
@@ -64,8 +90,32 @@ export default function WelcomePage() {
   if (isRegistered) {
     return (
         <div className="p-10 text-center flex flex-col items-center">
-          <h1 className="text-2xl font-bold mb-4">Welcome to the game, {name}!</h1>
-          <Leaderboard />
+          <div className="flex gap-4 mb-6 border-b border-gray-700">
+            <button
+                onClick={() => handleTabChange('profile')}
+                className={activeTab === 'profile' ? 'border-b-2 border-blue-500' : ''}
+            >
+              Profile
+            </button>
+            <button
+                onClick={() => handleTabChange('inventory')}
+                className={activeTab === 'inventory' ? 'border-b-2 border-blue-500' : ''}
+            >
+              Inventory
+            </button>
+            <button
+                onClick={() => handleTabChange('leaderboard')}
+                className={activeTab === 'leaderboard' ? 'border-b-2 border-blue-500' : ''}
+            >
+              Leaderboard
+            </button>
+          </div>
+
+          <div className="tab-content">
+            {activeTab === 'profile' && <ProfileView initialPlayerData={playerData} />}
+            {activeTab === 'inventory' && <InventoryView initialItems={items} playerId={playerData?.id} />}
+            {activeTab === 'leaderboard' && <Leaderboard hasDossier={hasDossier} />}
+          </div>
         </div>
     )
   }
@@ -77,19 +127,19 @@ export default function WelcomePage() {
         <form onSubmit={handleStartGame} className="flex flex-col gap-4 w-full max-w-sm">
           <input
               type="text"
-              placeholder="Please enter your name:"
+              placeholder="Please enter your name"
               className="p-3 border rounded-lg text-black"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               required
           />
           <select
               className="p-3 border rounded-lg text-black bg-white"
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
               required
           >
-            <option value="" disabled>Select your role:</option>
+            <option value="" disabled>Please select your role</option>
             <option value="Hacker">Hacker</option>
             <option value="Lawyer">Lawyer</option>
             <option value="Bargain Hunter">Bargain Hunter</option>
@@ -99,7 +149,7 @@ export default function WelcomePage() {
               type="submit"
               className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700"
           >
-            Join Game
+            Register
           </button>
         </form>
       </main>

@@ -2,10 +2,10 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
-// 1. Initialize OUTSIDE the component to prevent multiple client instances
-const supabase = createClient()
+// initialize OUTSIDE the component to prevent multiple client instances
+const supabase= createClient()
 
-export default function Leaderboard() {
+export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
     const [players, setPlayers] = useState<any[]>([])
 
     useEffect(() => {
@@ -20,11 +20,11 @@ export default function Leaderboard() {
             await supabase.auth.getSession();
             await fetchPlayers();
 
-            // 1. Create a unique name for this specific mount instance
+            // create a unique name for this specific mount instance
             const channelName = `leaderboard-${Date.now()}`;
 
             channel = supabase
-                .channel(channelName) // Unique name avoids 'phx_close' collisions
+                .channel(channelName) // unique name avoids 'phx_close' collisions
                 .on(
                     'postgres_changes' as any,
                     { event: '*', schema: 'public', table: 'player' },
@@ -46,16 +46,25 @@ export default function Leaderboard() {
                 supabase.removeChannel(channel);
             }
         };
-    }, []); // No need to depend on 'supabase' anymore since it's a constant outside
+    }, []);
 
     return (
         <div className="mt-8 w-full max-w-md">
             <h2 className="text-2xl font-bold mb-4">Active Agents</h2>
             <ul className="space-y-2">
-                {players.map(p => (
-                    <li key={p.id} className="p-3 bg-gray-800 rounded-lg flex justify-between">
-                        <span>{p.name} <span className="text-xs text-blue-400">({p.role})</span></span>
-                        <span className="font-mono text-yellow-500">{p.intel} cr</span>
+                { players.map(p => (
+                    <li key={p.id} className="p-3 bg-gray-800 rounded-lg flex justify-between items-center">
+                        <div className="flex flex-col">
+                            <span className="font-bold">{p.name}</span>
+                            { hasDossier && (
+                                <div className="text-xs text-gray-400 mt-1 flex gap-2">
+                                    <span>Role: {p.role}</span>
+                                    <span>Intel: {p.intel} / {p.max_intel}</span>
+                                    <span>Heat: {p.heat}</span>
+                                    <span>Credits: {p.credits} / {p.max_credits}</span>
+                                </div>
+                            )}
+                        </div>
                     </li>
                 ))}
             </ul>
