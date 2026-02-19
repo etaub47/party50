@@ -68,9 +68,16 @@ export default function WelcomePage() {
   const handleStartGame = async (e: any) => {
     e.preventDefault();
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Identity not verified. Please refresh and try again.");
+      return;
+    }
+
     const formData = new FormData()
     formData.append('playerName', name)
     formData.append('playerRole', role)
+    formData.append('playerId', user.id)
 
     const result = await registerPlayer(formData as any)
     if (result.success && result.player) {
