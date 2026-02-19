@@ -31,6 +31,11 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const initializeAuth = async () => {
+
+      // DIAGNOSTIC ALERTS
+      alert("URL Check: " + (process.env.NEXT_PUBLIC_SUPABASE_URL ? "Found" : "MISSING"));
+      alert("Key Check: " + (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Found" : "MISSING"));
+
       // 1. First, check if a session already exists locally (non-blocking)
       const { data: { session } } = await supabase.auth.getSession();
 
