@@ -1,12 +1,19 @@
 'use client'
 
 import { ChangeEvent, useEffect, useState } from 'react'
+
 import { createClient } from '@/utils/supabase/client'
 import { registerPlayer } from '@/app/actions/register'
+import { executePurchase, PurchaseResult, validatePurchase, ValidationResult } from "@/app/actions/purchase";
 
 import ProfileView from '@/components/ProfileView'
 import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
+import PurchaseOverlay from "@/components/PurchaseOverlay";
+
+interface Item { id: string, name: string, type: string, intel: number, heat: number }
+interface PlayerItem { item: Item }
+interface Player { id: string, name: string, player_item: PlayerItem[] }
 
 export default function WelcomePage() {
   const [name, setName] = useState('')
@@ -17,6 +24,9 @@ export default function WelcomePage() {
   const [playerData, setPlayerData] = useState<any | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [hasDossier, setHasDossier] = useState(false);
+  const [overlay, setOverlay] = useState<{ type: string, itemName?: string } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [lastScannedItemId, setLastScannedItemId] = useState<string | null>(null);
   const supabase = createClient()
 
   useEffect(() => {
@@ -28,7 +38,7 @@ export default function WelcomePage() {
             .from('player')
             .select('*, player_item(player_id, item_id, item:item_id (name, type, intel, heat))')
             .eq('id', user.id)
-            .single() as any;
+            .single() as Player;
 
         if (player?.name) {
           setName(player.name);
@@ -83,6 +93,38 @@ export default function WelcomePage() {
     }
   };
 
+  const handleScan = async (itemId: string) => {
+    console.log("Scan initiated for ID:", itemId); // Should see this in console
+    setLastScannedItemId(itemId);
+    const result: ValidationResult = await validatePurchase(playerData.id, itemId);
+    console.log("Server response:", result); // This is the critical log
+
+    if (result.status === 'owned') {
+      setOverlay({ type: 'ERROR_OWNED', itemName: result.itemName ?? 'Unknown Item' });
+    } else if (result.status === 'poor') {
+      setOverlay({ type: 'ERROR_CREDITS', itemName: result.itemName ?? 'Unknown Item' });
+    } else if (result.status === 'confirm') {
+      setOverlay({ type: 'CONFIRM', itemName: result.itemName ?? 'Unknown Item' });
+    } else {
+      alert(`Status: ${result.status}. Message: ${result.message || 'No message'}`);
+    }
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (!playerData?.id || !lastScannedItemId)
+      return;
+
+    setIsProcessing(true);
+    const result: PurchaseResult = await executePurchase(playerData.id, lastScannedItemId);
+    setIsProcessing(false);
+
+    if (result.success) {
+      setOverlay({ type: 'SUCCESS', itemName: result.itemName || 'Item' });
+    } else {
+      setOverlay({ type: 'ERROR_GENERIC', itemName: result.error || 'Transaction Failed' });
+    }
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading Game...</div>;
   }
@@ -116,16 +158,26 @@ export default function WelcomePage() {
               <ProfileView initialPlayerData={playerData} />
             </div>
             <div className={activeTab === 'inventory' ? 'block' : 'hidden'}>
-              <InventoryView initialItems={items} playerId={playerData?.id} />
+              <InventoryView initialItems={items} playerId={playerData?.id} onScan={handleScan} />
             </div>
             <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
               <Leaderboard hasDossier={hasDossier} />
             </div>
           </div>
+
+          {overlay && (
+              <PurchaseOverlay
+                  overlay={overlay}
+                  isProcessing={isProcessing}
+                  onClose={() => setOverlay(null)}
+                  onConfirm={handleConfirmPurchase}
+              />
+          )}
         </div>
     )
   }
 
+  {/* not yet registered */}
   return (
       <main className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-4xl font-bold mb-8">Corporate Espionage Agent Registration</h1>

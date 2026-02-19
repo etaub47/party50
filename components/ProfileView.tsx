@@ -2,11 +2,14 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
+interface Player { id: string, name: string, role: string, intel: number, max_intel: number,
+    heat: number, credits: number, max_credits: number }
+
 // initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
 
 export default function ProfileView({ initialPlayerData }: { initialPlayerData: any }) {
-    const [player, setPlayer] = useState<any>(initialPlayerData)
+    const [player, setPlayer] = useState<Player>(initialPlayerData)
 
     useEffect(() => {
         let channel: any;
@@ -17,7 +20,9 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 .select('name, role, intel, max_intel, heat, credits, max_credits')
                 .eq('id', player.id)
                 .single();
-            if (data) setPlayer(data);
+            if (data) {
+                setPlayer(data as Player);
+            }
         };
 
         const setupRealtime = async () => {
@@ -47,12 +52,12 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 });
         };
 
-        setupRealtime();
+        const ignored = setupRealtime();
 
         return () => {
             if (channel) {
                 console.log("Cleaning up channel:", channel.topic);
-                supabase.removeChannel(channel);
+                const ignored = supabase.removeChannel(channel);
             }
         };
     }, [player.id]);
@@ -61,22 +66,38 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
         <div className="mt-8 w-full max-w-md flex flex-col gap-2 items-center">
             <h2 className="text-2xl font-bold mb-4">Agent Profile</h2>
             <span className="text-xl font-bold">{player.name}</span>
-            <span className="text-blue-400">Specialization: {player.role}</span>
+            <span className="text-blue-400">{player.role}</span>
 
-            <div className="grid grid-cols-2 gap-4 mt-4 w-full text-sm">
-                <div className="bg-gray-800 p-3 rounded-lg">
-                    <p className="text-gray-400">Intel</p>
-                    <p className="font-mono text-yellow-500">{player.intel} / {player.max_intel}</p>
+            <div className="w-full">
+                <div className="relative w-full bg-gray-700 h-6 rounded-lg overflow-hidden border border-gray-600">
+                    <div
+                        className="h-full bg-blue-500 transition-all duration-500 ease-out"
+                        style={{ width: `${Math.max((player.intel / player.max_intel) * 100, 2)}%` }}
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                        Intel: {player.intel} / {player.max_intel}
+                    </span>
                 </div>
-                <div className="bg-gray-800 p-3 rounded-lg">
-                    <p className="text-gray-400">Heat</p>
-                    <p className="font-mono text-red-500">{player.heat}</p>
+                <div className="relative w-full bg-gray-700 h-6 rounded-lg overflow-hidden mt-3 border border-gray-600">
+                    <div
+                        className={`h-full bg-red-500 transition-all duration-500 ease-out ${player.heat >= 80 ? 'animate-pulse' : ''}`}
+                        style={{ width: `${Math.max(Math.min(player.heat, 100), 2)}%` }}
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                        Heat: {player.heat}
+                    </span>
                 </div>
-                <div className="bg-gray-800 p-3 rounded-lg col-span-2">
-                    <p className="text-gray-400">Credits</p>
-                    <p className="font-mono text-green-500">{player.credits} / {player.max_credits} cr</p>
+                <div className="relative w-full bg-gray-700 h-6 rounded-lg overflow-hidden mt-3 border border-gray-600">
+                    <div
+                        className="h-full bg-green-600 transition-all duration-500 ease-out"
+                        style={{ width: `${Math.max((player.credits / player.max_credits) * 100, 2)}%` }}
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                        Credits: {player.credits} / {player.max_credits}
+                    </span>
                 </div>
             </div>
+
         </div>
     )
 }

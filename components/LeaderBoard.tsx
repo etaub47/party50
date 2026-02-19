@@ -12,7 +12,8 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
         let channel: any;
 
         const fetchPlayers = async () => {
-            const { data } = await supabase.from('player').select('*').order('intel', { ascending: false });
+            const { data } = await supabase.from('player').select('*')
+                .order('intel', { ascending: false }).order('heat', { ascending: true });
             if (data) setPlayers(data);
         };
 
@@ -38,12 +39,12 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
                 });
         };
 
-        setupRealtime();
+        const ignored = setupRealtime();
 
         return () => {
             if (channel) {
                 console.log("Cleaning up channel:", channel.topic);
-                supabase.removeChannel(channel);
+                const ignored = supabase.removeChannel(channel);
             }
         };
     }, []);
@@ -53,15 +54,19 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
             <h2 className="text-2xl font-bold mb-4">Active Agents</h2>
             <ul className="space-y-2">
                 { players.map(p => (
-                    <li key={p.id} className="p-3 bg-gray-800 rounded-lg flex justify-between items-center">
+                    <li key={p.id} className="p-3 bg-slate-800 rounded-lg flex justify-between items-center">
                         <div className="flex flex-col">
-                            <span className="font-bold">{p.name}</span>
+                            <span className="font-bold text-white">{p.name}</span>
                             { hasDossier && (
-                                <div className="text-xs text-gray-400 mt-1 flex gap-2">
-                                    <span>Role: {p.role}</span>
-                                    <span>Intel: {p.intel} / {p.max_intel}</span>
-                                    <span>Heat: {p.heat}</span>
-                                    <span>Credits: {p.credits} / {p.max_credits}</span>
+                                <div>
+                                    <div className="text-xs text-yellow-200 mt-1 flex flex-col gap-2">
+                                        <span>Specialization: {p.role}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-400 mt-1 flex gap-2">
+                                        <span className="text-blue-300">Intel: {p.intel} / {p.max_intel}</span>
+                                        <span className="text-red-300">Heat: {p.heat}</span>
+                                        <span className="text-green-300">Credits: {p.credits} / {p.max_credits}</span>
+                                    </div>
                                 </div>
                             )}
                         </div>

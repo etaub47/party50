@@ -5,7 +5,9 @@ import { createClient } from '@/utils/supabase/client'
 // initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
 
-export default function InventoryView({ initialItems, playerId }: { initialItems: any[], playerId: string }) {
+export default function InventoryView({ initialItems, playerId, onScan }: {
+    initialItems: any[], playerId: string, onScan: (id: string) => void }) {
+
     const [items, setItems] = useState<any[]>(() => {
         return [...initialItems].sort((a, b) =>
             (a.item?.name || '').localeCompare(b.item?.name || '')
@@ -62,12 +64,12 @@ export default function InventoryView({ initialItems, playerId }: { initialItems
                 });
         };
 
-        setupRealtime();
+        const ignored = setupRealtime();
 
         return () => {
             if (channel) {
                 console.log("Cleaning up channel:", channel.topic);
-                supabase.removeChannel(channel);
+                const ignored = supabase.removeChannel(channel);
             }
         };
     }, [playerId]);
@@ -77,12 +79,32 @@ export default function InventoryView({ initialItems, playerId }: { initialItems
             <h2 className="text-2xl font-bold mb-4">Inventory</h2>
             <ul className="space-y-2">
                 {items.map(i => (
-                    <li key={`${i.player_id}-${i.item_id}`} className="p-3 bg-gray-800 rounded-lg flex justify-between">
-                        <span>{i.item?.name} <span className="text-xs text-blue-400">({i.item?.type})</span></span>
+                    <li key={`${i.player_id}-${i.item_id}`} className="p-2 bg-blue-800 rounded-lg flex justify-between">
+                        <span className="text-white">{i.item?.name} <span className="text-xs text-white">{/* ({i.item?.type}) */}</span></span>
                         {/* <span className="font-mono text-yellow-500">{i.item?.intel}/{i.item?.heat}</span> */}
                     </li>
                 ))}
             </ul>
+
+            {/* temporary */}
+            <div className="mt-10 p-4 border-2 border-dashed border-gray-600 rounded-lg">
+                <h3 className="text-sm font-mono text-gray-400 mb-4 text-center">--- FIELD TEST: ITEM SCANS ---</h3>
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={() => onScan('88372c8f-bb5e-4cb6-8580-58b628b0e527')}
+                        className="bg-gray-100 hover:bg-gray-300 text-xs py-2 rounded"
+                    >
+                        Scan: Laser Cutting Tool
+                    </button>
+                    <button
+                        onClick={() => onScan('707d9af2-6725-4e8c-8fa5-9b42162cec01')}
+                        className="bg-gray-100 hover:bg-gray-300 text-xs py-2 rounded"
+                    >
+                        Scan: Agent Dossier
+                    </button>
+                </div>
+            </div>
+
         </div>
     )
 }
