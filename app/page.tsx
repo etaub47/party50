@@ -130,10 +130,22 @@ export default function WelcomePage() {
 
   const handleStartGame = async (e: any) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    let { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert("Identity not verified. Please refresh and try again.");
+      const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
+      if (signInError) {
+        alert("Sign-in failed at submission: " + signInError.message);
+        setIsLoading(false);
+        return;
+      }
+      user = signInData.user;
+    }
+
+    if (!user) {
+      alert("Could not establish agent identity. Please try a different browser.");
+      setIsLoading(false);
       return;
     }
 
