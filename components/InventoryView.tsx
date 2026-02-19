@@ -2,13 +2,16 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
+interface Item { id?: string, name: string, type?: string, intel?: number, heat?: number }
+interface PlayerItem { player_id?: string, item_id?: string, item: Item | null }
+
 // initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
 
 export default function InventoryView({ initialItems, playerId, onScan }: {
     initialItems: any[], playerId: string, onScan: (id: string) => void }) {
 
-    const [items, setItems] = useState<any[]>(() => {
+    const [items, setItems] = useState<PlayerItem[]>(() => {
         return [...initialItems].sort((a, b) =>
             (a.item?.name || '').localeCompare(b.item?.name || '')
         );
@@ -25,17 +28,19 @@ export default function InventoryView({ initialItems, playerId, onScan }: {
                 .select(`player_id, item_id, item:item_id (name, type, intel, heat)`)
                 .eq('player_id', playerId);
 
-            if (error) {
+            if (error)
                 console.error("Error fetching inventory:", error.message);
-                return;
+
+            if (data && !error) {
+                const playerItems: PlayerItem[] = data as any as PlayerItem[];
+
+                // since we can't easily order by a joined column in the query without complex syntax, we sort with JS
+                const sortedData = playerItems?.sort((a, b) =>
+                    (a.item?.name || '').localeCompare(b.item?.name || '')
+                ) || [];
+
+                setItems(sortedData);
             }
-
-            // since we can't easily order by a joined column in the query without complex syntax, we sort with JS
-            const sortedData = data?.sort((a, b) =>
-                (a.item?.name || '').localeCompare(b.item?.name || '')
-            ) || [];
-
-            setItems(sortedData);
         };
 
         const setupRealtime = async () => {

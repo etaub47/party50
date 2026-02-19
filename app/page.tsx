@@ -11,8 +11,8 @@ import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
 import PurchaseOverlay from "@/components/PurchaseOverlay";
 
-interface Item { id: string, name: string, type: string, intel: number, heat: number }
-interface PlayerItem { item: Item }
+interface Item { id?: string, name: string, type?: string, intel?: number, heat?: number }
+interface PlayerItem { item: Item | null }
 interface Player { id: string, name: string, player_item: PlayerItem[] }
 
 export default function WelcomePage() {
@@ -34,20 +34,26 @@ export default function WelcomePage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        const { data: player } = await supabase
+        const { data, error } = await supabase
             .from('player')
             .select('*, player_item(player_id, item_id, item:item_id (name, type, intel, heat))')
             .eq('id', user.id)
-            .single() as Player;
+            .single();
 
-        if (player?.name) {
-          setName(player.name);
-          setPlayerData(player);
-          setItems(player.player_item || []);
-          setIsRegistered(true);
-          setHasDossier(player.player_item?.some(
-              (pi: any) => pi.item?.name === 'Agent Dossier'
-          ) || false);
+        if (error)
+          console.error("Check user error:", error.message);
+
+        if (data && !error) {
+          const player: Player = data as Player;
+          if (player?.name) {
+            setName(player.name);
+            setPlayerData(player);
+            setItems(player.player_item || []);
+            setIsRegistered(true);
+            setHasDossier(player.player_item?.some(
+                (pi: any) => pi.item?.name === 'Agent Dossier'
+            ) || false);
+          }
         }
 
       } else {
@@ -86,10 +92,15 @@ export default function WelcomePage() {
           .from('player_item')
           .select(`item:item_id (name)`)
           .eq('player_id', playerData.id);
+
       if (error)
         console.error("Dossier check error:", error.message);
-      const hasDossier = data?.some(row => row.item?.name === 'Agent Dossier');
-      setHasDossier(!!hasDossier);
+
+      if (data && !error) {
+        const playerItems: PlayerItem[] = data as any as PlayerItem[];
+        const hasDossier = playerItems?.some(row => row.item?.name === 'Agent Dossier');
+        setHasDossier(!!hasDossier);
+      }
     }
   };
 
