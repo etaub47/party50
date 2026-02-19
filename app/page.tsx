@@ -30,6 +30,57 @@ export default function WelcomePage() {
   const supabase = createClient()
 
   useEffect(() => {
+    const initializeAuth = async () => {
+      // 1. First, check if a session already exists locally (non-blocking)
+      const { data: { session } } = await supabase.auth.getSession();
+
+      let user = session?.user;
+
+      // 2. If no session, force the sign-in immediately
+      if (!user) {
+        console.log("No session found. Attempting anonymous sign-in...");
+        const { data, error } = await supabase.auth.signInAnonymously();
+
+        if (error) {
+          console.error("Sign-in failed:", error.message);
+          alert("CRITICAL AUTH ERROR: " + error.message);
+          setIsLoading(false);
+          return;
+        }
+        user = data.user ?? undefined;
+      }
+
+      // 3. Now that we have a user, fetch the player data
+      if (user) {
+        const { data: playerData, error: playerError } = await supabase
+            .from('player')
+            .select('*, player_item(player_id, item_id, item:item_id (name, type, intel, heat))')
+            .eq('id', user.id)
+            .single();
+
+        if (playerData && !playerError) {
+          const player: Player = playerData as Player;
+
+          if (player?.name) {
+            setName(player.name);
+            setPlayerData(player);
+            setItems(player.player_item || []);
+            setIsRegistered(true);
+            setHasDossier(player.player_item?.some(
+                (pi: any) => pi.item?.name === 'Agent Dossier'
+            ) || false);
+          }
+        }
+      }
+
+      setIsLoading(false);
+    };
+
+    const ignored = initializeAuth();
+  }, [supabase]);
+
+  {/*
+  useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -70,6 +121,7 @@ export default function WelcomePage() {
 
     const ignored = checkUser();
   }, [supabase]);
+  */ }
 
   const handleStartGame = async (e: any) => {
     e.preventDefault();
