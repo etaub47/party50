@@ -57,7 +57,13 @@ export default function WelcomePage() {
         }
 
       } else {
-        await supabase.auth.signInAnonymously();
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          console.error("Anonymous Sign-in Error:", error.message);
+          alert("Auth Error: " + error.message); // This will show on your phone
+        } else {
+          console.log("Anonymous Sign-in Success:", data.user?.id);
+        }
       }
       setIsLoading(false);
     };
