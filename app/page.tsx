@@ -32,10 +32,6 @@ export default function WelcomePage() {
   useEffect(() => {
     const initializeAuth = async () => {
 
-      // DIAGNOSTIC ALERTS
-      alert("URL Check: " + (process.env.NEXT_PUBLIC_SUPABASE_URL ? "Found" : "MISSING"));
-      alert("Key Check: " + (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Found" : "MISSING"));
-
       // 1. First, check if a session already exists locally (non-blocking)
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -136,7 +132,6 @@ export default function WelcomePage() {
     if (!user) {
       const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
       if (signInError) {
-        alert("Sign-in failed at submission: " + signInError.message);
         setIsLoading(false);
         return;
       }
@@ -144,7 +139,6 @@ export default function WelcomePage() {
     }
 
     if (!user) {
-      alert("Could not establish agent identity. Please try a different browser.");
       setIsLoading(false);
       return;
     }
@@ -160,9 +154,9 @@ export default function WelcomePage() {
       setItems([]);
       setHasDossier(false);
       setIsRegistered(true);
-    } else {
-      alert("Error joining game: " + result.error)
     }
+
+    setIsLoading(false);
   }
 
   const handleTabChange = async (tab: 'profile' | 'inventory' | 'leaderboard') => {

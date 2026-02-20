@@ -7,19 +7,17 @@ export async function registerPlayer(formData: FormData):
     const supabase: SupabaseClient<any, "public"> = await createClient()
     const name: string = formData.get('playerName') as string
     const role: string = formData.get('playerRole') as string
-
-    const { data: { user }} = await supabase.auth.getUser()
-    if (!user)
-        return { success: false, error: 'No active session', player: null }
+    const playerId = formData.get('playerId') as string // Use the ID passed from the client
+    if (!playerId) return { success: false, error: 'Missing Player ID' };
 
     const { data, error } = await supabase
         .from('player')
-        .insert([{ id: user.id, name, role }])
+        .insert([{ id: playerId, name, role }])
         .select() // This returns the row we just created
         .single();
 
     if (error)
-        return { success: false, error: error.message, player: null };
+        return { success: false, error: error.message };
 
     return { success: true, player: data };
 }

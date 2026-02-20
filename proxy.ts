@@ -18,14 +18,14 @@ export async function proxy(request: NextRequest) {
                 },
                 setAll(cookiesToSet) {
                     cookiesToSet.forEach(({ name, value, options }) => {
-                        // 1. Force-cast the method to 'any' to allow simple string arguments
+                        // force-cast the method to 'any' to allow simple string argumentss
                         (request.cookies.set as any)(name, value);
 
-                        // 2. Do the same for the response object
+                        // do the same for the response object
                         (response.cookies.set as any)({ name, value, ...options });
                     });
 
-                    // 3. Re-initialize the response to sync headers back to the request
+                    // re-initialize the response to sync headers back to the request
                     response = NextResponse.next({
                         request: {
                             headers: request.headers,
@@ -38,7 +38,7 @@ export async function proxy(request: NextRequest) {
 
     // CRITICAL: This line must stay AFTER createServerClient
     // and is what triggers setAll if a session refresh is needed.
-    //const ignored = await supabase.auth.getUser();
+    const ignored = await supabase.auth.getUser();
 
     return response;
 }
