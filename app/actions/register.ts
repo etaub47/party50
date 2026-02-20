@@ -14,7 +14,7 @@ export async function registerPlayer(formData: FormData):
 
     const { data, error } = await supabase
         .from('player')
-        .insert([{ name, role }])
+        .insert([{ id: user.id, name, role }])
         .select() // This returns the row we just created
         .single();
 
