@@ -181,10 +181,10 @@ export default function WelcomePage() {
   };
 
   const handleScan = async (itemId: string) => {
-    console.log("Scan initiated for ID:", itemId); // Should see this in console
+    console.log("Scan initiated for ID:", itemId);
     setLastScannedItemId(itemId);
-    const result: ValidationResult = await validatePurchase(playerData.id, itemId);
-    console.log("Server response:", result); // This is the critical log
+    const result: ValidationResult = await validatePurchase(playerData.id, itemId, playerData.role);
+    console.log("Server response:", result);
 
     if (result.status === 'owned') {
       setOverlay({ type: 'ERROR_OWNED', itemName: result.itemName ?? 'Unknown Item' });
@@ -202,7 +202,7 @@ export default function WelcomePage() {
       return;
 
     setIsProcessing(true);
-    const result: PurchaseResult = await executePurchase(playerData.id, lastScannedItemId);
+    const result: PurchaseResult = await executePurchase(playerData.id, lastScannedItemId, playerData.role);
     setIsProcessing(false);
 
     if (result.success) {
