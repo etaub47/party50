@@ -240,7 +240,7 @@ export default function WelcomePage() {
             </button>
           </div>
 
-          <div className="tab-content">
+          <div className="tab-content max-w-md w-full">
             <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
               <ProfileView initialPlayerData={playerData} />
             </div>

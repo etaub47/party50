@@ -54,7 +54,7 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
             <h2 className="text-2xl font-bold mb-4">Active Agents</h2>
             <ul className="space-y-2">
                 { players.map(p => (
-                    <li key={p.id} className="p-3 bg-slate-800 rounded-lg flex justify-between items-center">
+                    <li key={p.id} className="p-3 bg-slate-800 rounded-lg flex justify-center items-center">
                         <div className="flex flex-col">
                             <span className="font-bold text-white">{p.name}</span>
                             { hasDossier && (

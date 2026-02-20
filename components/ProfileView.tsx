@@ -63,36 +63,35 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
     }, [player.id]);
 
     return (
-        <div className="mt-8 w-full max-w-md flex flex-col gap-2 items-center">
-            <h2 className="text-2xl font-bold mb-4">Agent Profile</h2>
-            <span className="text-xl font-bold">{player.name}</span>
+        <div className="mt-8 w-full max-w-xl flex flex-col gap-2 items-center">
+            <h2 className="text-2xl font-bold">{player.name}</h2>
             <span className="text-blue-400">{player.role}</span>
 
             <div className="w-full">
-                <div className="relative w-full bg-gray-700 h-6 rounded-lg overflow-hidden border border-gray-600">
+                <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-4 border border-gray-600">
                     <div
                         className="h-full bg-blue-500 transition-all duration-500 ease-out"
                         style={{ width: `${Math.max((player.intel / player.max_intel) * 100, 2)}%` }}
                     />
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
                         Intel: {player.intel} / {player.max_intel}
                     </span>
                 </div>
-                <div className="relative w-full bg-gray-700 h-6 rounded-lg overflow-hidden mt-3 border border-gray-600">
+                <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-5 border border-gray-600">
                     <div
                         className={`h-full bg-red-500 transition-all duration-500 ease-out ${player.heat >= 80 ? 'animate-pulse' : ''}`}
                         style={{ width: `${Math.max(Math.min(player.heat, 100), 2)}%` }}
                     />
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
                         Heat: {player.heat}
                     </span>
                 </div>
-                <div className="relative w-full bg-gray-700 h-6 rounded-lg overflow-hidden mt-3 border border-gray-600">
+                <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-5 border border-gray-600">
                     <div
                         className="h-full bg-green-600 transition-all duration-500 ease-out"
                         style={{ width: `${Math.max((player.credits / player.max_credits) * 100, 2)}%` }}
                     />
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
                         Credits: {player.credits} / {player.max_credits}
                     </span>
                 </div>
