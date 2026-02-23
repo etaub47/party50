@@ -11,9 +11,19 @@ import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
 import PurchaseOverlay from "@/components/PurchaseOverlay";
 
+interface PlayerStats {
+  id: string;
+  name: string;
+  role: string;
+  total_intel: number;
+  max_intel: number;
+  total_heat: number;
+  current_credits: number;
+  max_credits: number;
+}
+
 interface Item { id?: string, name: string, type?: string, intel?: number, heat?: number }
 interface PlayerItem { item: Item | null }
-interface Player { id: string, name: string, player_item: PlayerItem[] }
 
 export default function WelcomePage() {
   const [name, setName] = useState('')
@@ -32,18 +42,14 @@ export default function WelcomePage() {
   useEffect(() => {
     const initializeAuth = async () => {
 
-      // 1. First, check if a session already exists locally (non-blocking)
+      // first check if a session already exists locally (non-blocking)
       const { data: { session } } = await supabase.auth.getSession();
-
       let user = session?.user;
 
-      // 2. If no session, force the sign-in immediately
+      // if no session, force the sign-in immediately
       if (!user) {
-        console.log("No session found. Attempting anonymous sign-in...");
         const { data, error } = await supabase.auth.signInAnonymously();
-
         if (error) {
-          console.error("Sign-in failed:", error.message);
           alert("CRITICAL AUTH ERROR: " + error.message);
           setIsLoading(false);
           return;
@@ -51,78 +57,34 @@ export default function WelcomePage() {
         user = data.user ?? undefined;
       }
 
-      // 3. Now that we have a user, fetch the player data
+      // now that we have a user, fetch the player data
       if (user) {
-        const { data: playerData, error: playerError } = await supabase
-            .from('player')
-            .select('*, player_item(player_id, item_id, item:item_id (name, type, intel, heat))')
+        const { data: stats, error: playerError } = await supabase
+            .from('player_stats')
+            .select('*')
             .eq('id', user.id)
             .single();
+        const { data: inventory } = await supabase
+            .from('player_item')
+            .select('item:item_id (name, type, intel, heat)')
+            .eq('player_id', user.id);
 
-        if (playerData && !playerError) {
-          const player: Player = playerData as Player;
-
-          if (player?.name) {
-            setName(player.name);
-            setPlayerData(player);
-            setItems(player.player_item || []);
-            setIsRegistered(true);
-            setHasDossier(player.player_item?.some(
-                (pi: any) => pi.item?.name === 'Agent Dossier'
-            ) || false);
-          }
+        if (stats && !playerError) {
+          const currentStats = stats as PlayerStats;
+          setName(currentStats.name);
+          setPlayerData(currentStats);
+          setItems(inventory || []);
+          setIsRegistered(true);
+          setHasDossier(inventory?.some((pi: any) =>
+              pi.item?.[0]?.name === 'Agent Dossier'
+          ) || false);
         }
       }
-
       setIsLoading(false);
     };
 
     const ignored = initializeAuth();
   }, [supabase]);
-
-  {/*
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data, error } = await supabase
-            .from('player')
-            .select('*, player_item(player_id, item_id, item:item_id (name, type, intel, heat))')
-            .eq('id', user.id)
-            .single();
-
-        if (error)
-          console.error("Check user error:", error.message);
-
-        if (data && !error) {
-          const player: Player = data as Player;
-          if (player?.name) {
-            setName(player.name);
-            setPlayerData(player);
-            setItems(player.player_item || []);
-            setIsRegistered(true);
-            setHasDossier(player.player_item?.some(
-                (pi: any) => pi.item?.name === 'Agent Dossier'
-            ) || false);
-          }
-        }
-
-      } else {
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) {
-          console.error("Anonymous Sign-in Error:", error.message);
-          alert("Auth Error: " + error.message); // This will show on your phone
-        } else {
-          console.log("Anonymous Sign-in Success:", data.user?.id);
-        }
-      }
-      setIsLoading(false);
-    };
-
-    const ignored = checkUser();
-  }, [supabase]);
-  */ }
 
   const handleStartGame = async (e: any) => {
     e.preventDefault();
@@ -149,8 +111,16 @@ export default function WelcomePage() {
     formData.append('playerId', user.id)
 
     const result = await registerPlayer(formData as any)
-    if (result.success && result.player) {
-      setPlayerData(result.player);
+    if (result.success) {
+
+      // re-fetch from the view after successful registration to get initial stats
+      const { data: stats } = await supabase
+          .from('player_stats')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+      setPlayerData(stats as PlayerStats);
       setItems([]);
       setHasDossier(false);
       setIsRegistered(true);

@@ -12,8 +12,8 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
         let channel: any;
 
         const fetchPlayers = async () => {
-            const { data } = await supabase.from('player').select('*')
-                .order('intel', { ascending: false }).order('heat', { ascending: true });
+            const { data } = await supabase.from('player_stats').select('*')
+                .order('total_intel', { ascending: false }).order('total_heat', { ascending: true });
             if (data) setPlayers(data);
         };
 
@@ -29,10 +29,17 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
                 .on(
                     'postgres_changes' as any,
                     { event: '*', schema: 'public', table: 'player' },
-                    (payload: any) => {
-                        console.log('Change received!', payload);
-                        fetchPlayers();
-                    }
+                    () => fetchPlayers()
+                )
+                .on(
+                    'postgres_changes' as any,
+                    { event: '*', schema: 'public', table: 'player_item' },
+                    () => fetchPlayers()
+                )
+                .on(
+                    'postgres_changes' as any,
+                    { event: '*', schema: 'public', table: 'player_event' },
+                    () => fetchPlayers()
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
@@ -63,9 +70,9 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
                                         <span>Specialization: {p.role}</span>
                                     </div>
                                     <div className="text-xs text-gray-400 mt-1 flex gap-2">
-                                        <span className="text-blue-300">Intel: {p.intel} / {p.max_intel}</span>
-                                        <span className="text-red-300">Heat: {p.heat}</span>
-                                        <span className="text-green-300">Credits: {p.credits} / {p.max_credits}</span>
+                                        <span className="text-blue-300">Intel: {p.total_intel} / {p.max_intel}</span>
+                                        <span className="text-red-300">Heat: {p.total_heat}</span>
+                                        <span className="text-green-300">Credits: {p.current_credits} / {p.max_credits}</span>
                                     </div>
                                 </div>
                             )}

@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
-interface Player { id: string, name: string, role: string, intel: number, max_intel: number,
-    heat: number, credits: number, max_credits: number }
+interface Player { id: string, name: string, role: string, total_intel: number, max_intel: number,
+    total_heat: number, current_credits: number, max_credits: number }
 
 // initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
@@ -16,8 +16,8 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
 
         const fetchPlayer = async () => {
             const { data } = await supabase
-                .from('player')
-                .select('name, role, intel, max_intel, heat, credits, max_credits')
+                .from('player_stats')
+                .select('id, name, role, total_intel, max_intel, total_heat, current_credits, max_credits')
                 .eq('id', player.id)
                 .single();
             if (data) {
@@ -38,10 +38,17 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 .on(
                     'postgres_changes' as any,
                     { event: '*', schema: 'public', table: 'player', filter: `id=eq.${player.id}` },
-                    (payload: any) => {
-                        console.log('Change received!', payload);
-                        fetchPlayer();
-                    }
+                    () => fetchPlayer()
+                )
+                .on(
+                    'postgres_changes' as any,
+                    { event: '*', schema: 'public', table: 'player_item', filter: `player_id=eq.${player.id}` },
+                    () => fetchPlayer()
+                )
+                .on(
+                    'postgres_changes' as any,
+                    { event: '*', schema: 'public', table: 'player_event', filter: `player_id=eq.${player.id}` },
+                    () => fetchPlayer()
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
@@ -71,28 +78,28 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-4 border border-gray-600">
                     <div
                         className="h-full bg-blue-500 transition-all duration-500 ease-out"
-                        style={{ width: `${Math.max((player.intel / player.max_intel) * 100, 2)}%` }}
+                        style={{ width: `${Math.max((player.total_intel / player.max_intel) * 100, 2)}%` }}
                     />
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                        Intel: {player.intel} / {player.max_intel}
+                        Intel: {player.total_intel} / {player.max_intel}
                     </span>
                 </div>
                 <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-5 border border-gray-600">
                     <div
-                        className={`h-full bg-red-500 transition-all duration-500 ease-out ${player.heat >= 80 ? 'animate-pulse' : ''}`}
-                        style={{ width: `${Math.max(Math.min(player.heat, 100), 2)}%` }}
+                        className={`h-full bg-red-500 transition-all duration-500 ease-out ${player.total_heat >= 80 ? 'animate-pulse' : ''}`}
+                        style={{ width: `${Math.max(Math.min(player.total_heat, 100), 2)}%` }}
                     />
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                        Heat: {player.heat}
+                        Heat: {player.total_heat}
                     </span>
                 </div>
                 <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-5 border border-gray-600">
                     <div
                         className="h-full bg-green-600 transition-all duration-500 ease-out"
-                        style={{ width: `${Math.max((player.credits / player.max_credits) * 100, 2)}%` }}
+                        style={{ width: `${Math.max((player.current_credits / player.max_credits) * 100, 2)}%` }}
                     />
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                        Credits: {player.credits} / {player.max_credits}
+                        Credits: {player.current_credits} / {player.max_credits}
                     </span>
                 </div>
             </div>
