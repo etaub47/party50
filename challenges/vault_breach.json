@@ -1,0 +1,50 @@
+{
+  "id": "vault_breach",
+  "title": "Server Room Infiltration",
+  "description": "Bypass the biometric lock to access the central mainframe.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "laser-cutter-uuid",
+    "required_role": "Hacker"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "1984",
+        "attempts_allowed": 1,
+        "failure_event_id": "wrong-passcode-uuid",
+        "hints": [
+          "The first two digits are the day Bob was born.",
+          "The third digit is the number of windows in the kitchen.",
+          "The final digit is the number of cats in this house."
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "DECISION",
+      "instruction": "The alarm is silent, but security is approaching. Do you hide or run?",
+      "config": {
+        "options": [
+          { "id": "hide", "label": "Hide in the vents" },
+          { "id": "run", "label": "Sprint for the exit", "event_id": "nearly-caught-uuid" }
+        ],
+        "voting": "majority"
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "instruction": "You only have time to grab one item. Which one do you take?",
+      "config": {
+        "options": [
+          { "id": "envelope", "label": "Manilla envelope", "item_id": "manilla-envelope-uuid" },
+          { "id": "disk", "label": "The floppy disk", "item_id": "floppy-disk-uuid" }
+        ],
+        "voting": "individual"
+      }
+    }
+  ]
+}
