@@ -4,12 +4,14 @@ import { ChangeEvent, useEffect, useState } from 'react'
 
 import { createClient } from '@/utils/supabase/client'
 import { registerPlayer } from '@/app/actions/register'
-import { executePurchase, PurchaseResult, validatePurchase, ValidationResult } from "@/app/actions/purchase";
+import { useAuth } from "@/hooks/useAuth";
+import { usePurchase } from "@/hooks/usePurchase";
 
 import ProfileView from '@/components/ProfileView'
 import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
 import PurchaseOverlay from "@/components/PurchaseOverlay";
+import WaitingRoom from "@/components/WaitingRoom";
 
 interface PlayerStats {
   id: string;
@@ -26,66 +28,42 @@ interface Item { id?: string, name: string, type?: string, intel?: number, heat?
 interface PlayerItem { item: Item | null }
 
 export default function WelcomePage() {
+
+  const {
+    playerData, setPlayerData, items, setItems, isRegistered, setIsRegistered, isLoading,
+    setIsLoading, activeMission, setActiveMission
+  } = useAuth();
+
+  const {
+    overlay, isProcessing, purchaseItem, confirmPurchase, setOverlay
+  } = usePurchase(playerData?.id, playerData?.role);
+
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
-  const [isRegistered, setIsRegistered] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'profile' | 'inventory' | 'leaderboard'>('profile');
-  const [playerData, setPlayerData] = useState<any | null>(null);
-  const [items, setItems] = useState<any[]>([]);
   const [hasDossier, setHasDossier] = useState(false);
-  const [overlay, setOverlay] = useState<{ type: string, itemName?: string } | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [lastScannedItemId, setLastScannedItemId] = useState<string | null>(null);
   const supabase = createClient()
 
+  // handle the URL parameters that set the active mission
   useEffect(() => {
-    const initializeAuth = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const challengeId = params.get('activeChallenge');
+    const teamId = params.get('teamId');
+    const scanItemId = params.get('scanItem');
 
-      // first check if a session already exists locally (non-blocking)
-      const { data: { session } } = await supabase.auth.getSession();
-      let user = session?.user;
+    if (challengeId && teamId) {
+      setActiveMission({ challengeId, teamId });
+      window.history.replaceState({}, '', '/');
+    }
 
-      // if no session, force the sign-in immediately
-      if (!user) {
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) {
-          alert("CRITICAL AUTH ERROR: " + error.message);
-          setIsLoading(false);
-          return;
-        }
-        user = data.user ?? undefined;
-      }
+    if (scanItemId && playerData?.id) {
+      void purchaseItem(scanItemId);
+      window.history.replaceState({}, '', '/');
+    }
 
-      // now that we have a user, fetch the player data
-      if (user) {
-        const { data: stats, error: playerError } = await supabase
-            .from('player_stats')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-        const { data: inventory } = await supabase
-            .from('player_item')
-            .select('item:item_id (name, type, intel, heat)')
-            .eq('player_id', user.id);
+  }, [playerData?.id, setActiveMission]);
 
-        if (stats && !playerError) {
-          const currentStats = stats as PlayerStats;
-          setName(currentStats.name);
-          setPlayerData(currentStats);
-          setItems(inventory || []);
-          setIsRegistered(true);
-          setHasDossier(inventory?.some((pi: any) =>
-              pi.item?.[0]?.name === 'Agent Dossier'
-          ) || false);
-        }
-      }
-      setIsLoading(false);
-    };
-
-    const ignored = initializeAuth();
-  }, [supabase]);
-
+  // register a new player who has just completed the registration form
   const handleStartGame = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
@@ -129,6 +107,7 @@ export default function WelcomePage() {
     setIsLoading(false);
   }
 
+  // when a player changes tabs, do a new dossier check before switching to the leaderboard
   const handleTabChange = async (tab: 'profile' | 'inventory' | 'leaderboard') => {
     setActiveTab(tab);
 
@@ -150,43 +129,56 @@ export default function WelcomePage() {
     }
   };
 
-  const handleScan = async (itemId: string) => {
-    console.log("Scan initiated for ID:", itemId);
-    setLastScannedItemId(itemId);
-    const result: ValidationResult = await validatePurchase(playerData.id, itemId, playerData.role);
-    console.log("Server response:", result);
+  // abort the current mission (currently only works properly when player is in the waiting room)
+  const handleAbort = async () => {
+    if (!activeMission || !playerData?.id) return;
 
-    if (result.status === 'owned') {
-      setOverlay({ type: 'ERROR_OWNED', itemName: result.itemName ?? 'Unknown Item' });
-    } else if (result.status === 'poor') {
-      setOverlay({ type: 'ERROR_CREDITS', itemName: result.itemName ?? 'Unknown Item' });
-    } else if (result.status === 'confirm') {
-      setOverlay({ type: 'CONFIRM', itemName: result.itemName ?? 'Unknown Item' });
+    // remove the player from the challenge in the DB
+    const { error } = await supabase
+        .from('player_challenge')
+        .delete()
+        .eq('player_id', playerData.id)
+        .eq('challenge_id', activeMission.challengeId);
+
+    // only clear local state if DB deletion was successful
+    if (!error) {
+      setActiveMission(null);
     } else {
-      alert(`Status: ${result.status}. Message: ${result.message || 'No message'}`);
+      console.error("Failed to abort mission:", error.message);
     }
   };
 
-  const handleConfirmPurchase = async () => {
-    if (!playerData?.id || !lastScannedItemId)
-      return;
-
-    setIsProcessing(true);
-    const result: PurchaseResult = await executePurchase(playerData.id, lastScannedItemId, playerData.role);
-    setIsProcessing(false);
-
-    if (result.success) {
-      setOverlay({ type: 'SUCCESS', itemName: result.itemName || 'Item' });
-    } else {
-      setOverlay({ type: 'ERROR_GENERIC', itemName: result.error || 'Transaction Failed' });
-    }
-  };
-
+  // game is loading
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading Game...</div>;
   }
 
+  // player is already registered
   if (isRegistered) {
+
+    // If a mission is active, show the WaitingRoom/MissionRunner instead of tabs
+    if (activeMission) {
+      return (
+          <div className="p-10 text-center flex flex-col items-center justify-center min-h-screen">
+            <WaitingRoom
+                teamId={activeMission.teamId}
+                minPlayers={3}
+                onStart={() => {
+                  console.log("Transitioning to Mission Runner...");
+                  // Next step: Swap this for the actual challenge UI
+                }}
+            />
+            <button
+                onClick={() => handleAbort()}
+                className="mt-8 text-red-400 hover:underline text-sm uppercase tracking-widest"
+            >
+              — Abort Mission —
+            </button>
+          </div>
+      );
+    }
+
+    // show the standard tabs
     return (
         <div className="p-10 text-center flex flex-col items-center">
           <div className="flex gap-4 mb-6 border-b border-gray-700">
@@ -215,7 +207,7 @@ export default function WelcomePage() {
               <ProfileView initialPlayerData={playerData} />
             </div>
             <div className={activeTab === 'inventory' ? 'block' : 'hidden'}>
-              <InventoryView initialItems={items} playerId={playerData?.id} onScan={handleScan} />
+              <InventoryView initialItems={items} playerId={playerData?.id} />
             </div>
             <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
               <Leaderboard hasDossier={hasDossier} />
@@ -227,14 +219,14 @@ export default function WelcomePage() {
                   overlay={overlay}
                   isProcessing={isProcessing}
                   onClose={() => setOverlay(null)}
-                  onConfirm={handleConfirmPurchase}
+                  onConfirm={confirmPurchase}
               />
           )}
         </div>
     )
   }
 
-  {/* not yet registered */}
+  // not yet registered
   return (
       <main className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-4xl font-bold mb-8">Corporate Espionage Agent Registration</h1>

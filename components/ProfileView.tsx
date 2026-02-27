@@ -59,12 +59,12 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 });
         };
 
-        const ignored = setupRealtime();
+        void setupRealtime();
 
         return () => {
             if (channel) {
                 console.log("Cleaning up channel:", channel.topic);
-                const ignored = supabase.removeChannel(channel);
+                void supabase.removeChannel(channel);
             }
         };
     }, [player.id]);

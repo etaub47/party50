@@ -1,0 +1,15 @@
+header,schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+-- Table and Policy Export,public,player,Allow anonymous insert,PERMISSIVE,{public},INSERT,null,true
+-- Table and Policy Export,public,player,Players can see scores,PERMISSIVE,{authenticated},SELECT,true,null
+-- Table and Policy Export,public,player,Players can manage their own profile,PERMISSIVE,{authenticated},ALL,(auth.uid() = id),null
+-- Table and Policy Export,public,item,Everyone can query items,PERMISSIVE,{authenticated},SELECT,true,null
+-- Table and Policy Export,public,event,Everyone can query events,PERMISSIVE,{authenticated},SELECT,true,null
+-- Table and Policy Export,public,player_event,Players can view all player events,PERMISSIVE,"{anon,authenticated}",SELECT,true,null
+-- Table and Policy Export,public,player_event,Players can manage their own events,PERMISSIVE,{authenticated},ALL,(auth.uid() = player_id),null
+-- Table and Policy Export,public,player_item,Players can view all player items,PERMISSIVE,"{anon,authenticated}",SELECT,true,null
+-- Table and Policy Export,public,player_item,Players can manage their own items,PERMISSIVE,{authenticated},ALL,(player_id = auth.uid()),null
+-- Table and Policy Export,public,player_challenge,player_challenge_lobby_view,PERMISSIVE,"{anon,authenticated}",SELECT,(status = 'WAITING'::text),null
+-- Table and Policy Export,public,player_challenge,player_challenge_select_team,PERMISSIVE,"{anon,authenticated}",SELECT,(team_id IN ( SELECT get_my_team_ids() AS get_my_team_ids)),null
+-- Table and Policy Export,public,player_challenge,player_challenge_update_own,PERMISSIVE,"{anon,authenticated}",UPDATE,(auth.uid() = player_id),null
+-- Table and Policy Export,public,player_challenge,player_challenge_select_own,PERMISSIVE,"{anon,authenticated}",SELECT,(auth.uid() = player_id),null
+-- Table and Policy Export,public,player_challenge,Users can insert own challenge,PERMISSIVE,"{anon,authenticated}",INSERT,null,(auth.uid() = player_id)

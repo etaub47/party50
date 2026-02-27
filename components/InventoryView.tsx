@@ -8,8 +8,8 @@ interface PlayerItem { player_id?: string, item_id?: string, item: Item | null }
 // initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
 
-export default function InventoryView({ initialItems, playerId, onScan }: {
-    initialItems: any[], playerId: string, onScan: (id: string) => void }) {
+export default function InventoryView({ initialItems, playerId }: {
+    initialItems: any[], playerId: string }) {
 
     const [items, setItems] = useState<PlayerItem[]>(() => {
         return [...initialItems].sort((a, b) =>
@@ -69,12 +69,12 @@ export default function InventoryView({ initialItems, playerId, onScan }: {
                 });
         };
 
-        const ignored = setupRealtime();
+        void setupRealtime();
 
         return () => {
             if (channel) {
                 console.log("Cleaning up channel:", channel.topic);
-                const ignored = supabase.removeChannel(channel);
+                void supabase.removeChannel(channel);
             }
         };
     }, [playerId]);
@@ -90,26 +90,6 @@ export default function InventoryView({ initialItems, playerId, onScan }: {
                     </li>
                 ))}
             </ul>
-
-            {/* temporary */}
-            <div className="mt-10 p-4 border-2 border-dashed border-gray-600 rounded-lg">
-                <h3 className="text-sm font-mono text-gray-400 mb-4 text-center">--- FIELD TEST: ITEM SCANS ---</h3>
-                <div className="flex flex-col gap-2">
-                    <button
-                        onClick={() => onScan('88372c8f-bb5e-4cb6-8580-58b628b0e527')}
-                        className="bg-gray-100 hover:bg-gray-300 text-xs py-2 rounded"
-                    >
-                        Scan: Laser Cutting Tool
-                    </button>
-                    <button
-                        onClick={() => onScan('707d9af2-6725-4e8c-8fa5-9b42162cec01')}
-                        className="bg-gray-100 hover:bg-gray-300 text-xs py-2 rounded"
-                    >
-                        Scan: Agent Dossier
-                    </button>
-                </div>
-            </div>
-
         </div>
     )
 }

@@ -38,7 +38,7 @@ export async function proxy(request: NextRequest) {
 
     // CRITICAL: This line must stay AFTER createServerClient
     // and is what triggers setAll if a session refresh is needed.
-    const ignored = await supabase.auth.getUser();
+    void await supabase.auth.getUser();
 
     return response;
 }
