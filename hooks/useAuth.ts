@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
+export interface ActiveMission {
+    challengeId: string,
+    teamId: string,
+    status: string,
+    currentStep: number
+}
+
 export function useAuth() {
     const [playerData, setPlayerData] = useState<any | null>(null);
     const [items, setItems] = useState<any[]>([]);
     const [isRegistered, setIsRegistered] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeMission, setActiveMission] = useState<{ challengeId: string, teamId: string } | null>(null);
+    const [activeMission, setActiveMission] = useState<ActiveMission | null>(null);
     const supabase = createClient();
 
     const refreshAuth = async () => {
@@ -39,7 +46,7 @@ export function useAuth() {
             // check to see if we have an active mission
             const { data: mission, error } = await supabase
                 .from('player_challenge')
-                .select('challenge_id, team_id')
+                .select('challenge_id, team_id, status, current_step')
                 .eq('player_id', user.id)
                 .or('status.eq.WAITING, status.eq.IN_PROGRESS')
                 .maybeSingle();
@@ -48,7 +55,9 @@ export function useAuth() {
             if (mission) {
                 setActiveMission({
                     challengeId: mission.challenge_id,
-                    teamId: mission.team_id
+                    teamId: mission.team_id,
+                    status: mission.status,
+                    currentStep: mission.current_step
                 });
             }
         }
@@ -56,7 +65,7 @@ export function useAuth() {
     };
 
     useEffect(() => {
-        refreshAuth();
+        void refreshAuth();
     }, []);
 
     return { playerData, setPlayerData, items, setItems, isRegistered, setIsRegistered, isLoading, setIsLoading,

@@ -26,7 +26,6 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
         };
 
         const setupRealtime = async () => {
-            console.log(player.id)
             const { data: { session } } = await supabase.auth.getSession();
             if (!session || !player.id) return; // don't subscribe if we don't have an ID yet
 

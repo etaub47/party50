@@ -23,7 +23,7 @@ export default function ScanPage() {
                 await joinChallenge(session.user.id, challengeId as string);
             if (result.success) {
                 // redirect back home, but we'll add logic to page.tsx to show the mission
-                router.push(`/?activeChallenge=${challengeId}&teamId=${result.teamId}`)
+                router.push(`/?activeChallenge=${challengeId}&teamId=${result.teamId}&status=${result.status}`)
             } else {
                 alert(result.error || "Failed to join challenge")
                 router.push('/')

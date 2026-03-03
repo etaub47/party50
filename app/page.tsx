@@ -6,12 +6,14 @@ import { createClient } from '@/utils/supabase/client'
 import { registerPlayer } from '@/app/actions/register'
 import { useAuth } from "@/hooks/useAuth";
 import { usePurchase } from "@/hooks/usePurchase";
+import { getMissionManifest, Mission } from '@/app/actions/getMission';
 
 import ProfileView from '@/components/ProfileView'
 import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
 import PurchaseOverlay from "@/components/PurchaseOverlay";
 import WaitingRoom from "@/components/WaitingRoom";
+import MissionRunner from "@/components/MissionRunner";
 
 interface PlayerStats {
   id: string;
@@ -42,6 +44,7 @@ export default function WelcomePage() {
   const [role, setRole] = useState('')
   const [activeTab, setActiveTab] = useState<'profile' | 'inventory' | 'leaderboard'>('profile');
   const [hasDossier, setHasDossier] = useState(false);
+  const [missionData, setMissionData] = useState<any | null>(null);
   const supabase = createClient()
 
   // handle the URL parameters that set the active mission
@@ -49,10 +52,11 @@ export default function WelcomePage() {
     const params = new URLSearchParams(window.location.search);
     const challengeId = params.get('activeChallenge');
     const teamId = params.get('teamId');
+    const status: string|null = params.get('status');
     const scanItemId = params.get('scanItem');
 
-    if (challengeId && teamId) {
-      setActiveMission({ challengeId, teamId });
+    if (challengeId && teamId && status) {
+      setActiveMission({ challengeId, teamId, status, currentStep: 1 });
       window.history.replaceState({}, '', '/');
     }
 
@@ -62,6 +66,18 @@ export default function WelcomePage() {
     }
 
   }, [playerData?.id, setActiveMission]);
+
+  // load the mission data from the server
+  useEffect(() => {
+    const loadMission = async () => {
+      if (!activeMission?.challengeId || missionData) return;
+      const result: { data?: Mission, success: boolean, error?: string } =
+          await getMissionManifest(activeMission.challengeId);
+      if (result.success)
+        setMissionData(result.data);
+    };
+    void loadMission();
+  }, [activeMission?.challengeId]);
 
   // register a new player who has just completed the registration form
   const handleStartGame = async (e: any) => {
@@ -148,25 +164,44 @@ export default function WelcomePage() {
     }
   };
 
+  // updates the active mission to indicate that it has started
+  const handleStartMission = async () => {
+    if (!activeMission) return;
+    setActiveMission({
+      ...activeMission,
+      status: "IN_PROGRESS"
+    });
+  };
+
   // game is loading
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading Game...</div>;
   }
 
-  // player is already registered
-  if (isRegistered) {
+  if (isRegistered) { // player is already registered
+    if (activeMission) { // mission is active
 
-    // If a mission is active, show the WaitingRoom/MissionRunner instead of tabs
-    if (activeMission) {
+      if (activeMission.status === "IN_PROGRESS") { // mission has started
+        if (!missionData) {
+          return <div className="flex items-center justify-center min-h-screen">Decrypting Mission Manifest...</div>;
+        }
+        return (
+            <MissionRunner
+                teamId={activeMission.teamId}
+                missionData={missionData}
+                playerRole={playerData.role}
+                initialStep={activeMission.currentStep}
+                playerId={playerData.id}
+            />
+        );
+      }
+
       return (
           <div className="p-10 text-center flex flex-col items-center justify-center min-h-screen">
             <WaitingRoom
                 teamId={activeMission.teamId}
                 minPlayers={3}
-                onStart={() => {
-                  console.log("Transitioning to Mission Runner...");
-                  // Next step: Swap this for the actual challenge UI
-                }}
+                onStart={() => handleStartMission()}
             />
             <button
                 onClick={() => handleAbort()}

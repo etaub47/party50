@@ -5,7 +5,13 @@ import { revalidatePath } from 'next/cache'
 import fs from 'fs/promises'
 import path from 'path'
 
-export interface JoinChallengeResult { success: boolean, teamId?: string, error?: string }
+export interface JoinChallengeResult {
+    success: boolean,
+    teamId?: string,
+    status?: string,
+    error?: string
+}
+
 export async function joinChallenge(playerId: string, challengeId: string): Promise<JoinChallengeResult> {
 
     console.log("JOIN ATTEMPT:", { playerId, challengeId });
@@ -37,13 +43,14 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
 
         // join the challenge
         console.log("ATTEMPTING INSERT FOR PLAYER:", playerId);
+        let status = "WAITING";
         const { error: joinError} = await supabase
             .from('player_challenge')
             .insert({
                 player_id: playerId,
                 challenge_id: challengeId,
                 team_id: teamId,
-                status: 'WAITING'
+                status: status
             });
 
         if (joinError) {
@@ -59,14 +66,15 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
 
         // if we hit the threshold, flip everyone to IN_PROGRESS
         if (count && count >= challengeDef.requirements.min_players) {
+            status = "IN_PROGRESS";
             await supabase
                 .from('player_challenge')
-                .update({status: 'IN_PROGRESS'})
+                .update({status: status})
                 .eq('team_id', teamId);
         }
 
         revalidatePath('/');
-        return {success: true, teamId};
+        return { success: true, teamId, status };
     } catch (err: any) {
         console.error("FS ERROR:", err.message);
         return { success: false, error: `Configuration error: ${err.message}` };
