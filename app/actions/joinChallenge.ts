@@ -21,6 +21,7 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
         const filePath = path.join(process.cwd(), 'challenges', `${challengeId}.json`);
         console.log("LOOKING FOR FILE AT:", filePath);
         const fileContent = await fs.readFile(filePath, 'utf8');
+        // TODO: check the other requirements besides min_players (and use Mission interface)
         const challengeDef: { requirements: { min_players: number } } = JSON.parse(fileContent);
         console.log("FILE LOADED SUCCESSFULLY");
         const supabase = await createClient();

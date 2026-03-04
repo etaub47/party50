@@ -145,22 +145,33 @@ export default function WelcomePage() {
     }
   };
 
-  // abort the current mission (currently only works properly when player is in the waiting room)
+  // abort the current mission
   const handleAbort = async () => {
-    if (!activeMission || !playerData?.id) return;
 
-    // remove the player from the challenge in the DB
+    // checks and confirmations
+    if (!activeMission || !playerData?.id)
+      return;
+    const confirmed = window.confirm("ABORT MISSION? This will terminate the session for your entire team.");
+    if (!confirmed)
+      return;
+
+    // delete any previous votes associated with the active mission/team
+    await supabase
+        .from('player_vote')
+        .delete()
+        .eq('team_id', activeMission.teamId);
+
+    // delete all rows associated with the active mission's team id
     const { error } = await supabase
         .from('player_challenge')
         .delete()
-        .eq('player_id', playerData.id)
-        .eq('challenge_id', activeMission.challengeId);
+        .eq('team_id', activeMission.teamId);
 
     // only clear local state if DB deletion was successful
     if (!error) {
       setActiveMission(null);
     } else {
-      console.error("Failed to abort mission:", error.message);
+      console.error("Failed to terminate mission:", error.message);
     }
   };
 
@@ -192,6 +203,7 @@ export default function WelcomePage() {
                 playerRole={playerData.role}
                 initialStep={activeMission.currentStep}
                 playerId={playerData.id}
+                onAbort={() => handleAbort()}
             />
         );
       }
@@ -201,14 +213,10 @@ export default function WelcomePage() {
             <WaitingRoom
                 teamId={activeMission.teamId}
                 minPlayers={3}
+                playerId={playerData.id}
                 onStart={() => handleStartMission()}
+                onAbort={() => handleAbort()}
             />
-            <button
-                onClick={() => handleAbort()}
-                className="mt-8 text-red-400 hover:underline text-sm uppercase tracking-widest"
-            >
-              — Abort Mission —
-            </button>
           </div>
       );
     }

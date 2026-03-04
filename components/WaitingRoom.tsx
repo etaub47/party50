@@ -4,12 +4,15 @@ import { createClient } from '@/utils/supabase/client'
 
 const supabase = createClient()
 
-export default function WaitingRoom({ teamId, minPlayers, onStart }: {
+export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onAbort }: {
     teamId: string,
     minPlayers: number,
-    onStart: () => void
+    playerId: string,
+    onStart: () => void,
+    onAbort: () => void
 }) {
     const [currentCount, setCurrentCount] = useState(0)
+    const [isAborted, setIsAborted] = useState(false);
 
     useEffect(() => {
         let channel: any;
@@ -42,25 +45,29 @@ export default function WaitingRoom({ teamId, minPlayers, onStart }: {
         };
 
         const setupRealtime = async () => {
-            if (channel) {
+            if (channel)
                 await supabase.removeChannel(channel);
-            }
-
             await updateTeamStatus();
 
             channel = (supabase as any)
                 .channel(`waiting-${teamId}`)
                 .on(
                     'postgres_changes',
-                    {
-                        event: '*',
-                        schema: 'public',
-                        table: 'player_challenge',
-                        filter: `team_id=eq.${teamId}`
-                    },
+                    { event: '*', schema: 'public', table: 'player_challenge', filter: `team_id=eq.${teamId}` },
                     (payload: any) => {
                         console.log("REALTIME SIGNAL RECEIVED:", payload);
                         updateTeamStatus();
+                    }
+                )
+                .on(
+                    'postgres_changes' as any,
+                    { event: 'DELETE', schema: 'public', table: 'player_challenge', filter: `player_id=eq.${playerId}` },
+                    () => {
+                        if (!isAborted) {
+                            setIsAborted(true);
+                            alert("MISSION ABORTED BY COMMAND. TERMINATING SESSION.");
+                            window.location.reload();
+                        }
                     }
                 )
                 .subscribe((status: string) => {
@@ -97,6 +104,15 @@ export default function WaitingRoom({ teamId, minPlayers, onStart }: {
                     />
                 ))}
             </div>
+            <div className="mt-2 border-red-400/50 pt-2 text-right">
+                <button
+                    onClick={onAbort}
+                    className="text-red-400 hover:text-red-400 text-xs uppercase tracking-tighter"
+                >
+                    Abort Mission
+                </button>
+            </div>
         </div>
+
     );
 }
