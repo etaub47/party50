@@ -1,11 +1,9 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { PlayerItem } from "@/types/dbtypes";
 
-interface Item { id?: string, name: string, type?: string, intel?: number, heat?: number }
-interface PlayerItem { player_id?: string, item_id?: string, item: Item | null }
-
-// initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
 
 export default function InventoryView({ initialItems, playerId }: {

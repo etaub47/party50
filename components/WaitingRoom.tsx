@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import Overlay from "@/components/Overlay";
 
 const supabase = createClient()
 
@@ -11,8 +12,8 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
     onStart: () => void,
     onAbort: () => void
 }) {
-    const [currentCount, setCurrentCount] = useState(0)
-    const [isAborted, setIsAborted] = useState(false);
+    const [ currentCount, setCurrentCount ] = useState(0)
+    const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
 
     useEffect(() => {
         let channel: any;
@@ -62,13 +63,7 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
                 .on(
                     'postgres_changes' as any,
                     { event: 'DELETE', schema: 'public', table: 'player_challenge', filter: `player_id=eq.${playerId}` },
-                    () => {
-                        if (!isAborted) {
-                            setIsAborted(true);
-                            alert("MISSION ABORTED BY COMMAND. TERMINATING SESSION.");
-                            window.location.reload();
-                        }
-                    }
+                    () => setEvictionMessage("The mission has been terminated by an agent.")
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (waiting-${teamId}):`, status);
@@ -89,29 +84,39 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
     const needed = Math.max(0, minPlayers - currentCount);
 
     return (
-        <div className="flex flex-col items-center justify-center p-10 bg-slate-900 rounded-xl border border-blue-500 animate-pulse">
-            <h2 className="text-xl font-bold text-blue-400 mb-2">Team Formation in Progress</h2>
-            <p className="text-white text-lg">
-                {needed > 0
-                    ? `Waiting for ${needed} more agent${needed > 1 ? 's' : ''}...`
-                    : "Team assembled. Commencing mission..."}
-            </p>
-            <div className="mt-4 flex gap-2">
-                {Array.from({ length: minPlayers }).map((_, i) => (
-                    <div
-                        key={i}
-                        className={`w-4 h-4 rounded-full ${i < currentCount ? 'bg-green-500' : 'bg-gray-600'}`}
-                    />
-                ))}
+        <div>
+            <div className="flex flex-col items-center justify-center p-10 bg-slate-900 rounded-xl border border-blue-500 animate-pulse">
+                <h2 className="text-xl font-bold text-blue-400 mb-2">Team Formation in Progress</h2>
+                <p className="text-white text-lg">
+                    {needed > 0
+                        ? `Waiting for ${needed} more agent${needed > 1 ? 's' : ''}...`
+                        : "Team assembled. Commencing mission..."}
+                </p>
+                <div className="mt-4 flex gap-2">
+                    {Array.from({ length: minPlayers }).map((_, i) => (
+                        <div
+                            key={i}
+                            className={`w-4 h-4 rounded-full ${i < currentCount ? 'bg-green-500' : 'bg-gray-600'}`}
+                        />
+                    ))}
+                </div>
+                <div className="mt-2 border-red-400/50 pt-2 text-right">
+                    <button
+                        onClick={onAbort}
+                        className="text-red-400 hover:text-red-400 text-xs uppercase tracking-tighter"
+                    >
+                        Abort Mission
+                    </button>
+                </div>
             </div>
-            <div className="mt-2 border-red-400/50 pt-2 text-right">
-                <button
-                    onClick={onAbort}
-                    className="text-red-400 hover:text-red-400 text-xs uppercase tracking-tighter"
-                >
-                    Abort Mission
-                </button>
-            </div>
+            {evictionMessage && (
+                <Overlay
+                    title="CONNECTION TERMINATED"
+                    message={evictionMessage}
+                    type="INFO"
+                    onClose={() => window.location.reload()}
+                />
+            )}
         </div>
 
     );

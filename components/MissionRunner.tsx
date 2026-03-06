@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Mission } from "@/app/actions/getMission";
 
+import Overlay from "@/components/Overlay";
+
 const supabase = createClient()
 
 export default function MissionRunner({ teamId, missionData, playerRole, initialStep, playerId, onAbort }: {
@@ -14,13 +16,13 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
     playerId: string,
     onAbort: () => void
 }) {
-    const [currentStepIndex, setCurrentStepIndex] = useState(initialStep)
-    const [status, setStatus] = useState('ACTIVE')
-    const [code, setCode] = useState('');
-    const [playerHint, setPlayerHint] = useState<string | null>(null);
-    const [hasVoted, setHasVoted] = useState(false);
-    const [votes, setVotes] = useState<any[]>([]);
-    const [isAborted, setIsAborted] = useState(false);
+    const [ currentStepIndex, setCurrentStepIndex ] = useState(initialStep)
+    const [ status, setStatus ] = useState('ACTIVE')
+    const [ code, setCode ] = useState('');
+    const [ playerHint, setPlayerHint ] = useState<string | null>(null);
+    const [ hasVoted, setHasVoted ] = useState(false);
+    const [ votes, setVotes ] = useState<any[]>([]);
+    const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
 
     if (!missionData || !missionData.steps) return null;
     const currentStep = missionData.steps[currentStepIndex - 1]
@@ -48,13 +50,7 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 .on(
                     'postgres_changes' as any,
                     { event: 'DELETE', schema: 'public', table: 'player_challenge', filter: `player_id=eq.${playerId}` },
-                    () => {
-                        if (isAborted)
-                            return;
-                        setIsAborted(true);
-                        alert("MISSION ABORTED BY COMMAND. TERMINATING SESSION.");
-                        window.location.reload();
-                    }
+                    () => setEvictionMessage("The mission has been terminated by an agent.")
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
@@ -297,16 +293,25 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                         </div>
                     )}
 
-                    <div className="mt-2 border-red-400/50 pt-2 text-right">
-                        <button
-                            onClick={onAbort}
-                            className="text-red-400 hover:text-red-400 text-xs uppercase tracking-tighter"
-                        >
-                            Abort Mission
-                        </button>
-                    </div>
-
                 </div>
+            )}
+
+            <div className="mt-2 border-red-400/50 pt-2 text-right">
+                <button
+                    onClick={onAbort}
+                    className="text-red-400 hover:text-red-400 text-xs uppercase tracking-tighter"
+                >
+                    Abort Mission
+                </button>
+            </div>
+
+            {evictionMessage && (
+                <Overlay
+                    title="CONNECTION TERMINATED"
+                    message={evictionMessage}
+                    type="INFO"
+                    onClose={() => window.location.reload()}
+                />
             )}
         </div>
     )

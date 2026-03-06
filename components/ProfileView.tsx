@@ -1,15 +1,13 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { PlayerStats } from "@/types/dbtypes";
 
-interface Player { id: string, name: string, role: string, total_intel: number, max_intel: number,
-    total_heat: number, current_credits: number, max_credits: number }
-
-// initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
 
 export default function ProfileView({ initialPlayerData }: { initialPlayerData: any }) {
-    const [player, setPlayer] = useState<Player>(initialPlayerData)
+    const [player, setPlayer] = useState<PlayerStats>(initialPlayerData)
 
     useEffect(() => {
         let channel: any;
@@ -21,7 +19,7 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 .eq('id', player.id)
                 .single();
             if (data) {
-                setPlayer(data as Player);
+                setPlayer(data as PlayerStats);
             }
         };
 

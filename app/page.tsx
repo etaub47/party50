@@ -7,27 +7,14 @@ import { registerPlayer } from '@/app/actions/register'
 import { useAuth } from "@/hooks/useAuth";
 import { usePurchase } from "@/hooks/usePurchase";
 import { getMissionManifest, Mission } from '@/app/actions/getMission';
+import { PlayerItem, PlayerStats } from '@/types/dbtypes'
 
 import ProfileView from '@/components/ProfileView'
 import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
-import PurchaseOverlay from "@/components/PurchaseOverlay";
+import Overlay from "@/components/Overlay";
 import WaitingRoom from "@/components/WaitingRoom";
 import MissionRunner from "@/components/MissionRunner";
-
-interface PlayerStats {
-  id: string;
-  name: string;
-  role: string;
-  total_intel: number;
-  max_intel: number;
-  total_heat: number;
-  current_credits: number;
-  max_credits: number;
-}
-
-interface Item { id?: string, name: string, type?: string, intel?: number, heat?: number }
-interface PlayerItem { item: Item | null }
 
 export default function WelcomePage() {
 
@@ -37,7 +24,7 @@ export default function WelcomePage() {
   } = useAuth();
 
   const {
-    overlay, isProcessing, purchaseItem, confirmPurchase, setOverlay
+    purchaseOverlay, isProcessing, purchaseItem
   } = usePurchase(playerData?.id, playerData?.role);
 
   const [name, setName] = useState('')
@@ -45,6 +32,8 @@ export default function WelcomePage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'inventory' | 'leaderboard'>('profile');
   const [hasDossier, setHasDossier] = useState(false);
   const [missionData, setMissionData] = useState<any | null>(null);
+  const [abortOverlayVisible, setAbortOverlayVisible] = useState(false);
+
   const supabase = createClient()
 
   // handle the URL parameters that set the active mission
@@ -147,12 +136,7 @@ export default function WelcomePage() {
 
   // abort the current mission
   const handleAbort = async () => {
-
-    // checks and confirmations
     if (!activeMission || !playerData?.id)
-      return;
-    const confirmed = window.confirm("ABORT MISSION? This will terminate the session for your entire team.");
-    if (!confirmed)
       return;
 
     // delete any previous votes associated with the active mission/team
@@ -197,14 +181,27 @@ export default function WelcomePage() {
           return <div className="flex items-center justify-center min-h-screen">Decrypting Mission Manifest...</div>;
         }
         return (
-            <MissionRunner
-                teamId={activeMission.teamId}
-                missionData={missionData}
-                playerRole={playerData.role}
-                initialStep={activeMission.currentStep}
-                playerId={playerData.id}
-                onAbort={() => handleAbort()}
-            />
+            <div>
+              <MissionRunner
+                  teamId={activeMission.teamId}
+                  missionData={missionData}
+                  playerRole={playerData.role}
+                  initialStep={activeMission.currentStep}
+                  playerId={playerData.id}
+                  onAbort={() => setAbortOverlayVisible(true)}
+              />
+
+              {abortOverlayVisible && (
+                <Overlay
+                    title="CRITICAL WARNING"
+                    message="ABORT MISSION? Connection for all team members will be severed."
+                    type="ERROR"
+                    onConfirm={handleAbort}
+                    onClose={() => setAbortOverlayVisible(false)}
+                    isProcessing={isProcessing}
+                />
+              )}
+            </div>
         );
       }
 
@@ -215,8 +212,18 @@ export default function WelcomePage() {
                 minPlayers={3}
                 playerId={playerData.id}
                 onStart={() => handleStartMission()}
-                onAbort={() => handleAbort()}
+                onAbort={() => setAbortOverlayVisible(true)}
             />
+            {abortOverlayVisible && (
+                <Overlay
+                    title="CRITICAL WARNING"
+                    message="ABORT MISSION? Connection for all team members will be severed."
+                    type="ERROR"
+                    onConfirm={handleAbort}
+                    onClose={() => setAbortOverlayVisible(false)}
+                    isProcessing={isProcessing}
+                />
+            )}
           </div>
       );
     }
@@ -257,14 +264,18 @@ export default function WelcomePage() {
             </div>
           </div>
 
-          {overlay && (
-              <PurchaseOverlay
-                  overlay={overlay}
+          {/* overlays */}
+          {purchaseOverlay && (
+              <Overlay
+                  title={purchaseOverlay.title}
+                  message={purchaseOverlay.message}
+                  type={purchaseOverlay.type}
+                  onConfirm={purchaseOverlay.onConfirm}
+                  onClose={purchaseOverlay.onClose}
                   isProcessing={isProcessing}
-                  onClose={() => setOverlay(null)}
-                  onConfirm={confirmPurchase}
               />
           )}
+
         </div>
     )
   }

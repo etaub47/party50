@@ -1,5 +1,4 @@
-CREATE TABLE player_vote
-(
+CREATE TABLE player_vote (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     challenge_id TEXT NOT NULL,
     team_id      UUID NOT NULL,
@@ -18,9 +17,7 @@ CREATE POLICY player_vote_insert_own
     ON player_vote
     AS PERMISSIVE FOR INSERT
     TO anon, authenticated
-    WITH CHECK (
-        (auth.uid() = player_id)
-    );
+    WITH CHECK (auth.uid() = player_id);
 
 CREATE POLICY player_vote_select_team
     ON player_vote

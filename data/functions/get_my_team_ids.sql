@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION get_my_team_ids()
     RETURNS SETOF uuid
     LANGUAGE sql
-    SECURITY DEFINER -- This is the key: it runs with bypass permissions
+    SECURITY DEFINER
     SET search_path = public
 AS $$
 SELECT team_id

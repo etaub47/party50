@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
-// initialize OUTSIDE the component to prevent multiple client instances
 const supabase= createClient()
 
 export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {

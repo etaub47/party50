@@ -1,5 +1,4 @@
-create table public.item
-(
+create table public.item (
     id    uuid not null default gen_random_uuid(),
     name  text null,
     type  text null,
@@ -7,7 +6,7 @@ create table public.item
     intel integer null default 0,
     heat  integer null default 0,
     constraint item_pkey primary key (id)
-) TABLESPACE pg_default;
+);
 
 INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALUES
     ('1e074410-fef1-41af-858a-93baceec2559', 'Tranquilizer Dart Gun', 'Key', '40', '0', '0'),

@@ -1,39 +1,77 @@
 import { useState } from 'react';
-import { validatePurchase, executePurchase } from "@/app/actions/purchase";
+import { validatePurchase, executePurchase, PurchaseResult } from "@/app/actions/purchase";
+import { OverlayProps } from "@/components/Overlay";
 
 export function usePurchase(playerId: string, playerRole: string) {
-    const [overlay, setOverlay] = useState<{ type: string, itemName?: string } | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [lastScannedItemId, setLastScannedItemId] = useState<string | null>(null);
+    const [ purchaseOverlay, setPurchaseOverlay ] = useState<OverlayProps | null>(null);
+    const [ isProcessing, setIsProcessing ] = useState(false);
 
+    // perform checks and validations before purchasing an item
     const purchaseItem = async (itemId: string) => {
-        if (!playerId) return;
-        setLastScannedItemId(itemId);
-        const result = await validatePurchase(playerId, itemId, playerRole);
+        if (!playerId)
+            return;
+
+        const result =
+            await validatePurchase(playerId, itemId, playerRole);
 
         if (result.status === 'owned') {
-            setOverlay({ type: 'ERROR_OWNED', itemName: result.itemName ?? 'Unknown Item' });
+            setPurchaseOverlay({
+                title: 'Purchase Failure',
+                message: `You already possess the ${result.itemName}.`,
+                type: 'ERROR',
+                onClose: () => setPurchaseOverlay(null)
+            });
         } else if (result.status === 'poor') {
-            setOverlay({ type: 'ERROR_CREDITS', itemName: result.itemName ?? 'Unknown Item' });
+            setPurchaseOverlay({
+                title: 'Purchase Failure',
+                message: `Insufficient credits to acquire the ${result.itemName}.`,
+                type: 'ERROR',
+                onClose: () => setPurchaseOverlay(null)
+            });
         } else if (result.status === 'confirm') {
-            setOverlay({ type: 'CONFIRM', itemName: result.itemName ?? 'Unknown Item' });
-        } else {
-            alert(result.message || 'Scan Error');
+            setPurchaseOverlay({
+                title: 'Confirm Purchase',
+                message: `Confirm acquisition of the ${result.itemName} for ${result.cost} credits?`,
+                type: 'CONFIRM',
+                onConfirm: () => { confirmPurchase(itemId); },
+                onClose: () => setPurchaseOverlay(null)
+            });
+        } else /* error */ {
+            setPurchaseOverlay({
+                title: 'Scan Error',
+                message: `Data link failure`,
+                type: 'ERROR',
+                onClose: () => setPurchaseOverlay(null)
+            });
         }
     };
 
-    const confirmPurchase = async () => {
-        if (!playerId || !lastScannedItemId) return;
+    // purchase an item
+    const confirmPurchase = async (itemId: string) => {
+        if (!playerId || !itemId)
+            return;
+
         setIsProcessing(true);
-        const result = await executePurchase(playerId, lastScannedItemId, playerRole);
+        const result: PurchaseResult =
+            await executePurchase(playerId, itemId, playerRole);
         setIsProcessing(false);
 
         if (result.success) {
-            setOverlay({ type: 'SUCCESS', itemName: result.itemName || 'Item' });
+            setPurchaseOverlay({
+                title: 'Acquisition Complete',
+                message: `${result.itemName ?? 'Item'} has been added to your inventory.`,
+                type: 'SUCCESS',
+                onClose: () => setPurchaseOverlay(null)
+            });
         } else {
-            setOverlay({ type: 'ERROR_GENERIC', itemName: result.error || 'Transaction Failed' });
+            setPurchaseOverlay({
+                title: 'Transaction Failed',
+                message: `${result.errorMessage}`,
+                type: 'ERROR',
+                onClose: () => setPurchaseOverlay(null)
+            });
         }
     };
 
-    return { overlay, isProcessing, purchaseItem, confirmPurchase, setOverlay };
+    return { purchaseOverlay, isProcessing, purchaseItem };
 }
