@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { PlayerItem } from "@/types/dbtypes";
+import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase= createClient()
 
 export default function InventoryView({ initialItems, playerId }: {
     initialItems: any[], playerId: string }) {
+
+    const [ isConnected, setIsConnected ] = useState(false);
 
     const [items, setItems] = useState<PlayerItem[]>(() => {
         return [...initialItems].sort((a, b) =>
@@ -60,9 +63,13 @@ export default function InventoryView({ initialItems, playerId }: {
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
-                    if (status === 'CHANNEL_ERROR') {
-                        console.log("Retrying subscription in 1s...");
-                        setTimeout(setupRealtime, 1000);
+                    setIsConnected(status === 'SUBSCRIBED');
+                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+                    if (isFailure) {
+                        console.log("Retrying subscription in 2s...");
+                        setTimeout(() => {
+                            void setupRealtime();
+                        }, 2000);
                     }
                 });
         };
@@ -79,6 +86,9 @@ export default function InventoryView({ initialItems, playerId }: {
 
     return (
         <div className="mt-8 w-full max-w-md">
+            <div className="w-full flex justify-end mb-2">
+                <ConnectionStatus isActive={isConnected} />
+            </div>
             <h2 className="text-2xl font-bold mb-4">Inventory</h2>
             <ul className="space-y-2">
                 {items.map(i => (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Mission } from "@/app/actions/getMission";
 import Overlay from "@/components/Overlay";
+import ConnectionStatus from "@/components/ConnectionStatus";
 import { PlayerAttempt } from "@/types/dbtypes";
 
 const supabase = createClient()
@@ -24,9 +25,12 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
     const [ votes, setVotes ] = useState<any[]>([]);
     const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
     const [ localAttempts, setLocalAttempts ] = useState(0);
+    const [ connectionStatus, setConnectionStatus ] =
+        useState<{mission: boolean, votes: boolean}>({ mission: false, votes: false });
 
     if (!missionData || !missionData.steps) return null;
     const currentStep = missionData.steps[currentStepIndex - 1]
+    const isFullyConnected = connectionStatus.mission && connectionStatus.votes;
 
     // fetch persistent attempts on mount/step change
     useEffect(() => {
@@ -78,6 +82,8 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
+                    const isActive = status === 'SUBSCRIBED';
+                    setConnectionStatus(prev => ({ ...prev, mission: isActive }));
                     const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
                     if (isFailure) {
                         console.log("Retrying subscription in 2s...");
@@ -118,6 +124,8 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
+                    const isActive = status === 'SUBSCRIBED';
+                    setConnectionStatus(prev => ({ ...prev, votes: isActive }));
                     const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
                     if (isFailure) {
                         console.log("Retrying subscription in 2s...");
@@ -275,7 +283,8 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
 
     return (
         <div className="p-6 bg-black border border-blue-900 rounded-lg max-w-lg w-full">
-            <h2 className="text-blue-400 font-mono mb-2">{missionData.title}</h2>
+            <h2 className="text-blue-400 font-mono">{missionData.title}</h2>
+            <ConnectionStatus isActive={isFullyConnected} />
             <div className="mb-4 text-yellow-200 text-sm">
                 <span className="block">{missionData.description}</span>
                 <span className="text-xs">Step {currentStepIndex} of {missionData.steps.length}</span>

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Overlay from "@/components/Overlay";
+import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase = createClient()
 
@@ -12,8 +13,10 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
     onStart: () => void,
     onAbort: () => void
 }) {
+
     const [ currentCount, setCurrentCount ] = useState(0)
     const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
+    const [ isConnected, setIsConnected ] = useState(false);
 
     useEffect(() => {
         let channel: any;
@@ -71,6 +74,7 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
+                    setIsConnected(status === 'SUBSCRIBED');
                     const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
                     if (isFailure) {
                         console.log("Retrying subscription in 2s...");
@@ -92,6 +96,9 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
 
     return (
         <div>
+            <div className="w-full flex justify-end mb-2">
+                <ConnectionStatus isActive={isConnected} />
+            </div>
             <div className="flex flex-col items-center justify-center p-10 bg-slate-900 rounded-xl border border-blue-500 animate-pulse">
                 <h2 className="text-xl font-bold text-blue-400 mb-2">Team Formation in Progress</h2>
                 <p className="text-white text-lg">

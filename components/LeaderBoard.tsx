@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase= createClient()
 
 export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
     const [players, setPlayers] = useState<any[]>([])
+
+    const [ isConnected, setIsConnected ] = useState(false);
 
     useEffect(() => {
         let channel: any;
@@ -46,6 +49,7 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
+                    setIsConnected(status === 'SUBSCRIBED');
                     const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
                     if (isFailure) {
                         console.log("Retrying subscription in 2s...");
@@ -68,6 +72,9 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
 
     return (
         <div className="mt-8 w-full max-w-md">
+            <div className="w-full flex justify-end mb-2">
+                <ConnectionStatus isActive={isConnected} />
+            </div>
             <h2 className="text-2xl font-bold mb-4">Active Agents</h2>
             <ul className="space-y-2">
                 { players.map(p => (

@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { PlayerStats } from "@/types/dbtypes";
+import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase= createClient()
 
 export default function ProfileView({ initialPlayerData }: { initialPlayerData: any }) {
-    const [player, setPlayer] = useState<PlayerStats>(initialPlayerData)
+    const [ player, setPlayer ] = useState<PlayerStats>(initialPlayerData)
+    const [ isConnected, setIsConnected ] = useState(false);
 
     useEffect(() => {
         let channel: any;
@@ -50,6 +52,7 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
+                    setIsConnected(status === 'SUBSCRIBED');
                     const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
                     if (isFailure) {
                         console.log("Retrying subscription in 2s...");
@@ -72,6 +75,9 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
 
     return (
         <div className="mt-8 w-full max-w-xl flex flex-col gap-2 items-center">
+            <div className="w-full flex justify-end mb-2">
+                <ConnectionStatus isActive={isConnected} />
+            </div>
             <h2 className="text-2xl font-bold">{player.name}</h2>
             <span className="text-blue-400">{player.role}</span>
 
