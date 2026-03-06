@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
@@ -17,12 +18,15 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
         };
 
         const setupRealtime = async () => {
-            await supabase.auth.getSession();
+            if (channel)
+                await supabase.removeChannel(channel);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session)
+                return;
+
             await fetchPlayers();
 
-            // create a unique name for this specific mount instance
             const channelName = `leaderboard-${Date.now()}`;
-
             channel = supabase
                 .channel(channelName) // unique name avoids 'phx_close' collisions
                 .on(
@@ -42,6 +46,13 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
+                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+                    if (isFailure) {
+                        console.log("Retrying subscription in 2s...");
+                        setTimeout(() => {
+                            void setupRealtime();
+                        }, 2000);
+                    }
                 });
         };
 

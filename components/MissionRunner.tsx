@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Mission } from "@/app/actions/getMission";
-
 import Overlay from "@/components/Overlay";
+import { PlayerAttempt } from "@/types/dbtypes";
 
 const supabase = createClient()
 
@@ -16,25 +16,44 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
     playerId: string,
     onAbort: () => void
 }) {
+
     const [ currentStepIndex, setCurrentStepIndex ] = useState(initialStep)
-    const [ status, setStatus ] = useState('ACTIVE')
     const [ code, setCode ] = useState('');
     const [ playerHint, setPlayerHint ] = useState<string | null>(null);
     const [ hasVoted, setHasVoted ] = useState(false);
     const [ votes, setVotes ] = useState<any[]>([]);
     const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
+    const [ localAttempts, setLocalAttempts ] = useState(0);
 
     if (!missionData || !missionData.steps) return null;
     const currentStep = missionData.steps[currentStepIndex - 1]
+
+    // fetch persistent attempts on mount/step change
+    useEffect(() => {
+        const getAttempts = async () => {
+            const { data } = await supabase
+                .from('player_attempt')
+                .select('attempts_used')
+                .eq('player_id', playerId)
+                .eq('challenge_id', missionData.id)
+                .maybeSingle();
+            if (data)
+                setLocalAttempts((data as PlayerAttempt).attempts_used);
+        };
+        if (currentStep.type === 'KEYPAD')
+            void getAttempts();
+    }, [currentStepIndex, missionData.id, playerId]);
 
     // listen for step updates from teammates in realtime
     useEffect(() => {
         let channel: any;
         const setupRealtime = async () => {
+            if (channel)
+                await supabase.removeChannel(channel);
             const { data: { session } } = await supabase.auth.getSession();
             if (!session)
                 return;
-            // create a unique name for this specific mount instance
+
             const channelName = `mission-${teamId}-${Date.now()}`;
             channel = supabase
                 .channel(channelName)
@@ -42,9 +61,14 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                     'postgres_changes' as any,
                     { event: 'UPDATE', schema: 'public', table: 'player_challenge', filter: `team_id=eq.${teamId}` },
                     (payload: any) => {
-                        if (payload.new.current_step !== undefined) {
+                        if (payload.new.status == 'FAILED')
+                            // TODO: we may also want to inform the player of the (bad) consequences
+                            setEvictionMessage("Mission failed.")
+                        else if (payload.new.status == 'COMPLETED')
+                            // TODO: we may also want to inform the player of the (good) consequences
+                            setEvictionMessage("Mission accomplished.")
+                        else if (payload.new.current_step !== undefined)
                             setCurrentStepIndex(payload.new.current_step)
-                        }
                     }
                 )
                 .on(
@@ -54,9 +78,12 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
-                    if (status === 'CHANNEL_ERROR') {
-                        console.log("Retrying subscription in 1s...");
-                        setTimeout(setupRealtime, 1000);
+                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+                    if (isFailure) {
+                        console.log("Retrying subscription in 2s...");
+                        setTimeout(() => {
+                            void setupRealtime();
+                        }, 2000);
                     }
                 });
         };
@@ -75,10 +102,12 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
     useEffect(() => {
         let channel: any;
         const setupRealtime = async () => {
+            if (channel)
+                await supabase.removeChannel(channel);
             const { data: { session } } = await supabase.auth.getSession();
             if (!session)
                 return;
-            // create a unique name for this specific mount instance
+
             const channelName = `votes-${teamId}-${Date.now()}`;
             channel = supabase
                 .channel(channelName)
@@ -89,9 +118,12 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
-                    if (status === 'CHANNEL_ERROR') {
-                        console.log("Retrying subscription in 1s...");
-                        setTimeout(setupRealtime, 1000);
+                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+                    if (isFailure) {
+                        console.log("Retrying subscription in 2s...");
+                        setTimeout(() => {
+                            void setupRealtime();
+                        }, 2000);
                     }
                 });
         };
@@ -187,22 +219,59 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
 
     // update DB so everyone advances in sync
     const advanceStep = async () => {
+        setCode(''); // Clear the input field for the next possible step
         const nextStep = currentStepIndex + 1
         const hasNextStep = missionData.steps.some((s: any) => s.order === nextStep);
         if (hasNextStep) {
-            const { error } = await supabase
+            await supabase
                 .from('player_challenge')
                 .update({ current_step: nextStep })
                 .eq('team_id', teamId);
-            if (error)
-                console.error("Advancement failed:", error.message);
         } else {
-            setStatus('COMPLETED')
+            await supabase
+                .from('player_challenge')
+                .update({ status: 'COMPLETED' })
+                .eq('team_id', teamId);
         }
     }
 
-    if (status === 'COMPLETED')
-        return <div className="text-green-400">Mission Accomplished</div>
+    // called when the player submits a keypad code
+    const handleSubmitCode = async () => {
+
+        // advance the mission step if the solution is correct
+        if (code === currentStep.config.solution) {
+            void advanceStep();
+            return;
+        }
+
+        // handle failure
+        const isHacker = playerRole === 'Hacker';
+        const maxAllowed = isHacker ? 3 : 1;
+        const nextAttemptCount = localAttempts + 1;
+
+        // upsert the persistent attempt record and the local state variable
+        await supabase
+            .from('player_attempt')
+            .upsert({
+                player_id: playerId,
+                challenge_id: missionData.id,
+                attempts_used: nextAttemptCount
+            }, { onConflict: 'player_id, challenge_id' });
+
+        setLocalAttempts(nextAttemptCount);
+
+        // determine if it's a total failure and burn the mission for the whole team
+        if (nextAttemptCount >= maxAllowed) {
+            await supabase
+                .from('player_challenge')
+                .update({ status: 'FAILED' })
+                .eq('team_id', teamId);
+        } else {
+            // TODO: improve the UI here, maybe using the Overlay component
+            alert(`ACCESS DENIED. Attempts remaining: ${maxAllowed - nextAttemptCount}`);
+            setCode('');
+        }
+    };
 
     return (
         <div className="p-6 bg-black border border-blue-900 rounded-lg max-w-lg w-full">
@@ -232,12 +301,7 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                             maxLength={4}
                         />
                         <button
-                            onClick={() => {
-                                if (code === currentStep.config.solution)
-                                    void advanceStep();
-                                else
-                                    alert("ACCESS DENIED");
-                            }}
+                            onClick={() => handleSubmitCode()}
                             className="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-3 rounded uppercase tracking-widest text-sm"
                         >
                             Submit Code
@@ -246,8 +310,9 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
 
                     <div className="p-4 bg-blue-900/30 border border-blue-500/50 rounded text-blue-200 text-sm italic">
                         <span className="text-red-500 font-bold block mb-1 uppercase text-xs">Warning:</span>
-                        Only the first code entered by <b>ANY</b> member of the team will be accepted. You have
-                        only <b>ONE</b> chance to enter the correct code, or you will fail the mission. Good luck!
+                        Only the first code entered by <b>ANY</b> member of the team will be accepted. You
+                        have <b>ONE</b> chance to enter the correct code, or you will fail the mission.
+                        (Hackers get three attempts instead of one.)
                     </div>
 
                 </div>
@@ -288,7 +353,7 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                     {missionData.requirements.min_players > 1 && currentStep.config.voting === 'individual' && (
                         <div className="p-4 bg-blue-900/30 border border-blue-500/50 rounded text-blue-200 text-sm italic">
                             <span className="text-red-500 font-bold block mb-1 uppercase text-xs">Note:</span>
-                            This decision is individual and will not impact the other members of your team.
+                            This decision is individual and will <b>NOT</b> impact the other members of your team.
                             Poor decisions may have consequences.
                         </div>
                     )}

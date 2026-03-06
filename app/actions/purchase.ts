@@ -2,7 +2,6 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { PostgrestError } from "@supabase/supabase-js";
 import { Item } from "@/types/dbtypes";
 
 export interface ValidationResult {

@@ -16,10 +16,16 @@ CREATE POLICY player_allow_anonymous_insert
     ON player
     AS PERMISSIVE FOR INSERT
     TO anon, authenticated
-    USING (true);
+    WITH CHECK (true);
 
 CREATE POLICY player_view_all
     ON player
     AS PERMISSIVE FOR SELECT
-    TO anon, authenticated
+    TO authenticated
     USING (true);
+
+CREATE POLICY player_manage_own
+    ON player
+    AS PERMISSIVE FOR ALL
+    TO authenticated
+    USING (auth.uid() = id);

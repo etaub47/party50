@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 
-export default function ScanItemPage() {
+export default function ScanItem() {
     const router = useRouter()
     const { itemId } = useParams()
 

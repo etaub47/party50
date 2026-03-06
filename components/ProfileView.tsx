@@ -24,12 +24,13 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
         };
 
         const setupRealtime = async () => {
+            if (channel)
+                await supabase.removeChannel(channel);
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session || !player.id) return; // don't subscribe if we don't have an ID yet
+            if (!session || !player.id)
+                return;
 
-            // create a unique name for this specific mount instance
             const channelName = `profile-${Date.now()}`;
-
             channel = supabase
                 .channel(channelName) // unique name avoids 'phx_close' collisions
                 .on(
@@ -49,9 +50,12 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
-                    if (status === 'CHANNEL_ERROR') {
-                        console.log("Retrying subscription in 1s...");
-                        setTimeout(setupRealtime, 1000);
+                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+                    if (isFailure) {
+                        console.log("Retrying subscription in 2s...");
+                        setTimeout(() => {
+                            void setupRealtime();
+                        }, 2000);
                     }
                 });
         };

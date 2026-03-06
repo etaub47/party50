@@ -49,9 +49,13 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
             if (channel)
                 await supabase.removeChannel(channel);
             await updateTeamStatus();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session)
+                return;
 
+            const channelName = `waiting-${Date.now()}`;
             channel = (supabase as any)
-                .channel(`waiting-${teamId}`)
+                .channel(channelName)
                 .on(
                     'postgres_changes',
                     { event: '*', schema: 'public', table: 'player_challenge', filter: `team_id=eq.${teamId}` },
@@ -66,10 +70,13 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
                     () => setEvictionMessage("The mission has been terminated by an agent.")
                 )
                 .subscribe((status: string) => {
-                    console.log(`Realtime status (waiting-${teamId}):`, status);
-                    if (status === 'CHANNEL_ERROR') {
-                        console.log("Retrying waiting-room subscription in 1s...");
-                        setTimeout(setupRealtime, 1000);
+                    console.log(`Realtime status (${channelName}):`, status);
+                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+                    if (isFailure) {
+                        console.log("Retrying subscription in 2s...");
+                        setTimeout(() => {
+                            void setupRealtime();
+                        }, 2000);
                     }
                 });
         };

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import fs from 'fs/promises'
 import path from 'path'
+import { PlayerChallenge } from "@/types/dbtypes";
 
 export interface JoinChallengeResult {
     success: boolean,
@@ -13,18 +14,39 @@ export interface JoinChallengeResult {
 }
 
 export async function joinChallenge(playerId: string, challengeId: string): Promise<JoinChallengeResult> {
-
     console.log("JOIN ATTEMPT:", { playerId, challengeId });
+    const supabase = await createClient();
 
     try {
+        const { data } = await supabase
+            .from('player_challenge')
+            .select('*')
+            .eq('player_id', playerId)
+            .eq('challenge_id', challengeId)
+            .maybeSingle();
+
+        // any row in the player_challenge table should prevent this player joining again
+        // only players who have not yet attempted (or aborted) the challenge are eligible
+        if (data) {
+            const player_challenge: PlayerChallenge = data as PlayerChallenge;
+            switch (player_challenge.status) {
+                case "COMPLETED":
+                    return { success: false, error: "You have already completed this mission." };
+                case "FAILED":
+                    return { success: false, error: "You have previously failed this mission." };
+                case "WAITING":
+                case "IN_PROGRESS":
+                    return { success: false, error: "You are already engaged with this mission." };
+            }
+        }
+
         // load the challenge definition from the JSON file
         const filePath = path.join(process.cwd(), 'challenges', `${challengeId}.json`);
         console.log("LOOKING FOR FILE AT:", filePath);
         const fileContent = await fs.readFile(filePath, 'utf8');
-        // TODO: check the other requirements besides min_players (and use Mission interface)
+        // TODO: check the mission requirements, refactor to use getMission.ts
         const challengeDef: { requirements: { min_players: number } } = JSON.parse(fileContent);
         console.log("FILE LOADED SUCCESSFULLY");
-        const supabase = await createClient();
 
         // check for an existing WAITING team for this specific challenge
         const { data: existingTeam, error} = await supabase

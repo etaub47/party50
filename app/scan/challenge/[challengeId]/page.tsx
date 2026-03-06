@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { joinChallenge, JoinChallengeResult } from '@/app/actions/joinChallenge'
 import { createClient } from '@/utils/supabase/client'
 
-export default function ScanPage() {
+export default function ScanChallenge() {
     const router = useRouter()
     const { challengeId } = useParams()
     const supabase = createClient()
@@ -22,9 +22,10 @@ export default function ScanPage() {
             const result: JoinChallengeResult =
                 await joinChallenge(session.user.id, challengeId as string);
             if (result.success) {
-                // redirect back home, but we'll add logic to page.tsx to show the mission
+                // redirect back home, and page.tsx has the logic to show the mission
                 router.push(`/?activeChallenge=${challengeId}&teamId=${result.teamId}&status=${result.status}`)
             } else {
+                // TODO: can we use the Overlay component instead of an alert?
                 alert(result.error || "Failed to join challenge")
                 router.push('/')
             }
