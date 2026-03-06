@@ -4,8 +4,7 @@
   "description": "Bypass the biometric lock to access the central mainframe.",
   "requirements": {
     "min_players": 3,
-    "required_item_id": "laser-cutter-uuid",
-    "required_role": "Hacker"
+    "required_item_id": "laser-cutter-uuid"
   },
   "steps": [
     {

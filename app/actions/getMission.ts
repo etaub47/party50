@@ -9,8 +9,7 @@ export interface Mission {
     description: string,
     requirements: {
         min_players: number,
-        required_item_id?: string,
-        required_role?: string
+        required_item_id?: string
     },
     steps: [{
         order: number,
