@@ -3,6 +3,13 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 
+export interface Option {
+    id: string,
+    label: string,
+    event_id?: string,
+    item_id?: string
+}
+
 export interface Mission {
     id: string,
     title: string,
@@ -20,11 +27,7 @@ export interface Mission {
             instruction?: string,
             voting?: string,
             hints?: string[],
-            options?: [{
-                id: string,
-                label: string,
-                event_id?: string
-            }]
+            options?: Option[]
         }
     }]
 }

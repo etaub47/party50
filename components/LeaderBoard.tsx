@@ -1,5 +1,6 @@
 'use client'
 
+import { PlayerStats } from "@/types/dbtypes";
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import ConnectionStatus from "@/components/ConnectionStatus";
@@ -15,9 +16,12 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
         let channel: any;
 
         const fetchPlayers = async () => {
-            const { data } = await supabase.from('player_stats').select('*')
-                .order('total_intel', { ascending: false }).order('total_heat', { ascending: true });
-            if (data) setPlayers(data);
+            const { data } = await supabase
+                .from('player_stats')
+                .select('*')
+                .order('total_intel', { ascending: false })
+                .order('total_heat', { ascending: true });
+            if (data) setPlayers(data as PlayerStats[]);
         };
 
         const setupRealtime = async () => {

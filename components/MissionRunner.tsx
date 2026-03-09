@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
-import { Mission } from "@/app/actions/getMission";
-import Overlay from "@/components/Overlay";
+import { Mission, Option } from "@/app/actions/getMission";
+import { processStepConsequences } from "@/app/actions/processConsequences";
 import ConnectionStatus from "@/components/ConnectionStatus";
-import { PlayerAttempt } from "@/types/dbtypes";
+import Overlay from "@/components/Overlay";
+import { PlayerAttempt, PlayerVote } from "@/types/dbtypes";
+import { createClient } from '@/utils/supabase/client'
+import { useEffect, useState } from 'react'
 
 const supabase = createClient()
 
@@ -22,7 +23,8 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
     const [ code, setCode ] = useState('');
     const [ playerHint, setPlayerHint ] = useState<string | null>(null);
     const [ hasVoted, setHasVoted ] = useState(false);
-    const [ votes, setVotes ] = useState<any[]>([]);
+    const [ votes, setVotes ] = useState<PlayerVote[]>([]);
+    const [ evictionTitle, setEvictionTitle ] = useState<string | null>(null);
     const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
     const [ localAttempts, setLocalAttempts ] = useState(0);
     const [ connectionStatus, setConnectionStatus ] =
@@ -64,21 +66,34 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 .on(
                     'postgres_changes' as any,
                     { event: 'UPDATE', schema: 'public', table: 'player_challenge', filter: `team_id=eq.${teamId}` },
-                    (payload: any) => {
-                        if (payload.new.status == 'FAILED')
-                            // TODO: we may also want to inform the player of the (bad) consequences
-                            setEvictionMessage("Mission failed.")
-                        else if (payload.new.status == 'COMPLETED')
-                            // TODO: we may also want to inform the player of the (good) consequences
-                            setEvictionMessage("Mission accomplished.")
-                        else if (payload.new.current_step !== undefined)
+                    async (payload: any) => {
+                        if (payload.new.status == 'FAILED') {
+                            setEvictionTitle("MISSION FAILED");
+                            setEvictionMessage("An incorrect keypad code triggered the alarm!");
+                        } else if (payload.new.status == 'COMPLETED') {
+                            setEvictionTitle("MISSION ACCOMPLISHED");
+                            const { data} = await supabase
+                                .from('player_item')
+                                .select('item(name)')
+                                .eq('player_id', playerId)
+                                .order('created_at', {ascending: false})
+                                .limit(1)
+                                .maybeSingle();
+                            const result = data as { item: { name: string } | null } | null;
+                            const itemName: string | undefined = data ? result?.item?.name : undefined;
+                            setEvictionMessage(itemName ? `Asset Secured: ${itemName}` : '');
+                        } else if (payload.new.current_step !== undefined) {
                             setCurrentStepIndex(payload.new.current_step)
+                        }
                     }
                 )
                 .on(
                     'postgres_changes' as any,
                     { event: 'DELETE', schema: 'public', table: 'player_challenge', filter: `player_id=eq.${playerId}` },
-                    () => setEvictionMessage("The mission has been terminated by an agent.")
+                    () => {
+                        setEvictionTitle("MISSION TERMINATED");
+                        setEvictionMessage("The mission has been terminated by an agent.")
+                    }
                 )
                 .subscribe((status: string) => {
                     console.log(`Realtime status (${channelName}):`, status);
@@ -136,6 +151,7 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 });
         };
 
+        // call it when the page loads
         void fetchVotes();
         void setupRealtime();
 
@@ -171,35 +187,82 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
         void assignHint();
     }, [currentStepIndex, teamId]); // Re-run if the step changes
 
-    // check to make sure we have all the votes in
-    const evaluateWinCondition = (currentVotes: any[]) => {
-        const totalPlayers = 3; // Or dynamic from missionData.requirements
-        const votingType = currentStep.config.voting;
+    // check to see if we have all the votes in and process consequences
+    const evaluateWinCondition = async (currentVotes: PlayerVote[]) => {
+        const totalPlayers = missionData.requirements.min_players;
+        const votingType = currentStep.config.voting!;
+
+        // everyone gets a chance to vote even if a majority has already been reached
+        if (currentVotes.length < totalPlayers)
+            return;
+
+        // the majority vote will determine the consequences for everyone on the team
         if (votingType === 'majority') {
-            // Find if any option has > 50%
+
+            // determine the winning option
             const counts: Record<string, number> = {};
             currentVotes.forEach(v => counts[v.option_id] = (counts[v.option_id] || 0) + 1);
-            const winner = Object.entries(counts).find(([_, count]) => count > totalPlayers / 2);
-            if (winner) void advanceStep();
+            const winner: [string, number] | undefined =
+                Object.entries(counts).find(([_, count]) => count > totalPlayers / 2);
+            if (!winner)
+                return;
+            const winningOption: Option | undefined=
+                currentStep.config.options!.find(o => o.id === winner[0]);
+            if (!winningOption)
+                return;
+
+            // conditionally associated the event (or item) with all players on the team
+            // this method should be idempotent by design
+            await processStepConsequences({
+                playerIds: currentVotes.map(t => t.player_id!),
+                challengeId: missionData.id,
+                stepIndex: currentStepIndex,
+                eventId: winningOption.event_id,
+                itemId: winningOption.item_id
+            });
+
+            // advance to the next step (or complete the mission)
+            void advanceStep();
+
         } else if (votingType === 'individual') {
-            // Everyone must vote (unanimity of participation)
-            if (currentVotes.length >= totalPlayers) void advanceStep();
+
+            // loop through every vote and trigger consequences.
+            for (const vote of currentVotes) {
+                const chosenOption: Option | undefined =
+                    currentStep.config.options!.find(o => o.id === vote.option_id);
+                if (!chosenOption)
+                    return;
+
+                // conditionally associated the event (or item) with all players on the team
+                // this method should be idempotent by design
+                await processStepConsequences({
+                    playerIds: [vote.player_id],
+                    challengeId: missionData.id,
+                    stepIndex: currentStepIndex,
+                    eventId: chosenOption.event_id,
+                    itemId: chosenOption.item_id
+                });
+            }
+
+            // advance to the next step (or complete the mission)
+            void advanceStep();
         }
     };
 
     // look up the latest votes
     const fetchVotes = async () => {
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('player_vote')
             .select('id, challenge_id, team_id, player_id, step, option_id')
             .eq('team_id', teamId)
-            .eq('step', currentStepIndex); // only count votes for the current step
-
-        console.log(data);
+            .eq('challenge_id', missionData.id)
+            .eq('step', currentStepIndex);
+        if (error) { console.log(error.message); return; }
         if (data) {
-            setVotes(data);
+            const votes: PlayerVote[] = data as PlayerVote[];
+            setVotes(votes);
             setHasVoted(data.some(v => v.player_id === playerId));
-            evaluateWinCondition(data);
+            await evaluateWinCondition(votes);
         }
     };
 
@@ -215,26 +278,41 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                 step: currentStepIndex,
                 option_id: optionId
             });
-        if (error) {
-            console.log(error);
-            setHasVoted(false);
-        } else {
-            // manually trigger a fetch so the voter sees (1/3) immediately
-            // without waiting for the Realtime round-trip
-            await fetchVotes();
-        }
+        if (error) { console.log(error); setHasVoted(false); return; }
+
+        // fetch all the votes currently in the DB
+        const { data, error: error2 } = await supabase
+            .from('player_vote')
+            .select('id, challenge_id, team_id, player_id, step, option_id')
+            .eq('team_id', teamId)
+            .eq('challenge_id', missionData.id)
+            .eq('step', currentStepIndex);
+        if (error2) { console.log(error2.message); return; }
+
+        // construct the "true state" by combining DB data plus the vote we sent
+        // (in case the insert statement didn't clear by the time we pull the votes)
+        // update the local vote count so that we show it in the UI
+        const currentVotes: PlayerVote[] = data as PlayerVote[] || [];
+        const alreadyCounted = currentVotes.some(v => v.player_id === playerId);
+        const finalVotes: PlayerVote[] = alreadyCounted ? currentVotes :
+            [...currentVotes, { player_id: playerId, option_id: optionId } as PlayerVote];
+        setVotes(finalVotes);
+
+        // check to see if we have all the votes in and process consequences
+        await evaluateWinCondition(finalVotes);
     };
 
     // update DB so everyone advances in sync
     const advanceStep = async () => {
-        setCode(''); // Clear the input field for the next possible step
+        setCode(''); // clear the input field for the next possible step
         const nextStep = currentStepIndex + 1
         const hasNextStep = missionData.steps.some((s: any) => s.order === nextStep);
         if (hasNextStep) {
             await supabase
                 .from('player_challenge')
                 .update({ current_step: nextStep })
-                .eq('team_id', teamId);
+                .eq('team_id', teamId)
+                .eq('current_step', currentStepIndex);
         } else {
             await supabase
                 .from('player_challenge')
@@ -334,7 +412,7 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
                     {hasVoted ? (
                         <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded text-center">
                             <p className="text-blue-400 animate-pulse">
-                                Vote Recorded. Waiting for teammates ({votes.length}/3)...
+                                Vote Recorded. Waiting for teammates({votes.length}/3)...
                             </p>
                         </div>
                     ) : (
@@ -381,8 +459,8 @@ export default function MissionRunner({ teamId, missionData, playerRole, initial
 
             {evictionMessage && (
                 <Overlay
-                    title="CONNECTION TERMINATED"
-                    message={evictionMessage}
+                    title={evictionTitle || "MISSION TERMINATED"}
+                    message={evictionMessage || ""}
                     type="INFO"
                     onClose={() => window.location.reload()}
                 />

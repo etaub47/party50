@@ -17,7 +17,7 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
         const fetchPlayer = async () => {
             const { data } = await supabase
                 .from('player_stats')
-                .select('id, name, role, total_intel, max_intel, total_heat, current_credits, max_credits')
+                .select('*')
                 .eq('id', player.id)
                 .single();
             if (data) {

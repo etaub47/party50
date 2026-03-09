@@ -27,12 +27,21 @@ export interface PlayerItem {
 }
 
 export interface PlayerStats {
-    id: string;
-    name: string;
-    role: string;
-    total_intel: number;
-    max_intel: number;
-    total_heat: number;
-    current_credits: number;
-    max_credits: number;
+    id: string,
+    name: string,
+    role: string,
+    total_intel: number,
+    max_intel: number,
+    total_heat: number,
+    current_credits: number,
+    max_credits: number
+}
+
+export interface PlayerVote {
+    id?: string,
+    challenge_id?: string,
+    team_id?: string,
+    player_id: string,
+    step?: number,
+    option_id: string
 }
