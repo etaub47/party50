@@ -19,3 +19,7 @@ INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALU
     ('d83c10ed-c2c8-47af-987c-fe8115f0cdf8', 'RFID Keycard Replicator', 'Key', '40', '0', '0'),
     ('e16ac235-511b-42e6-9ae3-8481f963a221', 'Recon Readout', 'Tool', '50', '0', '0'),
     ('e4d2bd62-daee-4686-bf4b-5108c4d8512f', '8TB Thumb Drive', 'Tool', '50', '0', '0');
+
+INSERT INTO public.item(name, type, cost, intel, heat) VALUES
+    ('Manilla Envelope', 'Intel', 0, 15, 10),
+    ('Floppy Disk', 'Intel', 0, 10, 5);

@@ -44,7 +44,7 @@ export default function WelcomePage() {
     const status: string|null = params.get('status');
     const scanItemId = params.get('scanItem');
 
-    if (challengeId && teamId && status) {
+    if (challengeId && teamId && status && !activeMission) {
       setActiveMission({ challengeId, teamId, status, currentStep: 1 });
       window.history.replaceState({}, '', '/');
     }
@@ -54,19 +54,19 @@ export default function WelcomePage() {
       window.history.replaceState({}, '', '/');
     }
 
-  }, [playerData?.id, setActiveMission]);
+  }, [playerData?.id, activeMission, setActiveMission]);
 
   // load the mission data from the server
   useEffect(() => {
     const loadMission = async () => {
-      if (!activeMission?.challengeId || missionData) return;
+      if (!activeMission?.challengeId || missionData?.id === activeMission.challengeId) return;
       const result: { data?: Mission, success: boolean, error?: string } =
           await getMissionManifest(activeMission.challengeId);
       if (result.success)
         setMissionData(result.data);
     };
     void loadMission();
-  }, [activeMission?.challengeId]);
+  }, [activeMission?.challengeId, missionData?.id]);
 
   // register a new player who has just completed the registration form
   const handleStartGame = async (e: any) => {
@@ -176,30 +176,34 @@ export default function WelcomePage() {
   if (isRegistered) { // player is already registered
     if (activeMission) { // mission is active
 
-      if (activeMission.status === "IN_PROGRESS") { // mission has started
-        if (!missionData) {
-          return <div className="flex items-center justify-center min-h-screen">Decrypting Mission Manifest...</div>;
-        }
+      if (activeMission.status === "IN_PROGRESS") {
         return (
             <div>
-              <MissionRunner
-                  teamId={activeMission.teamId}
-                  missionData={missionData}
-                  playerRole={playerData.role}
-                  initialStep={activeMission.currentStep}
-                  playerId={playerData.id}
-                  onAbort={() => setAbortOverlayVisible(true)}
-              />
+              {!missionData ? (
+                  <div className="flex items-center justify-center min-h-screen">
+                    Decrypting Mission Manifest...
+                  </div>
+              ) : (
+                  <MissionRunner
+                      key={`mission-${activeMission.teamId}`}
+                      teamId={activeMission.teamId}
+                      missionData={missionData}
+                      playerRole={playerData.role}
+                      initialStep={activeMission.currentStep}
+                      playerId={playerData.id}
+                      onAbort={() => setAbortOverlayVisible(true)}
+                  />
+              )}
 
               {abortOverlayVisible && (
-                <Overlay
-                    title="CRITICAL WARNING"
-                    message="ABORT MISSION? Connection for all team members will be severed."
-                    type="ERROR"
-                    onConfirm={handleAbort}
-                    onClose={() => setAbortOverlayVisible(false)}
-                    isProcessing={isProcessing}
-                />
+                  <Overlay
+                      title="CRITICAL WARNING"
+                      message="ABORT MISSION? Connection for all team members will be severed."
+                      type="ERROR"
+                      onConfirm={handleAbort}
+                      onClose={() => setAbortOverlayVisible(false)}
+                      isProcessing={isProcessing}
+                  />
               )}
             </div>
         );

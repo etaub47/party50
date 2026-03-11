@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 export interface ActiveMission {
@@ -16,7 +16,7 @@ export function useAuth() {
     const [activeMission, setActiveMission] = useState<ActiveMission | null>(null);
     const supabase = createClient();
 
-    const refreshAuth = async () => {
+    const refreshAuth = useCallback(async () => {
         const { data: { session } } = await supabase.auth.getSession();
         let user = session?.user;
 
@@ -62,12 +62,15 @@ export function useAuth() {
             }
         }
         setIsLoading(false);
-    };
+    }, [supabase]);
 
     useEffect(() => {
         void refreshAuth();
     }, []);
 
-    return { playerData, setPlayerData, items, setItems, isRegistered, setIsRegistered, isLoading, setIsLoading,
-        activeMission, setActiveMission };
+    return useMemo(() => ({
+        playerData, setPlayerData, items, setItems, isRegistered, setIsRegistered,
+        isLoading, setIsLoading, activeMission, setActiveMission
+    }), [playerData, items, isRegistered, isLoading, activeMission, setPlayerData,
+        setItems, setIsRegistered, setIsLoading, setActiveMission]);
 }

@@ -27,7 +27,7 @@
         "instruction": "The alarm is silent, but security is approaching. Do you hide or run?",
         "options": [
           { "id": "hide", "label": "Hide in the vents" },
-          { "id": "run", "label": "Sprint for the exit", "event_id": "nearly-caught-uuid" }
+          { "id": "run", "label": "Sprint for the exit", "event_id": "793466c4-90dd-4f05-9401-bc8067b0d713" }
         ],
         "voting": "majority"
       }
@@ -38,8 +38,8 @@
       "config": {
         "instruction": "You only have time to grab one item. Which one do you take?",
         "options": [
-          { "id": "envelope", "label": "Manilla envelope", "item_id": "manilla-envelope-uuid" },
-          { "id": "disk", "label": "The floppy disk", "item_id": "floppy-disk-uuid" }
+          { "id": "envelope", "label": "Manilla envelope", "item_id": "694cb215-0c35-499e-81ba-5bb1fbef1266" },
+          { "id": "disk", "label": "The floppy disk", "item_id": "a972c5db-9528-493e-a909-d0d165bea8ef" }
         ],
         "voting": "individual"
       }

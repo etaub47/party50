@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { RealtimeChannel } from "@supabase/realtime-js";
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Overlay from "@/components/Overlay";
 import ConnectionStatus from "@/components/ConnectionStatus";
@@ -18,79 +19,87 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
     const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
     const [ isConnected, setIsConnected ] = useState(false);
 
-    useEffect(() => {
-        let channel: any;
+    const isRetryingRef = useRef(false);
 
-        const updateTeamStatus = async () => {
+    // update the team status indicator based on the number of players who have joined the challenge
+    const updateTeamStatus = async () => {
 
-            // fetch current members of this team
-            const { data, count } = await supabase
+        // fetch current members of this team
+        const { count } = await supabase
+            .from('player_challenge')
+            .select('status', { count: 'exact' })
+            .eq('team_id', teamId);
+
+        const actualCount = count || 0;
+        setCurrentCount(actualCount);
+
+        // if the room is full, flip MY status to IN_PROGRESS and start the mission
+        const { data: { user } } = await supabase.auth.getUser();
+        if (actualCount >= minPlayers && user?.id) {
+            await supabase
                 .from('player_challenge')
-                .select('status', { count: 'exact' })
-                .eq('team_id', teamId);
+                .update({ status: 'IN_PROGRESS' })
+                .eq('team_id', teamId)
+                .eq('player_id', user.id);
+            onStart();
+        }
+    };
 
-            const actualCount = count || 0;
-            setCurrentCount(actualCount);
+    useEffect(() => {
+        const channelName = `waiting-${teamId}-${playerId}-${Date.now()}`;
 
-            // if the room is full, flip MY status to IN_PROGRESS
-            const { data: { user } } = await supabase.auth.getUser();
-            if (actualCount >= minPlayers && user?.id) {
-                await supabase
-                    .from('player_challenge')
-                    .update({ status: 'IN_PROGRESS' })
-                    .eq('team_id', teamId)
-                    .eq('player_id', user.id); // Only flip myself
-            }
-
-            // check if the player should transition to the game
-            if (data?.some(row => row.status === 'IN_PROGRESS')) {
-                onStart();
-            }
-        };
+        let isActive: boolean = true;
+        let channel: RealtimeChannel;
 
         const setupRealtime = async () => {
-            if (channel)
-                await supabase.removeChannel(channel);
             await updateTeamStatus();
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session)
-                return;
+            if (!isActive || !session) return;
 
-            const channelName = `waiting-${Date.now()}`;
-            channel = (supabase as any)
-                .channel(channelName)
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'player_challenge', filter: `team_id=eq.${teamId}` },
+            channel = supabase.channel(channelName)
+                .on('postgres_changes' as any,
+                    { event: 'INSERT', schema: 'public', table: 'player_challenge', filter: `team_id=eq.${teamId}` },
                     (payload: any) => {
-                        console.log("REALTIME SIGNAL RECEIVED:", payload);
-                        updateTeamStatus();
+                        // any row inserted into this table for this player's team warrants an update
+                        console.log("WAITING / INSERT - REALTIME SIGNAL RECEIVED: ", payload);
+                        if (!isActive) return;
+                        void updateTeamStatus();
                     }
                 )
-                .on(
-                    'postgres_changes' as any,
+                .on('postgres_changes' as any,
                     { event: 'DELETE', schema: 'public', table: 'player_challenge', filter: `player_id=eq.${playerId}` },
-                    () => setEvictionMessage("The mission has been terminated by an agent.")
+                    () => {
+                        // if this player's row was deleted, this indicates the mission was aborted by someone
+                        console.log("WAITING / DELETE - REALTIME SIGNAL RECEIVED");
+                        if (!isActive) return;
+                        setEvictionMessage("The mission has been terminated by an agent.")
+                    }
                 )
                 .subscribe((status: string) => {
-                    console.log(`Realtime status (${channelName}):`, status);
-                    setIsConnected(status === 'SUBSCRIBED');
-                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
-                    if (isFailure) {
-                        console.log("Retrying subscription in 2s...");
+                    console.log("WAITING / SUBSCRIBE - STATUS: " + status);
+                    if (!isActive) return;
+                    const isSubscribed = status === 'SUBSCRIBED';
+                    setIsConnected(isSubscribed);
+                    if (!isSubscribed && !isRetryingRef.current) {
+                        isRetryingRef.current = true;
+                        console.log("Waiting Link unstable. Attempting reconnection in 5s...");
                         setTimeout(() => {
-                            void setupRealtime();
-                        }, 2000);
+                            if (isActive) {
+                                isRetryingRef.current = false;
+                                setupRealtime();
+                            }
+                        }, 5000);
                     }
                 });
         };
 
         void setupRealtime();
         return () => {
+            isActive = false;
             if (channel)
                 void supabase.removeChannel(channel);
         };
-    }, [teamId, minPlayers, onStart]);
+    }, [teamId, minPlayers, onStart, playerId]);
 
     const needed = Math.max(0, minPlayers - currentCount);
 
