@@ -74,7 +74,7 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
     }, [player.id]);
 
     return (
-        <div className="mt-8 w-full max-w-xl flex flex-col gap-2 items-center">
+        <div className="mt-4 w-full max-w-xl flex flex-col gap-2 items-center">
             <div className="w-full flex justify-end mb-2">
                 <ConnectionStatus isActive={isConnected} />
             </div>

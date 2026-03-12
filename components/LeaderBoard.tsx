@@ -75,7 +75,7 @@ export default function Leaderboard({ hasDossier }: { hasDossier: boolean }) {
     }, []);
 
     return (
-        <div className="mt-8 w-full max-w-md">
+        <div className="mt-4 w-full max-w-md">
             <div className="w-full flex justify-end mb-2">
                 <ConnectionStatus isActive={isConnected} />
             </div>

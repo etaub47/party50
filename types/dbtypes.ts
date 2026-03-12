@@ -1,15 +1,32 @@
+export interface Event {
+    id?: string,
+    description: string,
+    type: string,
+    intel: number,
+    heat: number,
+    credits: number
+}
+
 export interface Item {
     id?: string,
     name: string,
-    type?: string,
-    intel?: number,
-    heat?: number
+    type: string,
+    intel: number,
+    heat: number,
+    credits: number
 }
 
-export interface PlayerAttempt {
-    player_id?: string,
-    challenge_id?: string,
-    attempts_used: number
+export interface HistoryEvent {
+    player_id: string,
+    event_id: string,
+    created_at: string,
+    event: Event
+}
+
+export interface InventoryItem {
+    player_id: string,
+    item_id: string,
+    item: Item
 }
 
 export interface PlayerChallenge {
@@ -18,12 +35,6 @@ export interface PlayerChallenge {
     team_id?: string,
     status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED',
     current_step: number
-}
-
-export interface PlayerItem {
-    player_id?: string,
-    item_id?: string,
-    item?: Item
 }
 
 export interface PlayerStats {

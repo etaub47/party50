@@ -1,5 +1,6 @@
 'use client'
 
+import HistoryView from "@/components/HistoryView";
 import { ChangeEvent, useEffect, useState } from 'react'
 
 import { createClient } from '@/utils/supabase/client'
@@ -7,7 +8,7 @@ import { registerPlayer } from '@/app/actions/register'
 import { useAuth } from "@/hooks/useAuth";
 import { usePurchase } from "@/hooks/usePurchase";
 import { getMissionManifest, Mission } from '@/app/actions/getMission';
-import { PlayerItem, PlayerStats } from '@/types/dbtypes'
+import { InventoryItem, PlayerStats } from '@/types/dbtypes'
 
 import ProfileView from '@/components/ProfileView'
 import InventoryView from '@/components/InventoryView'
@@ -29,7 +30,7 @@ export default function WelcomePage() {
 
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
-  const [activeTab, setActiveTab] = useState<'profile' | 'inventory' | 'leaderboard'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'inventory' | 'leaderboard' | 'history'>('profile');
   const [hasDossier, setHasDossier] = useState(false);
   const [missionData, setMissionData] = useState<any | null>(null);
   const [abortOverlayVisible, setAbortOverlayVisible] = useState(false);
@@ -113,21 +114,21 @@ export default function WelcomePage() {
   }
 
   // when a player changes tabs, do a new dossier check before switching to the leaderboard
-  const handleTabChange = async (tab: 'profile' | 'inventory' | 'leaderboard') => {
+  const handleTabChange = async (tab: 'profile' | 'inventory' | 'leaderboard' | 'history') => {
     setActiveTab(tab);
 
     // if they click leaderboard, do a quick check to see if they acquired the dossier
     if (tab === 'leaderboard' && playerData?.id) {
       const { data, error } = await supabase
           .from('player_item')
-          .select(`item:item_id (name)`)
+          .select(`item:item_id (id, name, type, intel, heat, credits)`)
           .eq('player_id', playerData.id);
 
       if (error)
         console.error("Dossier check error:", error.message);
 
       if (data && !error) {
-        const playerItems: PlayerItem[] = data as any as PlayerItem[];
+        const playerItems: InventoryItem[] = data as any as InventoryItem[];
         const hasDossier = playerItems?.some(row => row.item?.name === 'Agent Dossier');
         setHasDossier(!!hasDossier);
       }
@@ -254,6 +255,12 @@ export default function WelcomePage() {
             >
               Leaderboard
             </button>
+            <button
+                onClick={() => handleTabChange('history')}
+                className={activeTab === 'history' ? 'border-b-2 border-blue-500' : ''}
+            >
+              History
+            </button>
           </div>
 
           <div className="tab-content max-w-md w-full">
@@ -266,9 +273,11 @@ export default function WelcomePage() {
             <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
               <Leaderboard hasDossier={hasDossier} />
             </div>
+            <div className={activeTab === 'history' ? 'block' : 'hidden'}>
+              <HistoryView playerId={playerData?.id} />
+            </div>
           </div>
 
-          {/* overlays */}
           {purchaseOverlay && (
               <Overlay
                   title={purchaseOverlay.title}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { PlayerItem } from "@/types/dbtypes";
+import { InventoryItem } from "@/types/dbtypes";
 import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase= createClient()
@@ -12,7 +12,7 @@ export default function InventoryView({ initialItems, playerId }: {
 
     const [ isConnected, setIsConnected ] = useState(false);
 
-    const [items, setItems] = useState<PlayerItem[]>(() => {
+    const [items, setItems] = useState<InventoryItem[]>(() => {
         return [...initialItems].sort((a, b) =>
             (a.item?.name || '').localeCompare(b.item?.name || '')
         );
@@ -26,14 +26,14 @@ export default function InventoryView({ initialItems, playerId }: {
 
             const { data, error } = await supabase
                 .from('player_item')
-                .select(`player_id, item_id, item:item_id (name, type, intel, heat)`)
+                .select(`player_id, item_id, item:item_id (name, type, intel, heat, credits)`)
                 .eq('player_id', playerId);
 
             if (error)
                 console.error("Error fetching inventory:", error.message);
 
             if (data && !error) {
-                const playerItems: PlayerItem[] = data as any as PlayerItem[];
+                const playerItems: InventoryItem[] = data as any as InventoryItem[];
 
                 // since we can't easily order by a joined column in the query without complex syntax, we sort with JS
                 const sortedData = playerItems?.sort((a, b) =>
@@ -66,10 +66,10 @@ export default function InventoryView({ initialItems, playerId }: {
                     setIsConnected(status === 'SUBSCRIBED');
                     const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
                     if (isFailure) {
-                        console.log("Retrying subscription in 2s...");
+                        console.log("Retrying subscription in 5s...");
                         setTimeout(() => {
                             void setupRealtime();
-                        }, 2000);
+                        }, 5000);
                     }
                 });
         };
@@ -85,16 +85,40 @@ export default function InventoryView({ initialItems, playerId }: {
     }, [playerId]);
 
     return (
-        <div className="mt-8 w-full max-w-md">
+        <div className="mt-4 w-full max-w-md">
             <div className="w-full flex justify-end mb-2">
                 <ConnectionStatus isActive={isConnected} />
             </div>
             <h2 className="text-2xl font-bold mb-4">Inventory</h2>
             <ul className="space-y-2">
                 {items.map(i => (
-                    <li key={`${i.player_id}-${i.item_id}`} className="p-2 bg-blue-800 rounded-lg flex justify-between">
-                        <span className="text-white">{i.item?.name} <span className="text-xs text-white">{/* ({i.item?.type}) */}</span></span>
-                        {/* <span className="font-mono text-yellow-500">{i.item?.intel}/{i.item?.heat}</span> */}
+                    <li key={`${i.player_id}-${i.item_id}`}
+                        className="p-2 bg-yellow-100 border-1 border-black-800 rounded-lg flex grid grid-cols-4 gap-4 justify-items-start">
+                        <span className="text-black col-span-2">{i.item!.name}</span>
+                        {i.item!.type === 'Intel' && (
+                            <span className="bg-black/75 rounded-lg font-sans">
+                                <button onClick={() => window.location.reload()} className="text-white">
+                                    &nbsp;SHRED&nbsp;
+                                </button>
+                            </span>
+                        )}
+                        <span className="justify-self-end">
+                            {((i.item!.credits > 0) || (i.item!.credits < 0)) && (
+                                <span className="bg-green-700 rounded-lg text-white ml-1 font-mono">
+                                    &nbsp;{i.item!.credits > 0 ? `+${i.item!.credits}` : i.item!.credits}&nbsp;
+                                </span>
+                            )}
+                            {i.item!.intel !== 0 && (
+                                <span className="bg-blue-700 rounded-lg text-white ml-1 font-mono">
+                                    &nbsp;{i.item!.intel > 0 ? `+${i.item!.intel}` : i.item!.intel}&nbsp;
+                                </span>
+                            )}
+                            {i.item!.heat !== 0 && (
+                                <span className="bg-red-700 rounded-lg text-white ml-1 font-mono">
+                                    &nbsp;{i.item!.heat > 0 ? `+${i.item!.heat}` : i.item!.heat}&nbsp;
+                                </span>
+                            )}
+                        </span>
                     </li>
                 ))}
             </ul>
