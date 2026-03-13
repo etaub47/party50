@@ -25,7 +25,7 @@ export default function HistoryView({ playerId }: { playerId: string }) {
             if (error)
                 console.error("Error fetching history:", error.message);
             if (data && !error)
-                setEvents(data as HistoryEvent[]);
+                setEvents(data as any as HistoryEvent[]);
         };
 
         const setupRealtime = async () => {
