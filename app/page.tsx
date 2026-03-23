@@ -28,12 +28,12 @@ export default function WelcomePage() {
     purchaseOverlay, isProcessing, purchaseItem
   } = usePurchase(playerData?.id, playerData?.role);
 
-  const [name, setName] = useState('')
-  const [role, setRole] = useState('')
-  const [activeTab, setActiveTab] = useState<'profile' | 'inventory' | 'leaderboard' | 'history'>('profile');
-  const [hasDossier, setHasDossier] = useState(false);
-  const [missionData, setMissionData] = useState<any | null>(null);
-  const [abortOverlayVisible, setAbortOverlayVisible] = useState(false);
+  const [ name, setName ] = useState('')
+  const [ role, setRole ] = useState('')
+  const [ activeTab, setActiveTab ] = useState<'profile' | 'inventory' | 'leaderboard' | 'history'>('profile');
+  const [ hasDossier, setHasDossier ] = useState(false);
+  const [ missionData, setMissionData ] = useState<any | null>(null);
+  const [ abortOverlayVisible, setAbortOverlayVisible ] = useState(false);
 
   const supabase = createClient()
 
@@ -43,15 +43,15 @@ export default function WelcomePage() {
     const challengeId = params.get('activeChallenge');
     const teamId = params.get('teamId');
     const status: string|null = params.get('status');
-    const scanItemId = params.get('scanItem');
+    const buyItemId = params.get('buyItem');
 
     if (challengeId && teamId && status && !activeMission) {
       setActiveMission({ challengeId, teamId, status, currentStep: 1 });
       window.history.replaceState({}, '', '/');
     }
 
-    if (scanItemId && playerData?.id) {
-      void purchaseItem(scanItemId);
+    if (buyItemId && playerData?.id) {
+      void purchaseItem(buyItemId);
       window.history.replaceState({}, '', '/');
     }
 

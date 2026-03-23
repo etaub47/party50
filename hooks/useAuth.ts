@@ -9,11 +9,11 @@ export interface ActiveMission {
 }
 
 export function useAuth() {
-    const [playerData, setPlayerData] = useState<any | null>(null);
-    const [items, setItems] = useState<any[]>([]);
-    const [isRegistered, setIsRegistered] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [activeMission, setActiveMission] = useState<ActiveMission | null>(null);
+    const [ playerData, setPlayerData ] = useState<any | null>(null);
+    const [ items, setItems ] = useState<any[]>([]);
+    const [ isRegistered, setIsRegistered ] = useState(false);
+    const [ isLoading, setIsLoading ] = useState(true);
+    const [ activeMission, setActiveMission ] = useState<ActiveMission | null>(null);
     const supabase = createClient();
 
     const refreshAuth = useCallback(async () => {

@@ -24,9 +24,18 @@ export interface HistoryEvent {
 }
 
 export interface InventoryItem {
-    player_id: string,
-    item_id: string,
-    item: Item
+    player_id?: string,
+    item_id?: string,
+    created_at?: string,
+    player?: Player,
+    item?: Item
+}
+
+export interface Player {
+    id?: string,
+    name?: string,
+    role?: string,
+    credits?: number
 }
 
 export interface PlayerChallenge {

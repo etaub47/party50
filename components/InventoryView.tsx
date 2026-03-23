@@ -1,5 +1,7 @@
 'use client'
 
+import { shredItem } from "@/app/actions/shredItem";
+import Overlay, { OverlayProps } from "@/components/Overlay";
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { InventoryItem } from "@/types/dbtypes";
@@ -11,12 +13,42 @@ export default function InventoryView({ initialItems, playerId }: {
     initialItems: any[], playerId: string }) {
 
     const [ isConnected, setIsConnected ] = useState(false);
+    const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
+    const [ isShredding, setIsShredding ] = useState(false);
 
     const [items, setItems] = useState<InventoryItem[]>(() => {
         return [...initialItems].sort((a, b) =>
             (a.item?.name || '').localeCompare(b.item?.name || '')
         );
     })
+
+    const initiateShred = (itemId: string, itemName: string) => {
+        setOverlayProps({
+            title: 'CONFIRM DESTRUCTION',
+            message: `Are you sure you want to shred the ${itemName}? This evidence will be permanently destroyed, and its Intel value lost.`,
+            type: 'CONFIRM',
+            onConfirm: () => executeShred(itemId),
+            onClose: () => setOverlayProps(null),
+            isProcessing: isShredding
+        });
+    };
+
+    const executeShred = async (itemId: string) => {
+        setIsShredding(true);
+        setOverlayProps(prev => prev ? { ...prev, isProcessing: true } : null);
+        const result: { success: boolean, error?: string } = await shredItem(playerId, itemId);
+        setIsShredding(false);
+        if (result.success) {
+            setOverlayProps(null);
+        } else {
+            setOverlayProps({
+                title: 'MECHANICAL FAILURE',
+                message: `The shredder jammed: ${result.error}. Please try again.`,
+                type: 'ERROR',
+                onClose: () => setOverlayProps(null)
+            });
+        }
+    };
 
     useEffect(() => {
         let channel: any;
@@ -97,7 +129,7 @@ export default function InventoryView({ initialItems, playerId }: {
                         <span className="text-black col-span-2">{i.item!.name}</span>
                         {i.item!.type === 'Intel' && (
                             <span className="bg-black/75 rounded-lg font-sans">
-                                <button onClick={() => window.location.reload()} className="text-white">
+                                <button onClick={() => initiateShred(i.item_id!, i.item!.name)} className="text-white">
                                     &nbsp;SHRED&nbsp;
                                 </button>
                             </span>
@@ -122,6 +154,7 @@ export default function InventoryView({ initialItems, playerId }: {
                     </li>
                 ))}
             </ul>
+            {overlayProps && <Overlay {...overlayProps} />}
         </div>
     )
 }

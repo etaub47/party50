@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { validatePurchase, executePurchase, PurchaseResult } from "@/app/actions/purchase";
+import { validatePurchase, executePurchase, PurchaseResult } from "@/app/actions/purchaseItem";
 import { OverlayProps } from "@/components/Overlay";
 
 export function usePurchase(playerId: string, playerRole: string) {
