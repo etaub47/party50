@@ -15,12 +15,7 @@ export default function InventoryView({ initialItems, playerId }: {
     const [ isConnected, setIsConnected ] = useState(false);
     const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
     const [ isShredding, setIsShredding ] = useState(false);
-
-    const [items, setItems] = useState<InventoryItem[]>(() => {
-        return [...initialItems].sort((a, b) =>
-            (a.item?.name || '').localeCompare(b.item?.name || '')
-        );
-    })
+    const [ items, setItems ] = useState<InventoryItem[]>(initialItems);
 
     const initiateShred = (itemId: string, itemName: string) => {
         setOverlayProps({
@@ -55,24 +50,16 @@ export default function InventoryView({ initialItems, playerId }: {
 
         const fetchItems = async () => {
             if (!playerId) return;
-
             const { data, error } = await supabase
                 .from('player_item')
-                .select(`player_id, item_id, item:item_id (name, type, intel, heat, credits)`)
-                .eq('player_id', playerId);
-
+                .select(`player_id, item_id, created_at, item:item_id (id, name, type, cost, intel, heat, credits)`)
+                .eq('player_id', playerId)
+                .order('created_at', { ascending: false });
             if (error)
                 console.error("Error fetching inventory:", error.message);
-
             if (data && !error) {
                 const playerItems: InventoryItem[] = data as any as InventoryItem[];
-
-                // since we can't easily order by a joined column in the query without complex syntax, we sort with JS
-                const sortedData = playerItems?.sort((a, b) =>
-                    (a.item?.name || '').localeCompare(b.item?.name || '')
-                ) || [];
-
-                setItems(sortedData);
+                setItems(playerItems);
             }
         };
 
@@ -134,10 +121,18 @@ export default function InventoryView({ initialItems, playerId }: {
                                 </button>
                             </span>
                         )}
+                        {i.item!.type !== 'Intel' && (
+                            <span>&nbsp;</span>
+                        )}
                         <span className="justify-self-end">
-                            {((i.item!.credits > 0) || (i.item!.credits < 0)) && (
+                            {i.item!.credits !== 0 && (
                                 <span className="bg-green-700 rounded-lg text-white ml-1 font-mono">
                                     &nbsp;{i.item!.credits > 0 ? `+${i.item!.credits}` : i.item!.credits}&nbsp;
+                                </span>
+                            )}
+                            {i.item!.cost !== 0 && (
+                                <span className="bg-green-700 rounded-lg text-white ml-1 font-mono">
+                                    &nbsp;{`-${i.item!.cost}`}&nbsp;
                                 </span>
                             )}
                             {i.item!.intel !== 0 && (

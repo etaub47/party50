@@ -9,6 +9,7 @@ create table public.item (
     constraint item_pkey primary key (id)
 );
 
+-- tools
 INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALUES
     ('1e074410-fef1-41af-858a-93baceec2559', 'Tranquilizer Dart Gun', 'Tool', '40', '0', '0'),
     ('3a647af2-f677-4d8f-840e-656c6f88eba6', 'Biometric Voice Modulator', 'Tool', '50', '0', '0'),
@@ -21,6 +22,12 @@ INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALU
     ('e16ac235-511b-42e6-9ae3-8481f963a221', 'Recon Readout', 'Tool', '50', '0', '0'),
     ('e4d2bd62-daee-4686-bf4b-5108c4d8512f', '8TB Thumb Drive', 'Tool', '50', '0', '0');
 
+-- mission rewards
 INSERT INTO public.item(name, type, cost, intel, heat, credits) VALUES
     ('Manilla Envelope', 'Intel', 0, 15, 10, 0),
     ('Floppy Disk', 'Intel', 0, 10, 5, 0);
+
+-- hidden items
+INSERT INTO public.item(name, type, intel, heat, credits) VALUES
+    ('Loose Cash', 'Miscellaneous', 0, 0, 10),
+    ('Discarded Ledger', 'Intel', 5, 2, 0);

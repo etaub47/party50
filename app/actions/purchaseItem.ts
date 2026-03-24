@@ -2,7 +2,6 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { Item } from "@/types/dbtypes";
 
 export interface ValidationResult {
     status: 'error' | 'owned' | 'poor' | 'confirm';
@@ -54,9 +53,8 @@ export async function executePurchase(playerId: string, itemId: string,
     const supabase = await createClient();
 
     // look up the name of the item being purchased
-    const { data: data } =
-        await supabase.from('item').select('name').eq('id', itemId).single();
-    const itemName: string = data ? (data as Item).name : "Item";
+    const { data: itemData } =
+        await supabase.from('item').select('name').eq('id', itemId).single() as { data: { name: string } | null };
 
     // the RPC handles the deduction of credits and the addition of the item atomically
     const { error } = await supabase.rpc('purchase_item_with_discount', {
@@ -70,5 +68,5 @@ export async function executePurchase(playerId: string, itemId: string,
     }
 
     revalidatePath('/');
-    return { success: true, itemName };
+    return { success: true, itemName: itemData?.name };
 }

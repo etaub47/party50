@@ -4,7 +4,13 @@ AS SELECT
     p.id,
     p.name,
     p.role,
-    p.credits AS current_credits,
+
+    (COALESCE((SELECT SUM(i.credits) FROM player_item pi JOIN item i ON pi.item_id = i.id WHERE pi.player_id = p.id), 0) +
+    COALESCE((SELECT SUM(e.credits) FROM player_event pe JOIN event e ON pe.event_id = e.id WHERE pe.player_id = p.id), 0) -
+    COALESCE((SELECT SUM(CASE WHEN p.role = 'Bargain Hunter' THEN FLOOR(i.cost * 0.7) ELSE i.cost END)
+                FROM player_item pi JOIN item i ON pi.item_id = i.id
+                WHERE pi.player_id = p.id AND i.cost > 0
+             ), 0) + 25)::integer AS current_credits,
 
     ( COALESCE((SELECT SUM(i.intel) FROM player_item pi JOIN item i ON pi.item_id = i.id WHERE pi.player_id = p.id), 0) +
       COALESCE((SELECT SUM(e.intel) FROM player_event pe JOIN event e ON pe.event_id = e.id WHERE pe.player_id = p.id), 0)

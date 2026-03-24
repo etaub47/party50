@@ -11,6 +11,7 @@ export interface Item {
     id?: string,
     name: string,
     type: string,
+    cost: number,
     intel: number,
     heat: number,
     credits: number
@@ -34,8 +35,7 @@ export interface InventoryItem {
 export interface Player {
     id?: string,
     name?: string,
-    role?: string,
-    credits?: number
+    role?: string
 }
 
 export interface PlayerChallenge {

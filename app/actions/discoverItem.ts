@@ -48,7 +48,7 @@ export async function handleItemDiscovery(playerId: string, playerRole: string, 
         return {
             type: 'INFO',
             title: 'RESOURCE EXHAUSTED',
-            message: `Agent ${firstFinder.player!.name} already stripped this location at ${timeStr}. The ${itemData.name} is gone.`
+            message: `${firstFinder.player!.name} already stripped this location at ${timeStr}. The ${itemData.name} is gone.`
         };
     }
 
@@ -65,6 +65,6 @@ export async function handleItemDiscovery(playerId: string, playerRole: string, 
         title: 'ITEM SECURED',
         message: isScavenger && firstFinder
             ? `Scavenger Bonus: You recovered the ${itemData.name} overlooked by ${firstFinder.player!.name}!`
-            : `You secured the ${itemData.name}. Intel uploaded to inventory.`
+            : `You secured the ${itemData.name}. Item added to inventory.`
     };
 }

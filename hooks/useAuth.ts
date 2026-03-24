@@ -34,8 +34,9 @@ export function useAuth() {
 
             const { data: inventory } = await supabase
                 .from('player_item')
-                .select('player_id, item_id, item:item_id (name, type, intel, heat)')
-                .eq('player_id', user.id);
+                .select('player_id, item_id, created_at, item:item_id (id, name, type, cost, intel, heat, credits)')
+                .eq('player_id', user.id)
+                .order('created_at', { ascending: false });
 
             if (stats) {
                 setPlayerData(stats);

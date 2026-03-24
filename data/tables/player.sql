@@ -1,7 +1,6 @@
 create table public.player (
     id      uuid    not null default gen_random_uuid(),
     name    text    null     default 'Player'::text,
-    credits integer not null default 20,
     role    text    null,
     constraint player_pkey primary key (id),
     constraint player_id_fkey foreign KEY (id) references auth.users (id)

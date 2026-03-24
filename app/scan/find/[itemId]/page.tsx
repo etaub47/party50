@@ -34,7 +34,7 @@ export default function BuyItem() {
             const overlayProps: OverlayProps = await handleItemDiscovery(player.id!, player.role!, singleItemId);
 
             setIsLoading(false);
-            setOverlayProps({onClose: () => router.push('/?tab=inventory'), ...overlayProps});
+            setOverlayProps({onClose: () => router.push('/'), ...overlayProps});
         }
         void handleScan();
     }, [itemId, router])
