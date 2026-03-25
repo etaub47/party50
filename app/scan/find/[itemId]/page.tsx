@@ -2,53 +2,36 @@
 
 import { handleItemDiscovery } from "@/app/actions/discoverItem";
 import Overlay, { OverlayProps } from "@/components/Overlay";
-import { Player } from "@/types/dbtypes";
-import { createClient } from "@/utils/supabase/client";
+import { useSession } from "@/hooks/useSession";
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 
-export default function BuyItem() {
-    const router = useRouter()
-    const { itemId } = useParams()
-    const supabase = createClient()
-
-    const [ isLoading, setIsLoading ] = useState(true);
-    const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null)
+export default function FindItem() {
+    const router = useRouter();
+    const { player, loading: sessionLoading } = useSession();
+    const { itemId } = useParams();
+    const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
+    const [ hasScanned, setHasScanned ] = useState(false);
 
     useEffect(() => {
+        if (sessionLoading) return;
+        if (!player) { router.push('/'); return; }
         const handleScan = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session?.user || !itemId)
-                { router.push('/'); return; }
-
-            const { data: playerData, error: playerError } = await supabase
-                .from('player')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-            if (!playerData || playerError)
-                { router.push('/'); return; }
-            const player: Player = playerData as Player;
-
+            if (hasScanned || !itemId) return;
+            setHasScanned(true);
             const singleItemId = Array.isArray(itemId) ? itemId[0] : itemId;
-            const overlayProps: OverlayProps = await handleItemDiscovery(player.id!, player.role!, singleItemId);
-
-            setIsLoading(false);
-            setOverlayProps({onClose: () => router.push('/'), ...overlayProps});
+            const overlayProps: OverlayProps = await handleItemDiscovery(player!.id!, player!.role!, singleItemId);
+            setOverlayProps({ onClose: () => router.push('/'), ...overlayProps });
         }
         void handleScan();
-    }, [itemId, router])
+    }, [player, sessionLoading, itemId, hasScanned, router])
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-black text-blue-500 font-mono">
-                <div className="animate-pulse">SCANNING ITEM...</div>
-            </div>
-        );
-    }
-
-    if (!overlayProps) return null;
     return (
-        <Overlay {...overlayProps} />
+        <div className="min-h-screen bg-black flex items-center justify-center font-mono">
+            {(sessionLoading || !overlayProps) &&
+                <div className="text-green-500 animate-pulse text-sm">SCANNING ITEM...</div>
+            }
+            {overlayProps && <Overlay {...overlayProps} />}
+        </div>
     );
 }

@@ -30,4 +30,5 @@ INSERT INTO public.item(name, type, cost, intel, heat, credits) VALUES
 -- hidden items
 INSERT INTO public.item(name, type, intel, heat, credits) VALUES
     ('Loose Cash', 'Miscellaneous', 0, 0, 10),
+    ('Large Credit Stick', 'Miscellaneous', 0, 0, 50),
     ('Discarded Ledger', 'Intel', 5, 2, 0);

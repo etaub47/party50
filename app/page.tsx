@@ -6,7 +6,6 @@ import { ChangeEvent, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { registerPlayer } from '@/app/actions/register'
 import { useAuth } from "@/hooks/useAuth";
-import { usePurchase } from "@/hooks/usePurchase";
 import { getMissionManifest, Mission } from '@/app/actions/getMission';
 import { InventoryItem, PlayerStats } from '@/types/dbtypes'
 
@@ -24,10 +23,6 @@ export default function WelcomePage() {
     setIsLoading, activeMission, setActiveMission
   } = useAuth();
 
-  const {
-    purchaseOverlay, isProcessing, purchaseItem
-  } = usePurchase(playerData?.id, playerData?.role);
-
   const [ name, setName ] = useState('')
   const [ role, setRole ] = useState('')
   const [ activeTab, setActiveTab ] = useState<'profile' | 'inventory' | 'leaderboard' | 'history'>('profile');
@@ -43,18 +38,11 @@ export default function WelcomePage() {
     const challengeId = params.get('activeChallenge');
     const teamId = params.get('teamId');
     const status: string|null = params.get('status');
-    const buyItemId = params.get('buyItem');
 
     if (challengeId && teamId && status && !activeMission) {
       setActiveMission({ challengeId, teamId, status, currentStep: 1 });
       window.history.replaceState({}, '', '/');
     }
-
-    if (buyItemId && playerData?.id) {
-      void purchaseItem(buyItemId);
-      window.history.replaceState({}, '', '/');
-    }
-
   }, [playerData?.id, activeMission, setActiveMission]);
 
   // load the mission data from the server
@@ -203,7 +191,6 @@ export default function WelcomePage() {
                       type="ERROR"
                       onConfirm={handleAbort}
                       onClose={() => setAbortOverlayVisible(false)}
-                      isProcessing={isProcessing}
                   />
               )}
             </div>
@@ -226,7 +213,6 @@ export default function WelcomePage() {
                     type="ERROR"
                     onConfirm={handleAbort}
                     onClose={() => setAbortOverlayVisible(false)}
-                    isProcessing={isProcessing}
                 />
             )}
           </div>
@@ -262,7 +248,6 @@ export default function WelcomePage() {
               History
             </button>
           </div>
-
           <div className="tab-content max-w-md w-full">
             <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
               <ProfileView initialPlayerData={playerData} />
@@ -277,18 +262,6 @@ export default function WelcomePage() {
               <HistoryView playerId={playerData?.id} />
             </div>
           </div>
-
-          {purchaseOverlay && (
-              <Overlay
-                  title={purchaseOverlay.title}
-                  message={purchaseOverlay.message}
-                  type={purchaseOverlay.type}
-                  onConfirm={purchaseOverlay.onConfirm}
-                  onClose={purchaseOverlay.onClose}
-                  isProcessing={isProcessing}
-              />
-          )}
-
         </div>
     )
   }

@@ -1,16 +1,16 @@
 'use server'
 
+import { getMissionManifest } from "@/app/actions/getMission";
+import { OverlayProps } from "@/components/Overlay";
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import fs from 'fs/promises'
-import path from 'path'
 import { PlayerChallenge } from "@/types/dbtypes";
 
 export interface JoinChallengeResult {
     success: boolean,
     teamId?: string,
     status?: string,
-    error?: string
+    overlayProps?: OverlayProps
 }
 
 export async function joinChallenge(playerId: string, challengeId: string): Promise<JoinChallengeResult> {
@@ -31,22 +31,48 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
             const player_challenge: PlayerChallenge = data as PlayerChallenge;
             switch (player_challenge.status) {
                 case "COMPLETED":
-                    return { success: false, error: "You have already completed this mission." };
+                    return {
+                        success: false,
+                        overlayProps: {
+                            type: 'INFO',
+                            title: 'ALREADY COMPLETED',
+                            message: 'You have already completed this mission.'
+                        }
+                    };
                 case "FAILED":
-                    return { success: false, error: "You have previously failed this mission." };
+                    return {
+                        success: false,
+                        overlayProps: {
+                            type: 'INFO',
+                            title: 'PREVIOUSLY FAILED',
+                            message: 'You have previously failed this mission.'
+                        }
+                    };
                 case "WAITING":
                 case "IN_PROGRESS":
-                    return { success: false, error: "You are already engaged with this mission." };
+                    return {
+                        success: false,
+                        overlayProps: {
+                            type: 'INFO',
+                            title: 'IN PROGRESS',
+                            message: 'You are already engaged with this mission.'
+                        }
+                    };
             }
         }
 
         // load the challenge definition from the JSON file
-        const filePath = path.join(process.cwd(), 'challenges', `${challengeId}.json`);
-        console.log("LOOKING FOR FILE AT:", filePath);
-        const fileContent = await fs.readFile(filePath, 'utf8');
-        // TODO: check the mission requirements, refactor to use getMission.ts
-        const challengeDef: { requirements: { min_players: number } } = JSON.parse(fileContent);
-        console.log("FILE LOADED SUCCESSFULLY");
+        const missionManifest = await getMissionManifest(challengeId);
+        if (missionManifest.error) {
+            return {
+                success: false,
+                overlayProps: {
+                    type: 'ERROR',
+                    title: 'ERROR LOADING MISSION',
+                    message: missionManifest.error
+                }
+            };
+        }
 
         // check for an existing WAITING team for this specific challenge
         const { data: existingTeam, error} = await supabase
@@ -78,7 +104,14 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
 
         if (joinError) {
             console.error("SUPABASE INSERT ERROR:", joinError);
-            return { success: false, error: joinError.message };
+            return {
+                success: false,
+                overlayProps: {
+                    type: 'ERROR',
+                    title: 'UNEXPECTED ERROR',
+                    message: joinError.message
+                }
+            };
         }
 
         // count how many agents are now in this team
@@ -88,7 +121,7 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
             .eq('team_id', teamId);
 
         // if we hit the threshold, flip everyone to IN_PROGRESS
-        if (count && count >= challengeDef.requirements.min_players) {
+        if (count && count >= missionManifest.data!.requirements.min_players) {
             status = "IN_PROGRESS";
             await supabase
                 .from('player_challenge')
@@ -99,7 +132,13 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
         revalidatePath('/');
         return { success: true, teamId, status };
     } catch (err: any) {
-        console.error("FS ERROR:", err.message);
-        return { success: false, error: `Configuration error: ${err.message}` };
+        return {
+            success: false,
+            overlayProps: {
+                type: 'ERROR',
+                title: 'CONFIGURATION ERROR',
+                message: err.message
+            }
+        };
     }
 }

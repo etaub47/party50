@@ -32,7 +32,8 @@ export interface Mission {
     }]
 }
 
-export async function getMissionManifest(challengeId: string) {
+export async function getMissionManifest(challengeId: string):
+    Promise<{data?: Mission, success: boolean, error?: string}> {
     try {
         const filePath = path.join(process.cwd(), 'challenges', `${challengeId}.json`);
         const fileContent = await fs.readFile(filePath, 'utf8');
