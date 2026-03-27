@@ -1,3 +1,4 @@
+import { PlayerStats } from "@/types/dbtypes";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
@@ -9,7 +10,7 @@ export interface ActiveMission {
 }
 
 export function useAuth() {
-    const [ playerData, setPlayerData ] = useState<any | null>(null);
+    const [ playerData, setPlayerData ] = useState<PlayerStats | null>(null);
     const [ items, setItems ] = useState<any[]>([]);
     const [ isRegistered, setIsRegistered ] = useState(false);
     const [ isLoading, setIsLoading ] = useState(true);

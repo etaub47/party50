@@ -177,9 +177,9 @@ export default function WelcomePage() {
                       key={`mission-${activeMission.teamId}`}
                       teamId={activeMission.teamId}
                       missionData={missionData}
-                      playerRole={playerData.role}
+                      playerRole={playerData!.role}
                       initialStep={activeMission.currentStep}
-                      playerId={playerData.id}
+                      playerId={playerData!.id}
                       onAbort={() => setAbortOverlayVisible(true)}
                   />
               )}
@@ -202,7 +202,7 @@ export default function WelcomePage() {
             <WaitingRoom
                 teamId={activeMission.teamId}
                 minPlayers={3}
-                playerId={playerData.id}
+                playerId={playerData!.id}
                 onStart={() => handleStartMission()}
                 onAbort={() => setAbortOverlayVisible(true)}
             />
@@ -253,13 +253,13 @@ export default function WelcomePage() {
               <ProfileView initialPlayerData={playerData} />
             </div>
             <div className={activeTab === 'inventory' ? 'block' : 'hidden'}>
-              <InventoryView initialItems={items} playerId={playerData?.id} />
+              <InventoryView initialItems={items} playerId={playerData!.id} />
             </div>
             <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
-              <Leaderboard hasDossier={hasDossier} />
+              <Leaderboard hasDossier={hasDossier} activePlayerData={playerData}/>
             </div>
             <div className={activeTab === 'history' ? 'block' : 'hidden'}>
-              <HistoryView playerId={playerData?.id} />
+              <HistoryView playerId={playerData!.id} />
             </div>
           </div>
         </div>

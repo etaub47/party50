@@ -3,8 +3,8 @@ create table public.event (
     type         text null,
     intel        integer null default 0,
     description  text null,
-    heat         integer null,
-    credits      integer null,
+    heat         integer null default 0,
+    credits      integer null default 0,
     challenge_id text null,
     step         integer null,
     constraint event_step_pkey primary key (id)
