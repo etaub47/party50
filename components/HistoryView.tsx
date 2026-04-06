@@ -81,7 +81,7 @@ export default function HistoryView({ playerId }: { playerId: string }) {
             {events.map((log: HistoryEvent) => (
                 <div
                     key={`${log.player_id}-${log.event_id}`}
-                    className="p-4 bg-gray-900 border-l-4 border-blue-500 rounded-r shadow-sm flex flex-col gap-1"
+                    className="p-3 bg-gray-900 border-2 border-orange-700 rounded-lg shadow-sm flex flex-col gap-1"
                 >
                     <div className="flex justify-between items-start">
                         <span className="text-[10px] uppercase tracking-widest text-gray-400 font-mono">

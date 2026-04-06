@@ -191,9 +191,9 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
                     const isSelf = activePlayerData?.id === p.id;
 
                     return (
-                        <li key={p.id} className="p-3 bg-slate-800 rounded-lg flex justify-between items-center">
+                        <li key={p.id} className="p-2 border-1 border-black-800 bg-blue-100 rounded-lg flex justify-between items-center">
                             <div className="flex flex-col">
-                                <span className="font-bold text-white">
+                                <span className="text-black">
                                     {p.name} {isSelf && "(YOU)"}
                                 </span>
                                 {hasDossier && (
@@ -215,8 +215,8 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
                                         onClick={() => initiateLegalAdvice(p)}
                                         className={`text-[10px] font-bold py-1 px-2 rounded transition-all font-mono border ${
                                             hasReceivedAdvice
-                                                ? 'bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed'
-                                                : 'bg-blue-900/40 hover:bg-blue-700 text-blue-400 hover:text-white border-blue-500/30'
+                                                ? 'bg-red-700/80 text-white border-red-900 cursor-not-allowed'
+                                                : 'bg-red-700/80 text-white border-red-900'
                                         }`}
                                     >
                                         {hasReceivedAdvice ? 'ADVISED' : (isSelf ? 'TAKE ADVICE' : 'ADVISE')}
@@ -226,7 +226,7 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
                                 {activePlayerData && !isSelf && (
                                     <button
                                         onClick={() => initiateTransfer(p)}
-                                        className="bg-green-900/40 hover:bg-green-700 text-green-400 hover:text-white border border-green-500/30 text-[10px] font-bold py-1 px-2 rounded transition-all font-mono"
+                                        className="bg-green-800/80 text-white border border-green-900 text-[10px] font-bold py-1 px-2 rounded transition-all font-mono"
                                     >
                                         GIVE $
                                     </button>

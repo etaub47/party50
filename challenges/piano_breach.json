@@ -3,7 +3,7 @@
   "title": "Piano Infiltration",
   "description": "Break into the grand piano, and find the hidden intel.",
   "requirements": {
-    "min_players": 3,
+    "min_players": 1,
     "required_item_id": "laser-cutter-uuid"
   },
   "steps": [
