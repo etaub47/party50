@@ -21,7 +21,7 @@ export default function Gatekeeper() {
     };
 
     return (
-        <div className="fixed inset-0 bg-black flex flex-col items-center justify-center p-6 z-[100]">
+        <div className="fixed inset-0 bg-background text-foreground flex flex-col items-center justify-center p-6 z-[100]">
             <div className="w-full max-w-sm border-2 border-red-900/50 bg-gray-900 p-8 rounded-2xl shadow-2xl">
                 <h1 className="text-red-500 font-mono text-xl mb-2 tracking-tighter uppercase text-center">
                     Restricted Access

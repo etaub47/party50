@@ -58,7 +58,7 @@ export default function QRScanner({ onClose }: { onClose: () => void }) {
     }, [router, onClose]);
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6">
+        <div className="fixed inset-0 z-[100] bg-background text-foreground flex flex-col items-center justify-center p-6">
             <h2 className="text-blue-400 font-mono mb-4 text-center">{status}</h2>
 
             {/* aspect ratio 1:1 helps mobile browsers center the feed */}
@@ -69,7 +69,7 @@ export default function QRScanner({ onClose }: { onClose: () => void }) {
                 onClick={onClose}
                 className="mt-8 px-8 py-3 bg-red-900/20 hover:bg-red-900/40 text-red-500 font-mono rounded-full border border-red-500/30 transition-all uppercase tracking-widest text-xs"
             >
-                Abort Mission
+                Abort Scan
             </button>
         </div>
     );
