@@ -103,6 +103,9 @@ export default function InventoryView({ initialItems, playerId }: {
         };
     }, [playerId]);
 
+    if (items.length === 0)
+        return <div className="p-8 text-center text-gray-500">No items collected.</div>
+
     return (
         <div className="mt-4 w-full max-w-md">
             <div className="w-full flex justify-end mb-2">
