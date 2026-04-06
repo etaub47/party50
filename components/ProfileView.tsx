@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { PlayerStats } from "@/types/dbtypes";
 import ConnectionStatus from "@/components/ConnectionStatus";
+import QRScanner from '@/components/QRScanner';
 
 const supabase= createClient()
 
 export default function ProfileView({ initialPlayerData }: { initialPlayerData: any }) {
     const [ player, setPlayer ] = useState<PlayerStats>(initialPlayerData)
     const [ isConnected, setIsConnected ] = useState(false);
+    const [ isScanning, setIsScanning ] = useState(false);
 
     useEffect(() => {
         let channel: any;
@@ -81,7 +83,7 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
             <h2 className="text-2xl font-bold">{player.name}</h2>
             <span className="text-blue-400">{player.role}</span>
 
-            <div className="w-full">
+            <div className="w-full flex flex-col items-center p-4">
                 <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-4 border border-gray-600">
                     <div
                         className="h-full bg-blue-500 transition-all duration-500 ease-out"
@@ -109,6 +111,17 @@ export default function ProfileView({ initialPlayerData }: { initialPlayerData: 
                         Credits: {player.current_credits} / {player.max_credits}
                     </span>
                 </div>
+
+                <button
+                    onClick={() => setIsScanning(true)}
+                    className="mt-6 w-full max-w-xs bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/20 flex items-center justify-center gap-3 transition-transform active:scale-95"
+                >
+                    <span className="text-xl">📷</span>
+                    <span className="font-mono tracking-widest uppercase text-lg">Scan</span>
+                </button>
+
+                {isScanning && <QRScanner onClose={() => setIsScanning(false)} />}
+
             </div>
 
         </div>
