@@ -56,7 +56,7 @@ export default function InventoryView({ initialItems, playerId }: {
                 .eq('player_id', playerId)
                 .order('created_at', { ascending: false });
             if (error)
-                console.error("Error fetching inventory:", error.message);
+                console.error("Error fetching inventory: ", error.message);
             if (data && !error) {
                 const playerItems: InventoryItem[] = data as any as InventoryItem[];
                 setItems(playerItems);
@@ -64,14 +64,17 @@ export default function InventoryView({ initialItems, playerId }: {
         };
 
         const setupRealtime = async () => {
-            if (!playerId) return; // don't subscribe if we don't have an ID yet
+
+            // don't subscribe if we don't have an ID yet
+            if (!playerId)
+                return;
             await supabase.auth.getSession();
 
             // create a unique name for this specific mount instance
             const channelName = `inventory-${Date.now()}`;
 
             channel = supabase
-                .channel(channelName) // unique name avoids 'phx_close' collisions
+                .channel(channelName)
                 .on(
                     'postgres_changes' as any,
                     { event: '*', schema: 'public', table: 'player_item', filter: `player_id=eq.${playerId}` },
