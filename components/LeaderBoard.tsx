@@ -116,11 +116,13 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
                 .select('*')
                 .order('total_intel', { ascending: false })
                 .order('total_heat', { ascending: true });
-            if (data) setPlayers(data as PlayerStats[]);
+            if (data)
+                setPlayers(data as PlayerStats[]);
         };
 
         const fetchAdviceHistory = async () => {
-            if (!activePlayerData || activePlayerData.role !== 'Lawyer') return;
+            if (!activePlayerData || activePlayerData.role !== 'Lawyer')
+                return;
             const { data } = await supabase
                 .from('lawyer_advice')
                 .select('recipient_id')

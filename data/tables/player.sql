@@ -1,7 +1,8 @@
 create table public.player (
-    id      uuid    not null default gen_random_uuid(),
-    name    text    null     default 'Player'::text,
-    role    text    null,
+    id         uuid        not null default gen_random_uuid(),
+    name       text        null     default 'Player'::text,
+    role       text        null,
+    created_at timestamptz null     default now(),
     constraint player_pkey primary key (id),
     constraint player_id_fkey foreign KEY (id) references auth.users (id)
         on update CASCADE on delete CASCADE
