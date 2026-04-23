@@ -8,7 +8,8 @@ create table public.player_challenge (
     created_at   timestamp with time zone not null default now(),
     constraint player_challenge_pkey primary key (id),
     constraint player_challenge_player_id_challenge_id_key unique (player_id, challenge_id),
-    constraint player_challenge_player_id_fkey foreign KEY (player_id) references player (id) on delete CASCADE
+    constraint player_challenge_player_id_fkey foreign KEY (player_id) references player (id)
+        on update cascade on delete cascade
 );
 
 ALTER TABLE player_challenge REPLICA IDENTITY FULL;

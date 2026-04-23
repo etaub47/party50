@@ -21,13 +21,6 @@ export default function HQDashboard() {
             color: "border-emerald-500/50"
         },
         {
-            title: "RECOVERY & RESET",
-            desc: "Generate account recovery tokens and perform emergency player resets.",
-            path: "/hq/recovery",
-            icon: "🔑",
-            color: "border-amber-500/50"
-        },
-        {
             title: "GLOBAL TRIGGERS",
             desc: "Manual event overrides, game freeze, and mass alerts.",
             path: "/hq/triggers",

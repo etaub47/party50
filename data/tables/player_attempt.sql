@@ -3,7 +3,8 @@ create table public.player_attempt (
     challenge_id  text not null,
     attempts_used INT DEFAULT 0,
     constraint player_attempt_pkey primary key (player_id, challenge_id),
-    constraint player_attempt_player_id_fkey foreign KEY (player_id) references player (id) on delete cascade
+    constraint player_attempt_player_id_fkey foreign KEY (player_id) references player (id)
+        on update cascade on delete cascade
 );
 
 ALTER TABLE player_attempt REPLICA IDENTITY FULL;

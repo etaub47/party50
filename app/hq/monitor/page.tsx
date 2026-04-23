@@ -1,5 +1,6 @@
 'use client'
 
+import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { differenceInMinutes, parseISO } from 'date-fns';
@@ -135,6 +136,7 @@ function AgentDossier({ agent, onClose }: { agent: any, onClose: () => void }) {
     const [ inventory, setInventory ] = useState<any[]>([]);
     const [ history, setHistory ] = useState<any[]>([]);
     const [ loading, setLoading ] = useState(true);
+    const [ showRecovery, setShowRecovery ] = useState(false);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -224,11 +226,36 @@ function AgentDossier({ agent, onClose }: { agent: any, onClose: () => void }) {
 
                 {/* footer actions */}
                 <div className="p-6 border-t border-slate-800 bg-slate-950">
-                    <button className="w-full py-3 bg-amber-900/20 border border-amber-600/30 text-amber-500 font-mono text-xs hover:bg-amber-900/40 transition-all uppercase tracking-widest">
+                    <button
+                        onClick={() => setShowRecovery(true)}
+                        className="w-full py-3 bg-amber-900/20 border border-amber-600/30 text-amber-500 font-mono text-xs hover:bg-amber-900/40 transition-all uppercase tracking-widest"
+                    >
                         Generate Recovery Token
                     </button>
                 </div>
             </div>
+
+            {showRecovery && (
+                <div className="absolute inset-0 z-[210] bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+                    <h3 className="text-amber-500 font-mono font-bold mb-2 uppercase">Identity Recovery Token</h3>
+                    <p className="text-slate-500 text-[10px] mb-6 uppercase tracking-widest">{agent.name}</p>
+
+                    <div className="p-4 bg-white rounded-xl mb-6">
+                        <QRCodeSVG
+                            value={`${window.location.origin}/scan/recovery/${agent.id}`}
+                            size={200}
+                            level="H"
+                        />
+                    </div>
+
+                    <button
+                        onClick={() => setShowRecovery(false)}
+                        className="text-slate-500 font-mono text-xs underline uppercase"
+                    >
+                        Cancel and Return
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

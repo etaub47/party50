@@ -6,7 +6,9 @@ CREATE TABLE player_vote (
     step         INT  NOT NULL,
     option_id    TEXT NOT NULL,
     created_at   TIMESTAMPTZ      DEFAULT now(),
-    UNIQUE (player_id, team_id, step)
+    UNIQUE (player_id, team_id, step),
+    constraint player_vote_player_id_fkey foreign KEY (player_id) references player (id)
+        on update cascade on delete cascade
 );
 
 ALTER TABLE player_vote REPLICA IDENTITY FULL;
