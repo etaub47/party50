@@ -17,8 +17,9 @@ export default function ManifestPage() {
     ];
 
     const specialEvents = [
-        { id: 'basement_signal', title: 'BASEMENT SIGNAL', sub: 'Scan to disable local alarms (-20 Heat)' },
-        { id: 'safehouse_entry', title: 'SAFEHOUSE ACCESS', sub: 'One-time credit bonus (+50 Credits)' },
+        { id: 'mission-funding-qr', title: 'MISSION FUNDING', sub: 'Scan to gain mission funding (+50 Credits)' },
+        { id: 'security-sweep-qr', title: 'SECURITY SWEEP', sub: 'Scan to avoid suspicion (+10 Heat)' },
+        { id: 'privileged-conversation-qr', title: 'PRIVILEGED CONVERSATION', sub: 'Scan to score intel (+25 Intel)' },
     ];
 
     useEffect(() => {
@@ -90,7 +91,7 @@ export default function ManifestPage() {
                         key={e.id}
                         title={e.title}
                         subtitle={`GLOBAL EVENT | ${e.sub}`}
-                        url={`${baseUrl}/scan/event/${e.id}`}
+                        url={`${baseUrl}/scan/global/${e.id}`}
                     />
                 ))}
 

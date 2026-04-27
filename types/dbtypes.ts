@@ -65,3 +65,15 @@ export interface PlayerVote {
     step?: number,
     option_id: string
 }
+
+export interface GlobalEvent {
+    id: string,
+    created_at: string,
+    expires_at: string,
+    title: string,
+    message: string,
+    event_type: string,
+    target_scan_id: string,
+    success_event_id: string,
+    failure_event_id: string
+}

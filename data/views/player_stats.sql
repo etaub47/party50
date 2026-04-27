@@ -31,7 +31,7 @@ AS SELECT
     ( 100 +
         CASE WHEN EXISTS (
             SELECT 1 FROM player_item pi JOIN item i ON pi.item_id = i.id
-            WHERE pi.player_id = p.id AND i.name = 'Offshore Account'
+            WHERE pi.player_id = p.id AND i.name = 'Offshore Bank Account'
         ) THEN 400 ELSE 0 END
     ) AS max_credits,
 
