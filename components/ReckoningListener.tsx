@@ -13,7 +13,7 @@ export default function ReckoningListener() {
         const { data, error } = await supabase.rpc('apply_missed_global_penalties');
 
         if (error) {
-            console.error("Reckoning Error:", error);
+            console.log("Reckoning Error:", error);
             return;
         }
 

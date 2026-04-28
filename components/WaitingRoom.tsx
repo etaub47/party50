@@ -7,12 +7,13 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase = createClient()
 
-export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onAbort }: {
+export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onAbort, onCollusion }: {
     teamId: string,
     minPlayers: number,
     playerId: string,
     onStart: () => void,
-    onAbort: () => void
+    onAbort: () => void,
+    onCollusion: () => void
 }) {
 
     const [ currentCount, setCurrentCount ] = useState(0)
@@ -21,10 +22,9 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
 
     const isRetryingRef = useRef(false);
 
-    // update the team status indicator based on the number of players who have joined the challenge
     const updateTeamStatus = async () => {
 
-        // fetch current members of this team
+        // fetch current count for UI and logic gating
         const { count } = await supabase
             .from('player_challenge')
             .select('status', { count: 'exact' })
@@ -33,15 +33,32 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
         const actualCount = count || 0;
         setCurrentCount(actualCount);
 
-        // if the room is full, flip MY status to IN_PROGRESS and start the mission
-        const { data: { user } } = await supabase.auth.getUser();
-        if (actualCount >= minPlayers && user?.id) {
-            await supabase
-                .from('player_challenge')
-                .update({ status: 'IN_PROGRESS' })
-                .eq('team_id', teamId)
-                .eq('player_id', user.id);
-            onStart();
+        // only proceed if the room is full
+        if (actualCount >= minPlayers) {
+
+            // check for collusion
+            const { data: isRepeatTrio, error: rpcError } = await supabase
+                .rpc('check_team_collusion', { p_team_id: teamId });
+            if (rpcError) {
+                console.error("Collusion Check Error:", rpcError);
+                return;
+            }
+
+            // check to make sure that these same three players haven't already done a mission together
+            // otherwise, flip MY status to IN_PROGRESS and start the mission
+            if (isRepeatTrio) {
+                onCollusion();
+            } else {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user?.id) {
+                    await supabase
+                        .from('player_challenge')
+                        .update({ status: 'IN_PROGRESS' })
+                        .eq('team_id', teamId)
+                        .eq('player_id', user.id);
+                    onStart();
+                }
+            }
         }
     };
 

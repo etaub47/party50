@@ -29,6 +29,7 @@ export default function WelcomePage() {
   const [ hasDossier, setHasDossier ] = useState(false);
   const [ missionData, setMissionData ] = useState<any | null>(null);
   const [ abortOverlayVisible, setAbortOverlayVisible ] = useState(false);
+  const [ collusionOverlayVisible, setCollusionOverlayVisible ] = useState(false);
 
   const supabase = createClient()
 
@@ -143,6 +144,7 @@ export default function WelcomePage() {
     // only clear local state if DB deletion was successful
     if (!error) {
       setActiveMission(null);
+      setCollusionOverlayVisible(false);
     } else {
       console.error("Failed to terminate mission:", error.message);
     }
@@ -197,6 +199,7 @@ export default function WelcomePage() {
         );
       }
 
+      // waiting room
       return (
           <div className="p-10 text-center flex flex-col items-center justify-center min-h-screen">
             <WaitingRoom
@@ -205,6 +208,7 @@ export default function WelcomePage() {
                 playerId={playerData!.id}
                 onStart={() => handleStartMission()}
                 onAbort={() => setAbortOverlayVisible(true)}
+                onCollusion={() => setCollusionOverlayVisible(true)}
             />
             {abortOverlayVisible && (
                 <Overlay
@@ -213,6 +217,14 @@ export default function WelcomePage() {
                     type="ERROR"
                     onConfirm={handleAbort}
                     onClose={() => setAbortOverlayVisible(false)}
+                />
+            )}
+            {collusionOverlayVisible && (
+                <Overlay
+                    title="MISSION COMPROMISED"
+                    message="This specific trio is drawing too much suspicion. You have aborted the mission to avoid detection."
+                    type="ERROR"
+                    onClose={handleAbort}
                 />
             )}
           </div>

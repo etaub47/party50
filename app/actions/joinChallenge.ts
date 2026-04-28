@@ -114,21 +114,6 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
             };
         }
 
-        // count how many agents are now in this team
-        const {count} = await supabase
-            .from('player_challenge')
-            .select('*', {count: 'exact', head: true})
-            .eq('team_id', teamId);
-
-        // if we hit the threshold, flip everyone to IN_PROGRESS
-        if (count && count >= missionManifest.data!.requirements.min_players) {
-            status = "IN_PROGRESS";
-            await supabase
-                .from('player_challenge')
-                .update({status: status})
-                .eq('team_id', teamId);
-        }
-
         revalidatePath('/');
         return { success: true, teamId, status };
     } catch (err: any) {
