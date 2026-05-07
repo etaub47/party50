@@ -10,6 +10,20 @@ export interface Option {
     item_id?: string
 }
 
+export interface MissionStep {
+    order: number,
+    type: string,
+    config: {
+        solution?: string,
+        failure_event_id?: string,
+        instruction?: string,
+        voting?: string,
+        hints?: string[],
+        options?: Option[],
+        puzzle?: number
+    }
+}
+
 export interface Mission {
     id: string,
     title: string,
@@ -18,18 +32,7 @@ export interface Mission {
         min_players: number,
         required_item_id?: string
     },
-    steps: [{
-        order: number,
-        type: string,
-        config: {
-            solution?: string,
-            failure_event_id?: string,
-            instruction?: string,
-            voting?: string,
-            hints?: string[],
-            options?: Option[]
-        }
-    }]
+    steps: MissionStep[]
 }
 
 export async function getMissionManifest(challengeId: string):

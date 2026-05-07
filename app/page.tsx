@@ -47,14 +47,15 @@ export default function WelcomePage() {
   }, [playerData?.id, activeMission, setActiveMission]);
 
   // load the mission data from the server
+  const loadMission = async () => {
+    if (!activeMission?.challengeId || missionData?.id === activeMission.challengeId) return;
+    const result: { data?: Mission, success: boolean, error?: string } =
+        await getMissionManifest(activeMission.challengeId);
+    if (result.success)
+      setMissionData(result.data);
+  };
+
   useEffect(() => {
-    const loadMission = async () => {
-      if (!activeMission?.challengeId || missionData?.id === activeMission.challengeId) return;
-      const result: { data?: Mission, success: boolean, error?: string } =
-          await getMissionManifest(activeMission.challengeId);
-      if (result.success)
-        setMissionData(result.data);
-    };
     void loadMission();
   }, [activeMission?.challengeId, missionData?.id]);
 
@@ -165,27 +166,29 @@ export default function WelcomePage() {
   }
 
   if (isRegistered) { // player is already registered
-    if (activeMission) { // mission is active
 
+    if (activeMission) {
+      if (!missionData) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+              Decrypting Mission Manifest...
+            </div>
+        )
+      }
+
+      // mission is active
       if (activeMission.status === "IN_PROGRESS") {
         return (
             <div>
-              {!missionData ? (
-                  <div className="flex items-center justify-center min-h-screen">
-                    Decrypting Mission Manifest...
-                  </div>
-              ) : (
-                  <MissionRunner
-                      key={`mission-${activeMission.teamId}`}
-                      teamId={activeMission.teamId}
-                      missionData={missionData}
-                      playerRole={playerData!.role}
-                      initialStep={activeMission.currentStep}
-                      playerId={playerData!.id}
-                      onAbort={() => setAbortOverlayVisible(true)}
-                  />
-              )}
-
+              <MissionRunner
+                  key={`mission-${activeMission.teamId}`}
+                  teamId={activeMission.teamId}
+                  missionData={missionData}
+                  playerRole={playerData!.role}
+                  initialStep={activeMission.currentStep}
+                  playerId={playerData!.id}
+                  onAbort={() => setAbortOverlayVisible(true)}
+              />
               {abortOverlayVisible && (
                   <Overlay
                       title="CRITICAL WARNING"
@@ -204,7 +207,7 @@ export default function WelcomePage() {
           <div className="p-10 text-center flex flex-col items-center justify-center min-h-screen">
             <WaitingRoom
                 teamId={activeMission.teamId}
-                minPlayers={3}
+                minPlayers={missionData.requirements.min_players}
                 playerId={playerData!.id}
                 onStart={() => handleStartMission()}
                 onAbort={() => setAbortOverlayVisible(true)}

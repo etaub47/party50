@@ -97,10 +97,8 @@ export default function InventoryView({ initialItems, playerId }: {
         };
 
         void setupRealtime();
-
         return () => {
             if (channel) {
-                console.log("Cleaning up channel:", channel.topic);
                 void supabase.removeChannel(channel);
             }
         };

@@ -1,5 +1,5 @@
 {
-  "id": "vault_breach",
+  "id": "vault_breach_2",
   "title": "Server Room Infiltration 2",
   "description": "Bypass the biometric lock to access the central mainframe.",
   "requirements": {
@@ -9,15 +9,9 @@
   "steps": [
     {
       "order": 1,
-      "type": "KEYPAD",
+      "type": "SIGNAL",
       "config": {
-        "solution": "1984",
-        "failure_event_id": "wrong-passcode-uuid",
-        "hints": [
-          "The first two digits are the day Bob was born.",
-          "The third digit is the number of windows in the kitchen.",
-          "The final digit is the number of cats in this house."
-        ]
+        "puzzle": 4
       }
     },
     {
