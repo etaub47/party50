@@ -23,6 +23,18 @@ BEGIN
     END IF;
 
     -- validation: already participated?
+    IF EXISTS (SELECT 1 FROM public.player_event WHERE event_id = v_log_record.success_event_id AND player_id = v_player_id) THEN
+        RETURN QUERY SELECT TRUE, 'This objective was already completed successfully.';
+        RETURN;
+    END IF;
+
+    -- validation: already participated?
+    IF EXISTS (SELECT 1 FROM public.player_event WHERE event_id = v_log_record.failure_event_id AND player_id = v_player_id) THEN
+        RETURN QUERY SELECT FALSE, 'This objective has already expired.';
+        RETURN;
+    END IF;
+
+    -- validation: already participated?
     IF EXISTS (SELECT 1 FROM public.global_event_participation WHERE global_event_id = v_log_record.id AND player_id = v_player_id) THEN
         RETURN QUERY SELECT FALSE, 'This objective was already completed and recorded.';
         RETURN;

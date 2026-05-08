@@ -22,7 +22,7 @@ export default function GlobalScanPage() {
             });
 
             if (error) {
-                console.error(error);
+                console.log(error);
                 setResult({ success: false, message: "System failure during check-in:" + error.message });
             } else if (data && data[0]) {
                 // the RPC returns a table/array, so we take the first row
