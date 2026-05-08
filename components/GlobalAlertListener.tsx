@@ -2,6 +2,7 @@
 
 import { GlobalEvent } from "@/types/dbtypes";
 import { createClient } from '@/utils/supabase/client';
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from 'react';
 
 const supabase = createClient();
@@ -15,8 +16,13 @@ export default function GlobalAlertListener() {
     const [ timeLeft, setTimeLeft ] = useState<number>(0);
     const [ isAcknowledged, setIsAcknowledged ] = useState(false);
 
+    const pathname = usePathname();
+    const isInSafeZone = pathname?.startsWith('/hq');
+
     // check if there is an existing, unexpired, un-participated event in the DB
     const syncExistingAlert = useCallback(async () => {
+        if (isInSafeZone)
+            return;
         const { data: { session } } = await supabase.auth.getSession();
         const playerId = session?.user?.id;
         if (!playerId)
@@ -41,7 +47,7 @@ export default function GlobalAlertListener() {
             setAlert(null);
             setIsAcknowledged(false);
         }
-    }, []);
+    }, [isInSafeZone]);
 
     const setupRealtime = useCallback(() => {
         const channelName = `global-alert-listener-${Date.now()}`;
@@ -90,7 +96,7 @@ export default function GlobalAlertListener() {
         return () => clearInterval(timer);
     }, [alert]);
 
-    if (!alert)
+    if (!alert || isInSafeZone)
         return null;
 
     const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
