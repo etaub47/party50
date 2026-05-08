@@ -4,6 +4,7 @@ import { Mission, MissionStep } from "@/app/actions/getMission";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import DecisionView from "@/components/missionsteps/DecisionView";
 import KeypadView from "@/components/missionsteps/KeypadView";
+import PatternMemoryView from "@/components/missionsteps/PatternMemoryView";
 import SignalPathView from "@/components/missionsteps/SignalPathView";
 import Overlay, { OverlayProps } from "@/components/Overlay";
 import { PlayerVote } from "@/types/dbtypes";
@@ -220,6 +221,17 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
                     missionData={missionData}
                     playerId={playerId}
                     currentStepIndex={currentStepIndex}
+                />
+            )}
+
+            {currentStep.type === 'MEMORY' && (
+                <PatternMemoryView
+                    missionData={missionData}
+                    teamId={teamId}
+                    playerId={playerId}
+                    currentStepIndex={currentStepIndex}
+                    votes={votes}
+                    onComplete={advanceMyStep}
                 />
             )}
 

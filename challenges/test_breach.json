@@ -1,15 +1,15 @@
 {
-  "id": "vault_breach_2",
+  "id": "test_breach",
   "title": "Server Room Infiltration 2",
   "description": "Bypass the biometric lock to access the central mainframe.",
   "requirements": {
-    "min_players": 3,
+    "min_players": 1,
     "required_item_id": "laser-cutter-uuid"
   },
   "steps": [
     {
       "order": 1,
-      "type": "SIGNAL",
+      "type": "MEMORY",
       "config": {
         "puzzle": 4
       }
