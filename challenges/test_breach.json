@@ -9,7 +9,7 @@
   "steps": [
     {
       "order": 1,
-      "type": "MEMORY",
+      "type": "MASTERMIND",
       "config": {
         "puzzle": 4
       }
