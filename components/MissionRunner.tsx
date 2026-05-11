@@ -12,18 +12,19 @@ import Overlay, { OverlayProps } from "@/components/Overlay";
 import { PlayerVote } from "@/types/dbtypes";
 import { createClient } from '@/utils/supabase/client'
 import { RealtimeChannel } from "@supabase/realtime-js";
-import { memo, useEffect, useState, useCallback, JSX } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 const supabase = createClient()
 
-const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, onAbort}: {
-    teamId: string;
-    missionData: Mission;
-    playerRole: string;
-    initialStep: number;
-    playerId: string;
-    onAbort: () => void
-}) => (null | JSX.Element) = ({ teamId, missionData, playerRole, initialStep, playerId, onAbort }) => {
+export default function MissionRunner({teamId, missionData, playerRole, initialStep, playerId, onAbort, onTerminate}: {
+    teamId: string,
+    missionData: Mission,
+    playerRole: string,
+    initialStep: number,
+    playerId: string,
+    onAbort: () => void,
+    onTerminate: () => void
+}) {
     const [ currentStepIndex, setCurrentStepIndex ] = useState(initialStep)
     const [ votes, setVotes ] = useState<PlayerVote[]>([]);
     const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
@@ -69,7 +70,7 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
                 title: 'MISSION ACCOMPLISHED',
                 message: 'Asset Secured. Transmission terminated.',
                 type: 'SUCCESS',
-                onClose: () => window.location.reload()
+                onClose: () => onTerminate()
             });
         }
     }, [currentStepIndex, missionData, playerId]);
@@ -99,7 +100,7 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
 
     // realtime stuff
     useEffect(() => {
-        const channelName = `mission-runner-${teamId}-${playerId}-${Date.now()}`;
+        const channelName = `mission-runner-${Date.now()}`;
         let isActive: boolean = true;
         let channel: RealtimeChannel;
 
@@ -117,7 +118,7 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
                                 title: 'MISSION FAILED',
                                 message: 'An incorrect keypad code triggered the alarm!',
                                 type: 'ERROR',
-                                onClose: () => window.location.reload()
+                                onClose: () => onTerminate()
                             });
                         }
                         if (payload.new.current_step > currentStepIndex)
@@ -134,7 +135,7 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
                             title: 'MISSION TERMINATED',
                             message: 'The mission has been terminated by an agent.',
                             type: 'INFO',
-                            onClose: () => window.location.reload()
+                            onClose: () => onTerminate()
                         });
                     })
 
@@ -260,7 +261,15 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
 
             <div className="mt-4 text-right">
                 <button
-                    onClick={onAbort}
+                    onClick={() => {
+                        setOverlayProps({
+                            title: 'CRITICAL WARNING',
+                            message: 'ABORT MISSION? Connection for all team members will be severed.',
+                            type: 'ERROR',
+                            onConfirm: () => onAbort(),
+                            onClose: () => setOverlayProps(null)
+                        });
+                    }}
                     className="text-red-400 text-xs uppercase underline"
                 >
                     Abort Mission
@@ -271,5 +280,3 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
         </div>
     );
 }
-
-export default memo(MissionRunner);

@@ -1,24 +1,24 @@
 'use client'
+
 import { RealtimeChannel } from "@supabase/realtime-js";
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import Overlay from "@/components/Overlay";
+import Overlay, { OverlayProps } from "@/components/Overlay";
 import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase = createClient()
 
-export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onAbort, onCollusion }: {
+export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onAbort, onTerminate }: {
     teamId: string,
     minPlayers: number,
     playerId: string,
     onStart: () => void,
     onAbort: () => void,
-    onCollusion: () => void
+    onTerminate: () => void
 }) {
-
     const [ currentCount, setCurrentCount ] = useState(0)
-    const [ evictionMessage, setEvictionMessage ] = useState<string | null>(null);
     const [ isConnected, setIsConnected ] = useState(false);
+    const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
 
     const isRetryingRef = useRef(false);
 
@@ -47,7 +47,12 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
             // check to make sure that these same three players haven't already done a mission together
             // otherwise, flip MY status to IN_PROGRESS and start the mission
             if (isRepeatTrio) {
-                onCollusion();
+                setOverlayProps({
+                    title: 'MISSION COMPROMISED',
+                    message: "This specific trio is drawing too much suspicion. You have aborted the mission to avoid detection.",
+                    type: 'ERROR',
+                    onClose: () => onAbort()
+                });
             } else {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user?.id) {
@@ -79,7 +84,8 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
                     (payload: any) => {
                         // any row inserted into this table for this player's team warrants an update
                         console.log("WAITING / INSERT - REALTIME SIGNAL RECEIVED: ", payload);
-                        if (!isActive) return;
+                        if (!isActive)
+                            return;
                         void updateTeamStatus();
                     }
                 )
@@ -88,8 +94,14 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
                     () => {
                         // if this player's row was deleted, this indicates the mission was aborted by someone
                         console.log("WAITING / DELETE - REALTIME SIGNAL RECEIVED");
-                        if (!isActive) return;
-                        setEvictionMessage("The mission has been terminated by an agent.")
+                        if (!isActive)
+                            return;
+                        setOverlayProps({
+                            title: 'CONNECTION TERMINATED',
+                            message: "The mission has been terminated by an agent.",
+                            type: 'INFO',
+                            onClose: () => onTerminate()
+                        });
                     }
                 )
                 .subscribe((status: string) => {
@@ -142,22 +154,22 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
                 </div>
                 <div className="mt-2 border-red-400/50 pt-2 text-right">
                     <button
-                        onClick={onAbort}
+                        onClick={() => {
+                            setOverlayProps({
+                                title: 'CRITICAL WARNING',
+                                message: 'ABORT MISSION? Connection for all team members will be severed.',
+                                type: 'ERROR',
+                                onConfirm: () => onAbort(),
+                                onClose: () => setOverlayProps(null)
+                            });
+                        }}
                         className="text-red-400 hover:text-red-400 text-xs uppercase tracking-tighter"
                     >
                         Abort Mission
                     </button>
                 </div>
             </div>
-            {evictionMessage && (
-                <Overlay
-                    title="CONNECTION TERMINATED"
-                    message={evictionMessage}
-                    type="INFO"
-                    onClose={() => window.location.reload()}
-                />
-            )}
+            {overlayProps && <Overlay {...overlayProps} />}
         </div>
-
     );
 }

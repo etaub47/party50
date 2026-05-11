@@ -2,20 +2,14 @@
 
 import { shredItem } from "@/app/actions/shredItem";
 import Overlay, { OverlayProps } from "@/components/Overlay";
-import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { useState } from 'react'
 import { InventoryItem } from "@/types/dbtypes";
 import ConnectionStatus from "@/components/ConnectionStatus";
 
-const supabase= createClient()
-
-export default function InventoryView({ initialItems, playerId }: {
-    initialItems: any[], playerId: string }) {
-
-    const [ isConnected, setIsConnected ] = useState(false);
+export default function InventoryView({ items, playerId, isConnected }: {
+    items: InventoryItem[], playerId: string, isConnected: boolean }) {
     const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
     const [ isShredding, setIsShredding ] = useState(false);
-    const [ items, setItems ] = useState<InventoryItem[]>(initialItems);
 
     const initiateShred = (itemId: string, itemName: string) => {
         setOverlayProps({
@@ -44,65 +38,6 @@ export default function InventoryView({ initialItems, playerId }: {
             });
         }
     };
-
-    useEffect(() => {
-        let channel: any;
-
-        const fetchItems = async () => {
-            if (!playerId) return;
-            const { data, error } = await supabase
-                .from('player_item')
-                .select(`player_id, item_id, created_at, item:item_id (id, name, type, cost, intel, heat, credits)`)
-                .eq('player_id', playerId)
-                .order('created_at', { ascending: false });
-            if (error)
-                console.error("Error fetching inventory: ", error.message);
-            if (data && !error) {
-                const playerItems: InventoryItem[] = data as any as InventoryItem[];
-                setItems(playerItems);
-            }
-        };
-
-        const setupRealtime = async () => {
-
-            // don't subscribe if we don't have an ID yet
-            if (!playerId)
-                return;
-            await supabase.auth.getSession();
-
-            // create a unique name for this specific mount instance
-            const channelName = `inventory-${Date.now()}`;
-
-            channel = supabase
-                .channel(channelName)
-                .on(
-                    'postgres_changes' as any,
-                    { event: '*', schema: 'public', table: 'player_item', filter: `player_id=eq.${playerId}` },
-                    (payload: any) => {
-                        console.log('Change received!', payload);
-                        fetchItems();
-                    }
-                )
-                .subscribe((status: string) => {
-                    console.log(`Realtime status (${channelName}):`, status);
-                    setIsConnected(status === 'SUBSCRIBED');
-                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
-                    if (isFailure) {
-                        console.log("Retrying subscription in 5s...");
-                        setTimeout(() => {
-                            void setupRealtime();
-                        }, 5000);
-                    }
-                });
-        };
-
-        void setupRealtime();
-        return () => {
-            if (channel) {
-                void supabase.removeChannel(channel);
-            }
-        };
-    }, [playerId]);
 
     if (items.length === 0)
         return <div className="p-8 text-center text-gray-500">No items collected.</div>

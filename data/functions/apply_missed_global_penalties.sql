@@ -18,7 +18,11 @@ BEGIN
           AND NOT EXISTS (
             SELECT 1 FROM public.global_event_participation gep
             WHERE gep.global_event_id = ge.id AND gep.player_id = v_player_id
-        )
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM public.player_event pe
+            WHERE pe.player_id = v_player_id AND pe.event_id = ge.failure_event_id
+          )
         LOOP
             -- apply the penalty to the ledger
             INSERT INTO public.player_event (player_id, event_id)

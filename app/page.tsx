@@ -1,66 +1,58 @@
 'use client'
 
 import HistoryView from "@/components/HistoryView";
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useMissionManager } from "@/hooks/useMissionManager";
+import { usePlayerDataSync } from "@/hooks/usePlayerDataSync";
+import { ChangeEvent, useCallback, useEffect, useState } from 'react'
 
 import { createClient } from '@/utils/supabase/client'
 import { registerPlayer } from '@/app/actions/register'
-import { useAuth } from "@/hooks/useAuth";
-import { getMissionManifest, Mission } from '@/app/actions/getMission';
-import { InventoryItem, PlayerStats } from '@/types/dbtypes'
 
 import ProfileView from '@/components/ProfileView'
 import InventoryView from '@/components/InventoryView'
 import Leaderboard from '@/components/LeaderBoard'
-import Overlay from "@/components/Overlay";
 import WaitingRoom from "@/components/WaitingRoom";
 import MissionRunner from "@/components/MissionRunner";
 
 export default function WelcomePage() {
 
-  const {
-    playerData, setPlayerData, items, setItems, isRegistered, setIsRegistered, isLoading,
-    setIsLoading, activeMission, setActiveMission
-  } = useAuth();
-
   const [ name, setName ] = useState('')
   const [ role, setRole ] = useState('')
   const [ activeTab, setActiveTab ] = useState<'profile' | 'inventory' | 'leaderboard' | 'history'>('profile');
-  const [ hasDossier, setHasDossier ] = useState(false);
-  const [ missionData, setMissionData ] = useState<any | null>(null);
-  const [ abortOverlayVisible, setAbortOverlayVisible ] = useState(false);
-  const [ collusionOverlayVisible, setCollusionOverlayVisible ] = useState(false);
+  const [ playerId, setPlayerId ] = useState<any | null>(null);
+  const [ isRegistered, setIsRegistered ] = useState(false);
+  const [ isLoading, setIsLoading ] = useState(true);
 
   const supabase = createClient()
 
-  // handle the URL parameters that set the active mission
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const challengeId = params.get('activeChallenge');
-    const teamId = params.get('teamId');
-    const status: string|null = params.get('status');
+  const { playerStats, items, events, isConnected,
+    isInitialLoading, refresh } = usePlayerDataSync(playerId);
+  const { activeMission, missionData, isManifestLoading,
+    checkExistingMission, startMission, abortMission, terminateMission } = useMissionManager(playerId);
 
-    if (challengeId && teamId && status && !activeMission) {
-      setActiveMission({ challengeId, teamId, status, currentStep: 1 });
-      window.history.replaceState({}, '', '/');
+  const refreshAuth = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    let user = session?.user;
+    if (!user) {
+      const { data } = await supabase.auth.signInAnonymously();
+      user = data.user ?? undefined;
     }
-  }, [playerData?.id, activeMission, setActiveMission]);
 
-  // load the mission data from the server
-  const loadMission = async () => {
-    if (!activeMission?.challengeId || missionData?.id === activeMission.challengeId) return;
-    const result: { data?: Mission, success: boolean, error?: string } =
-        await getMissionManifest(activeMission.challengeId);
-    if (result.success)
-      setMissionData(result.data);
-  };
+    if (user) {
+      setIsRegistered(true);
+      setPlayerId(user.id);
+      void refresh();
+      void checkExistingMission(user.id);
+    }
+    setIsLoading(false);
+  }, [supabase, refresh, checkExistingMission]);
 
   useEffect(() => {
-    void loadMission();
-  }, [activeMission?.challengeId, missionData?.id]);
+    void refreshAuth();
+  }, []);
 
   // register a new player who has just completed the registration form
-  const handleStartGame = async (e: any) => {
+  const registerNewPlayer = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -83,237 +75,143 @@ export default function WelcomePage() {
     formData.append('playerName', name)
     formData.append('playerRole', role)
     formData.append('playerId', user.id)
-
     const result = await registerPlayer(formData as any)
+
     if (result.success) {
-
-      // re-fetch from the view after successful registration to get initial stats
-      const { data: stats } = await supabase
-          .from('player_stats')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-      setPlayerData(stats as PlayerStats);
-      setItems([]);
-      setHasDossier(false);
       setIsRegistered(true);
+      setPlayerId(user.id);
+      void refresh();
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }
 
-  // when a player changes tabs, do a new dossier check before switching to the leaderboard
-  const handleTabChange = async (tab: 'profile' | 'inventory' | 'leaderboard' | 'history') => {
-    setActiveTab(tab);
-
-    // if they click leaderboard, do a quick check to see if they acquired the dossier
-    if (tab === 'leaderboard' && playerData?.id) {
-      const { data, error } = await supabase
-          .from('player_item')
-          .select(`item:item_id (id, name, type, intel, heat, credits)`)
-          .eq('player_id', playerData.id);
-
-      if (error)
-        console.error("Dossier check error:", error.message);
-
-      if (data && !error) {
-        const playerItems: InventoryItem[] = data as any as InventoryItem[];
-        const hasDossier = playerItems?.some(row => row.item?.name === 'Agent Dossier');
-        setHasDossier(!!hasDossier);
-      }
-    }
-  };
-
-  // abort the current mission
-  const handleAbort = async () => {
-    if (!activeMission || !playerData?.id)
-      return;
-
-    // delete any previous votes associated with the active mission/team
-    await supabase
-        .from('player_vote')
-        .delete()
-        .eq('team_id', activeMission.teamId);
-
-    // delete all rows associated with the active mission's team id
-    const { error } = await supabase
-        .from('player_challenge')
-        .delete()
-        .eq('team_id', activeMission.teamId);
-
-    // only clear local state if DB deletion was successful
-    if (!error) {
-      setActiveMission(null);
-      setCollusionOverlayVisible(false);
-    } else {
-      console.error("Failed to terminate mission:", error.message);
-    }
-  };
-
-  // updates the active mission to indicate that it has started
-  const handleStartMission = async () => {
-    if (!activeMission) return;
-    setActiveMission({
-      ...activeMission,
-      status: "IN_PROGRESS"
-    });
-  };
-
   // game is loading
-  if (isLoading) {
+  if (isLoading || (playerId && isInitialLoading)) {
     return <div className="flex items-center justify-center min-h-screen">Loading Game...</div>;
   }
 
-  if (isRegistered) { // player is already registered
-
-    if (activeMission) {
-      if (!missionData) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-              Decrypting Mission Manifest...
-            </div>
-        )
-      }
-
-      // mission is active
-      if (activeMission.status === "IN_PROGRESS") {
-        return (
-            <div>
-              <MissionRunner
-                  key={`mission-${activeMission.teamId}`}
-                  teamId={activeMission.teamId}
-                  missionData={missionData}
-                  playerRole={playerData!.role}
-                  initialStep={activeMission.currentStep}
-                  playerId={playerData!.id}
-                  onAbort={() => setAbortOverlayVisible(true)}
-              />
-              {abortOverlayVisible && (
-                  <Overlay
-                      title="CRITICAL WARNING"
-                      message="ABORT MISSION? Connection for all team members will be severed."
-                      type="ERROR"
-                      onConfirm={handleAbort}
-                      onClose={() => setAbortOverlayVisible(false)}
-                  />
-              )}
-            </div>
-        );
-      }
-
-      // waiting room
-      return (
-          <div className="p-10 text-center flex flex-col items-center justify-center min-h-screen">
-            <WaitingRoom
-                teamId={activeMission.teamId}
-                minPlayers={missionData.requirements.min_players}
-                playerId={playerData!.id}
-                onStart={() => handleStartMission()}
-                onAbort={() => setAbortOverlayVisible(true)}
-                onCollusion={() => setCollusionOverlayVisible(true)}
-            />
-            {abortOverlayVisible && (
-                <Overlay
-                    title="CRITICAL WARNING"
-                    message="ABORT MISSION? Connection for all team members will be severed."
-                    type="ERROR"
-                    onConfirm={handleAbort}
-                    onClose={() => setAbortOverlayVisible(false)}
-                />
-            )}
-            {collusionOverlayVisible && (
-                <Overlay
-                    title="MISSION COMPROMISED"
-                    message="This specific trio is drawing too much suspicion. You have aborted the mission to avoid detection."
-                    type="ERROR"
-                    onClose={handleAbort}
-                />
-            )}
-          </div>
-      );
-    }
-
-    // show the standard tabs
+  // not yet registered
+  if (!isRegistered || playerStats == null) {
     return (
-        <div className="p-10 text-center flex flex-col items-center">
-          <div className="flex gap-4 mb-6 border-b border-gray-700">
-            <button
-                onClick={() => handleTabChange('profile')}
-                className={activeTab === 'profile' ? 'border-b-2 border-blue-500' : ''}
+        <main className="flex flex-col items-center justify-center min-h-screen p-4">
+          <h1 className="text-4xl font-bold mb-8">Corporate Espionage Agent Registration</h1>
+
+          <form onSubmit={registerNewPlayer} className="flex flex-col gap-4 w-full max-w-sm">
+            <input
+                type="text"
+                placeholder="Please enter your name"
+                className="p-3 border rounded-lg text-black"
+                value={name}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                required
+            />
+            <select
+                className="p-3 border rounded-lg text-black bg-white"
+                value={role}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
+                required
             >
-              Profile
-            </button>
+              <option value="" disabled>Please select your role</option>
+              <option value="Hacker">Hacker</option>
+              <option value="Lawyer">Lawyer</option>
+              <option value="Bargain Hunter">Bargain Hunter</option>
+              <option value="Scavenger">Scavenger</option>
+            </select>
             <button
-                onClick={() => handleTabChange('inventory')}
-                className={activeTab === 'inventory' ? 'border-b-2 border-blue-500' : ''}
+                type="submit"
+                className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700"
             >
-              Inventory
+              Register
             </button>
-            <button
-                onClick={() => handleTabChange('leaderboard')}
-                className={activeTab === 'leaderboard' ? 'border-b-2 border-blue-500' : ''}
-            >
-              Leaderboard
-            </button>
-            <button
-                onClick={() => handleTabChange('history')}
-                className={activeTab === 'history' ? 'border-b-2 border-blue-500' : ''}
-            >
-              History
-            </button>
-          </div>
-          <div className="tab-content max-w-md w-full">
-            <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
-              <ProfileView initialPlayerData={playerData} />
-            </div>
-            <div className={activeTab === 'inventory' ? 'block' : 'hidden'}>
-              <InventoryView initialItems={items} playerId={playerData!.id} />
-            </div>
-            <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
-              <Leaderboard hasDossier={hasDossier} activePlayerData={playerData}/>
-            </div>
-            <div className={activeTab === 'history' ? 'block' : 'hidden'}>
-              <HistoryView playerId={playerData!.id} />
-            </div>
-          </div>
-        </div>
+          </form>
+        </main>
     )
   }
 
-  // not yet registered
-  return (
-      <main className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-4xl font-bold mb-8">Corporate Espionage Agent Registration</h1>
+  if (activeMission) {
+    if (isManifestLoading || !missionData) {
+      return (
+          <div className="flex items-center justify-center min-h-screen">
+            Decrypting Mission Manifest...
+          </div>
+      )
+    }
 
-        <form onSubmit={handleStartGame} className="flex flex-col gap-4 w-full max-w-sm">
-          <input
-              type="text"
-              placeholder="Please enter your name"
-              className="p-3 border rounded-lg text-black"
-              value={name}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              required
+    if (activeMission.status === "IN_PROGRESS") {
+      return (
+          <MissionRunner
+              key={`mission-${activeMission.teamId}`}
+              teamId={activeMission.teamId}
+              missionData={missionData}
+              playerRole={playerStats!.role}
+              initialStep={activeMission.currentStep}
+              playerId={playerStats!.id}
+              onAbort={abortMission}
+              onTerminate={terminateMission}
           />
-          <select
-              className="p-3 border rounded-lg text-black bg-white"
-              value={role}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
-              required
-          >
-            <option value="" disabled>Please select your role</option>
-            <option value="Hacker">Hacker</option>
-            <option value="Lawyer">Lawyer</option>
-            <option value="Bargain Hunter">Bargain Hunter</option>
-            <option value="Scavenger">Scavenger</option>
-          </select>
+      );
+    }
+
+    // waiting room
+    return (
+        <WaitingRoom
+            teamId={activeMission.teamId}
+            minPlayers={missionData.requirements.min_players}
+            playerId={playerStats!.id}
+            onStart={startMission}
+            onAbort={abortMission}
+            onTerminate={terminateMission}
+        />
+    );
+  }
+
+  // show the standard tabs
+  return (
+      <div className="p-10 text-center flex flex-col items-center">
+        <div className="flex gap-4 mb-6 border-b border-gray-700">
           <button
-              type="submit"
-              className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700"
+              onClick={() => setActiveTab('profile')}
+              className={activeTab === 'profile' ? 'border-b-2 border-blue-500' : ''}
           >
-            Register
+            Profile
           </button>
-        </form>
-      </main>
+          <button
+              onClick={() => setActiveTab('inventory')}
+              className={activeTab === 'inventory' ? 'border-b-2 border-blue-500' : ''}
+          >
+            Inventory
+          </button>
+          <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={activeTab === 'leaderboard' ? 'border-b-2 border-blue-500' : ''}
+          >
+            Leaderboard
+          </button>
+          <button
+              onClick={() => setActiveTab('history')}
+              className={activeTab === 'history' ? 'border-b-2 border-blue-500' : ''}
+          >
+            History
+          </button>
+        </div>
+        <div className="tab-content max-w-md w-full">
+          <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
+            <ProfileView playerStats={playerStats} isConnected={isConnected} />
+          </div>
+          <div className={activeTab === 'inventory' ? 'block' : 'hidden'}>
+            <InventoryView items={items} playerId={playerStats!.id} isConnected={isConnected} />
+          </div>
+          <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
+            <Leaderboard
+                playerStats={playerStats}
+                items={items}
+                isActive={activeTab === 'leaderboard'}
+                isConnected={isConnected}/>
+          </div>
+          <div className={activeTab === 'history' ? 'block' : 'hidden'}>
+            <HistoryView events={events} isConnected={isConnected} />
+          </div>
+        </div>
+      </div>
   )
 }

@@ -3,26 +3,28 @@
 import { executeTransfer } from "@/app/actions/transferCredits";
 import { executeLegalAdvice } from "@/app/actions/legalAdvice";
 import Overlay, { OverlayProps } from "@/components/Overlay";
-import { PlayerStats } from "@/types/dbtypes";
-import { useEffect, useState } from 'react'
+import { InventoryItem, PlayerStats } from "@/types/dbtypes";
+import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase = createClient()
 
-export default function Leaderboard({ hasDossier, activePlayerData }: {
-    hasDossier: boolean,
-    activePlayerData: PlayerStats | null
+export default function Leaderboard({ playerStats, items, isActive, isConnected }: {
+    playerStats: PlayerStats | null,
+    items: InventoryItem[],
+    isActive: boolean
+    isConnected: boolean
 }) {
     const [ players, setPlayers ] = useState<PlayerStats[]>([])
-    const [ isConnected, setIsConnected ] = useState(false);
     const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
     const [ advisedRecipientIds, setAdvisedRecipientIds ] = useState<Set<string>>(new Set());
 
-    const isLawyer = activePlayerData?.role === 'Lawyer';
+    const isLawyer: boolean = playerStats?.role === 'Lawyer';
+    const hasDossier: boolean | undefined = items?.some(row => row.item?.name === 'Agent Dossier');
 
     const initiateTransfer = (targetAgent: PlayerStats) => {
-        if (!activePlayerData) return;
+        if (!playerStats) return;
         setOverlayProps({
             title: 'SECURE WIRE TRANSFER',
             message: `Enter the credit amount to authorize to ${targetAgent.name}.`,
@@ -34,19 +36,20 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
     };
 
     const handleTransfer = async (targetAgent: PlayerStats, amount: string) => {
-        if (!activePlayerData)
+        if (!playerStats)
             return;
         setOverlayProps(prev => prev ? { ...prev, isProcessing: true } : null);
 
         const result = await executeTransfer(
-            activePlayerData.id,
-            activePlayerData.name,
+            playerStats.id,
+            playerStats.name,
             targetAgent.id!,
             targetAgent.name!,
             amount
         );
 
         if (result.success) {
+            void fetchPlayers();
             setOverlayProps({
                 title: 'TRANSFER SUCCESSFUL',
                 message: `Funds have been successfully routed to ${targetAgent.name}.`,
@@ -64,9 +67,9 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
     };
 
     const initiateLegalAdvice = (targetAgent: PlayerStats) => {
-        if (!activePlayerData)
+        if (!playerStats)
             return;
-        const isSelf = activePlayerData.id === targetAgent.id;
+        const isSelf = playerStats.id === targetAgent.id;
 
         setOverlayProps({
             title: isSelf ? 'CONFIRM SELF-COUNSEL' : 'OFFER LEGAL ADVICE',
@@ -78,17 +81,18 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
     };
 
     const handleLegalAdvice = async (targetAgent: PlayerStats) => {
-        if (!activePlayerData)
+        if (!playerStats)
             return;
-        const isSelf = activePlayerData.id === targetAgent.id;
+        const isSelf = playerStats.id === targetAgent.id;
         setOverlayProps(prev => prev ? { ...prev, isProcessing: true } : null);
         const result = await executeLegalAdvice(
-            activePlayerData.id,
-            activePlayerData.name,
+            playerStats.id,
+            playerStats.name,
             targetAgent.id!
         );
 
         if (result.success) {
+            void fetchPlayers();
             setOverlayProps({
                 title: isSelf ? 'PROTECTIONS APPLIED' : 'COUNSEL APPLIED',
                 message: isSelf
@@ -107,79 +111,50 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
         }
     };
 
+    const fetchPlayers = useCallback(async () => {
+        const { data } = await supabase
+            .from('player_stats')
+            .select('*')
+            .order('total_intel', { ascending: false })
+            .order('total_heat', { ascending: true });
+        if (data)
+            setPlayers(data as PlayerStats[]);
+    }, []);
+
+    const fetchAdviceHistory = useCallback(async () => {
+        if (!playerStats || playerStats.role !== 'Lawyer')
+            return;
+        const { data } = await supabase
+            .from('lawyer_advice')
+            .select('recipient_id')
+            .eq('lawyer_id', playerStats.id);
+        if (data) {
+            const ids = data.map((row: any) => row['recipient_id'] as string);
+            setAdvisedRecipientIds(new Set(ids));
+        }
+    }, [playerStats?.id, playerStats?.role]);
+
     useEffect(() => {
-        let channel: any;
+        if (isActive) {
+            void fetchPlayers();
+            void fetchAdviceHistory();
+        }
+    }, [isActive, fetchPlayers]);
 
-        const fetchPlayers = async () => {
-            const { data } = await supabase
-                .from('player_stats')
-                .select('*')
-                .order('total_intel', { ascending: false })
-                .order('total_heat', { ascending: true });
-            if (data)
-                setPlayers(data as PlayerStats[]);
-        };
-
-        const fetchAdviceHistory = async () => {
-            if (!activePlayerData || activePlayerData.role !== 'Lawyer')
-                return;
-            const { data } = await supabase
-                .from('lawyer_advice')
-                .select('recipient_id')
-                .eq('lawyer_id', activePlayerData.id);
-            if (data) {
-                const ids = data.map((row: any) => row['recipient_id'] as string);
-                setAdvisedRecipientIds(new Set(ids));
-            }
-        };
-
-        const setupRealtime = async () => {
-            if (channel)
-                await supabase.removeChannel(channel);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
-            await fetchPlayers();
-            await fetchAdviceHistory();
-
-            const channelName = `leaderboard-${Date.now()}`;
-            channel = supabase
-                .channel(channelName)
-                .on(
-                    'postgres_changes' as any,
-                    { event: '*', schema: 'public', table: 'player' },
-                    () => fetchPlayers()
-                )
-                .on(
-                    'postgres_changes' as any,
-                    { event: '*', schema: 'public', table: 'player_item' },
-                    () => fetchPlayers()
-                )
-                .on(
-                    'postgres_changes' as any,
-                    { event: '*', schema: 'public', table: 'player_event' },
-                    () => fetchPlayers()
-                )
-                .on(
-                    'postgres_changes' as any,
-                    { event: 'INSERT', schema: 'public', table: 'lawyer_advice', filter: `lawyer_id=eq.${activePlayerData?.id}` },
-                    () => fetchAdviceHistory()
-                )
-                .subscribe((status: string) => {
-                    setIsConnected(status === 'SUBSCRIBED');
-                    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                        setTimeout(() => { void setupRealtime(); }, 2000);
-                    }
-                });
-        };
-
-        void setupRealtime();
-
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isActive) {
+            interval = setInterval(() => {
+                console.log("⏲️ Auto-refreshing leaderboard...");
+                void fetchPlayers();
+                void fetchAdviceHistory();
+            }, 30000);
+        }
         return () => {
-            if (channel)
-                void supabase.removeChannel(channel);
+            if (interval)
+                clearInterval(interval);
         };
-    }, [activePlayerData?.id, activePlayerData?.role]);
+    }, [isActive, fetchPlayers]);
 
     return (
         <div className="mt-4 w-full max-w-md">
@@ -190,7 +165,7 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
             <ul className="space-y-2">
                 {players.map(p => {
                     const hasReceivedAdvice = advisedRecipientIds.has(p.id);
-                    const isSelf = activePlayerData?.id === p.id;
+                    const isSelf = playerStats?.id === p.id;
 
                     return (
                         <li key={p.id} className="p-2 border-1 border-black-800 bg-blue-100 rounded-lg flex justify-between items-center">
@@ -225,7 +200,7 @@ export default function Leaderboard({ hasDossier, activePlayerData }: {
                                     </button>
                                 )}
 
-                                {activePlayerData && !isSelf && (
+                                {playerStats && !isSelf && (
                                     <button
                                         onClick={() => initiateTransfer(p)}
                                         className="bg-green-800/80 text-white border border-green-900 text-[10px] font-bold py-1 px-2 rounded transition-all font-mono"
