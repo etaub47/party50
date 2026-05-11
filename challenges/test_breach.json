@@ -9,7 +9,7 @@
   "steps": [
     {
       "order": 1,
-      "type": "MASTERMIND",
+      "type": "MATRIX",
       "config": {
         "puzzle": 4
       }

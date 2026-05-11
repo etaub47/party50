@@ -3,6 +3,7 @@
 import { Mission, MissionStep } from "@/app/actions/getMission";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import DecisionView from "@/components/missionsteps/DecisionView";
+import GridMatrixView from "@/components/missionsteps/GridMatrixView";
 import KeypadView from "@/components/missionsteps/KeypadView";
 import MastermindView from "@/components/missionsteps/MastermindView";
 import PatternMemoryView from "@/components/missionsteps/PatternMemoryView";
@@ -11,7 +12,7 @@ import Overlay, { OverlayProps } from "@/components/Overlay";
 import { PlayerVote } from "@/types/dbtypes";
 import { createClient } from '@/utils/supabase/client'
 import { RealtimeChannel } from "@supabase/realtime-js";
-import { memo, useEffect, useState, useCallback, useRef, JSX } from 'react'
+import { memo, useEffect, useState, useCallback, JSX } from 'react'
 
 const supabase = createClient()
 
@@ -29,7 +30,6 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
     const [ isConnected, setIsConnected ] = useState(false);
 
     const currentStep: MissionStep | undefined = missionData?.steps?.[currentStepIndex - 1];
-    const isRetryingRef = useRef(false);
 
     // refresh data
     const fetchVotesOnly = useCallback(async () => {
@@ -151,12 +151,12 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
 
                 // called when we subscribe to the channel
                 .subscribe(status => {
-                    console.log("MISSION / SUBSCRIBE - STATUS: " + status);
+                    console.log(`Realtime status (${channelName}):`, status);
                     const isSubscribed = status === 'SUBSCRIBED';
                     setIsConnected(isSubscribed);
-                    if (!isSubscribed && !isRetryingRef.current) {
-                        isRetryingRef.current = true;
-                        console.log("Mission Link unstable. Attempting reconnection in 5s...");
+                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+                    if (isFailure) {
+                        console.log("Retrying subscription in 5s...");
                         setTimeout(() => {
                             void setupRealtime();
                         }, 5000);
@@ -238,6 +238,17 @@ const MissionRunner: ({teamId, missionData, playerRole, initialStep, playerId, o
 
             {currentStep.type === 'MASTERMIND' && (
                 <MastermindView
+                    missionData={missionData}
+                    teamId={teamId}
+                    playerId={playerId}
+                    currentStepIndex={currentStepIndex}
+                    votes={votes}
+                    onComplete={advanceMyStep}
+                />
+            )}
+
+            {currentStep.type === 'MATRIX' && (
+                <GridMatrixView
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}
