@@ -1,7 +1,7 @@
 'use client'
 
-import { Mission } from "@/app/actions/getMission";
 import { PlayerVote } from "@/types/dbtypes";
+import { Mission } from "@/types/types";
 import { createClient } from "@/utils/supabase/client";
 import { useState, useEffect, useCallback } from 'react';
 
@@ -26,6 +26,7 @@ export default function SignalPathView({
     const [ isSolved, setIsSolved ] = useState(false);
 
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
+    const minPlayers = missionData?.requirements?.min_players || 0;
     const size = 5;
 
     const LEVEL_DATA: TileType[][] = [
@@ -80,7 +81,7 @@ export default function SignalPathView({
     // watch for team completion
     // if the total votes for this step match the required players, move on!
     useEffect(() => {
-        if (votes.length >= missionData.requirements.min_players && missionData.requirements.min_players > 0)
+        if (votes.length >= minPlayers && minPlayers > 0)
             void onComplete();
     }, [votes, missionData, onComplete]);
 
@@ -139,13 +140,13 @@ export default function SignalPathView({
         const newGrid = [...grid];
         newGrid[idx].rotation = (newGrid[idx].rotation + 1) % 4;
         setGrid(newGrid);
-        if (checkPath(newGrid)) {
+        if (checkPath(newGrid))
             setIsSolved(true);
-        }
     };
 
     const handleRegisterSuccess = async () => {
-        if (isSubmitting || hasRegisteredSuccess) return;
+        if (isSubmitting || hasRegisteredSuccess)
+            return;
 
         setIsSubmitting(true);
         const { error } = await supabase.from('player_vote').insert({
@@ -157,7 +158,7 @@ export default function SignalPathView({
         });
 
         if (error) {
-            console.error(error);
+            console.error(error.message);
             setIsSubmitting(false);
         }
     };
@@ -201,7 +202,7 @@ export default function SignalPathView({
                     onClick={handleRegisterSuccess}
                     disabled={!isSolved || hasRegisteredSuccess || isSubmitting}
                     className={`mt-10 w-full py-3 border font-bold text-xs uppercase tracking-widest transition-all 
-                    ${(isSolved && !hasRegisteredSuccess) ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' :
+                        ${(isSolved && !hasRegisteredSuccess) ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' :
                         hasRegisteredSuccess ? 'bg-blue-900/30 border-blue-500/50 text-blue-400 animate-pulse' :
                             'bg-slate-900 border-slate-700 text-slate-500'}`}
                 >

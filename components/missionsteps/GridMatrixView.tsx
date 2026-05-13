@@ -19,6 +19,8 @@ export default function GridMatrixView({
     onComplete: () => Promise<void>
 }) {
     const [ grid, setGrid ] = useState<boolean[][]>([]);
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
+    const [ isSolved, setIsSolved ] = useState(false);
 
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
     const minPlayers = missionData?.requirements?.min_players || 0;
@@ -35,7 +37,7 @@ export default function GridMatrixView({
             toggleNodes(newGrid, r, c);
         }
 
-        // ensure we didn't accidentally solve it during generation
+        // ensure we didn't accidentally solve it during random scrambling :-)
         if (newGrid.every(row => row.every(cell => !cell))) {
             return generatePuzzle();
         }
@@ -66,11 +68,15 @@ export default function GridMatrixView({
 
         // check for win (all false)
         if (nextGrid.every(row => row.every(cell => !cell))) {
-            void handleRegisterSuccess();
+            void setIsSolved(true);
         }
     };
 
     const handleRegisterSuccess = async () => {
+        if (isSubmitting || hasRegisteredSuccess)
+            return;
+
+        setIsSubmitting(true);
         const { error } = await supabase.from('player_vote').insert({
             team_id: teamId,
             player_id: playerId,
@@ -78,23 +84,31 @@ export default function GridMatrixView({
             step: currentStepIndex,
             option_id: 'MATRIX_COMPLETE'
         });
+
+        if (error) {
+            console.error(error.message);
+            setIsSubmitting(false);
+        }
     };
 
+    // generate a new puzzle
     useEffect(() => {
-        if (!hasRegisteredSuccess) generatePuzzle();
+        if (!hasRegisteredSuccess)
+            generatePuzzle();
     }, [generatePuzzle, hasRegisteredSuccess]);
 
+    // watch for team completion
+    // if the total votes for this step match the required players, move on!
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0) {
+        if (votes.length >= minPlayers && minPlayers > 0)
             void onComplete();
-        }
-    }, [votes, minPlayers, onComplete]);
+    }, [votes, missionData, onComplete]);
 
     return (
         <div className="bg-slate-950 p-6 rounded-xl border border-purple-900 font-mono shadow-2xl">
             <div className="text-center mb-6">
-                <h3 className="text-purple-400 text-xs uppercase tracking-widest font-black">Matrix Decryption</h3>
-                <p className="text-[9px] text-slate-500 uppercase mt-1">Neutralize all active nodes</p>
+                <h3 className="text-purple-400 text-xs uppercase tracking-widest font-black">Matrix Lock Active</h3>
+                <p className="text-[9px] text-slate-500 uppercase mt-1">Neutralize all active nodes to proceed</p>
             </div>
 
             <div className={`grid grid-cols-4 gap-3 mb-8 max-w-[280px] mx-auto transition-opacity
@@ -115,25 +129,18 @@ export default function GridMatrixView({
             </div>
 
             <div className="space-y-3">
-                {!hasRegisteredSuccess && (
-                    <button
-                        onClick={generatePuzzle}
-                        className="w-full py-2 text-[10px] text-purple-500 border border-purple-900/50 rounded
-                            hover:bg-purple-900/20 uppercase"
-                    >
-                        Re-init Matrix
-                    </button>
-                )}
-
                 <button
-                    disabled={true}
-                    className={`w-full py-3 border font-bold text-[10px] uppercase tracking-widest transition-all
-                        ${hasRegisteredSuccess
-                        ? 'bg-purple-900/30 border-purple-500 text-purple-400 animate-pulse'
-                        : 'bg-slate-900 border-slate-700 text-slate-500'}`}
+                    onClick={handleRegisterSuccess}
+                    disabled={!isSolved || hasRegisteredSuccess || isSubmitting}
+                    className={`mt-10 w-full py-3 border font-bold text-xs uppercase tracking-widest transition-all 
+                        ${(isSolved && !hasRegisteredSuccess) ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' :
+                        hasRegisteredSuccess ? 'bg-blue-900/30 border-blue-500/50 text-blue-400 animate-pulse' :
+                            'bg-slate-900 border-slate-700 text-slate-500'}`}
                 >
-                    {hasRegisteredSuccess ? `WAITING FOR TEAM (${votes.length}/${minPlayers})` :
-                        `SYSTEM LOCKED`}
+                    {!isSolved && !hasRegisteredSuccess && "SYSTEM LOCKED"}
+                    {isSolved && isSubmitting && !hasRegisteredSuccess && "UPLOADING BYPASS..."}
+                    {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
+                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
                 </button>
             </div>
         </div>

@@ -1,6 +1,5 @@
 'use client'
 
-import { Mission, MissionStep } from "@/app/actions/getMission";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import DecisionView from "@/components/missionsteps/DecisionView";
 import GridMatrixView from "@/components/missionsteps/GridMatrixView";
@@ -8,11 +7,13 @@ import KeypadView from "@/components/missionsteps/KeypadView";
 import MastermindView from "@/components/missionsteps/MastermindView";
 import PatternMemoryView from "@/components/missionsteps/PatternMemoryView";
 import SignalPathView from "@/components/missionsteps/SignalPathView";
+import SliderPuzzleView from "@/components/missionsteps/SliderPuzzleView";
 import Overlay, { OverlayProps } from "@/components/Overlay";
 import { PlayerVote } from "@/types/dbtypes";
+import { Mission, MissionStep } from "@/types/types";
 import { createClient } from '@/utils/supabase/client'
 import { RealtimeChannel } from "@supabase/realtime-js";
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 const supabase = createClient()
 
@@ -29,6 +30,12 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
     const [ votes, setVotes ] = useState<PlayerVote[]>([]);
     const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
     const [ isConnected, setIsConnected ] = useState(false);
+
+    // create a reference that always points to the latest state, and keep it in sync
+    const stepRef = useRef(currentStepIndex);
+    useEffect(() => {
+        stepRef.current = currentStepIndex;
+    }, [currentStepIndex]);
 
     const currentStep: MissionStep | undefined = missionData?.steps?.[currentStepIndex - 1];
 
@@ -48,9 +55,12 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
     // advance self
     const advanceMyStep = useCallback(async (targetStep?: number) => {
-        const nextStep = targetStep ?? (currentStepIndex + 1);
-        if (nextStep <= currentStepIndex && !targetStep)
+        const nextStep = targetStep ?? (stepRef.current + 1);
+        if (!targetStep && nextStep <= stepRef.current)
             return;
+        if (targetStep && targetStep <= stepRef.current)
+            return;
+        console.log(`🚀 DB WRITE: Advancing to step ${nextStep}`);
         const hasNextStep = missionData.steps.some(s => s.order === nextStep);
         const { error} = await supabase
             .from('player_challenge')
@@ -73,7 +83,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                 onClose: () => onTerminate()
             });
         }
-    }, [currentStepIndex, missionData, playerId]);
+    }, [missionData, playerId]);
 
     // manual Refresh on Step Change
     // This ensures that when the step moves forward, we immediately clear
@@ -89,14 +99,16 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                 .from('player_challenge')
                 .select('current_step')
                 .eq('team_id', teamId)
-                .gt('current_step', currentStepIndex)
+                .gt('current_step', stepRef.current)
                 .order('current_step', { ascending: false })
                 .limit(1);
-            if (data && data.length > 0)
+            if (data && data.length > 0) {
+                console.log("🏃 Catching up to teammate at step:", data[0].current_step);
                 await advanceMyStep(data[0].current_step);
+            }
         };
         void checkTeammates();
-    }, []);
+    }, [teamId, currentStepIndex, advanceMyStep]);
 
     // realtime stuff
     useEffect(() => {
@@ -112,7 +124,8 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                     { event: 'UPDATE', schema: 'public', table: 'player_challenge', filter: `team_id=eq.${teamId}` },
                     async (payload: any) => {
                         console.log("MISSION / UPDATE - REALTIME SIGNAL RECEIVED");
-                        if (!isActive) return;
+                        if (!isActive)
+                            return;
                         if (payload.new.status === 'FAILED') {
                             setOverlayProps({
                                 title: 'MISSION FAILED',
@@ -121,7 +134,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                                 onClose: () => onTerminate()
                             });
                         }
-                        if (payload.new.current_step > currentStepIndex)
+                        if (payload.new.current_step > stepRef.current)
                             await advanceMyStep(payload.new.current_step);
                     })
 
@@ -155,8 +168,8 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                     console.log(`Realtime status (${channelName}):`, status);
                     const isSubscribed = status === 'SUBSCRIBED';
                     setIsConnected(isSubscribed);
-                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
-                    if (isFailure) {
+                    const needsRetry = ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status);
+                    if (needsRetry) {
                         console.log("Retrying subscription in 5s...");
                         setTimeout(() => {
                             void setupRealtime();
@@ -250,6 +263,17 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
             {currentStep.type === 'MATRIX' && (
                 <GridMatrixView
+                    missionData={missionData}
+                    teamId={teamId}
+                    playerId={playerId}
+                    currentStepIndex={currentStepIndex}
+                    votes={votes}
+                    onComplete={advanceMyStep}
+                />
+            )}
+
+            {currentStep.type === 'SLIDER' && (
+                <SliderPuzzleView
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}

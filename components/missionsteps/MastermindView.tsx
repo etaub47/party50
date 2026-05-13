@@ -1,6 +1,6 @@
 'use client'
 
-import { Mission } from "@/app/actions/getMission";
+import { Mission } from "@/types/types";
 import { useState, useEffect, useCallback } from 'react';
 import { PlayerVote } from "@/types/dbtypes";
 import { createClient } from "@/utils/supabase/client";
@@ -27,6 +27,7 @@ export default function MastermindView({
     const [ currentGuess, setCurrentGuess ] = useState<number[]>([1, 1, 1, 1]);
     const [ history, setHistory ] = useState<Guess[]>([]);
     const [ isSubmitting, setIsSubmitting ] = useState(false);
+    const [ isSolved, setIsSolved ] = useState(false);
 
     // 2x5 grid layout
     const maxGuesses = 10;
@@ -42,13 +43,15 @@ export default function MastermindView({
     }, []);
 
     useEffect(() => {
-        if (!hasRegisteredSuccess) startNewGame();
+        if (!hasRegisteredSuccess)
+            startNewGame();
     }, [startNewGame, hasRegisteredSuccess]);
 
+    // watch for team completion
+    // if the total votes for this step match the required players, move on!
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0) {
+        if (votes.length >= minPlayers && minPlayers > 0)
             void onComplete();
-        }
     }, [votes, minPlayers, onComplete]);
 
     const handleRotateDigit = (idx: number) => {
@@ -91,14 +94,16 @@ export default function MastermindView({
         setHistory(newHistory);
 
         if (greens === 4) {
-            await handleRegisterSuccess();
+            setIsSolved(true);
         } else if (newHistory.length >= maxGuesses) {
-            // failed; auto-restart with new code
             startNewGame();
         }
     };
 
     const handleRegisterSuccess = async () => {
+        if (isSubmitting || hasRegisteredSuccess)
+            return;
+
         setIsSubmitting(true);
         const { error } = await supabase.from('player_vote').insert({
             team_id: teamId,
@@ -107,14 +112,18 @@ export default function MastermindView({
             step: currentStepIndex,
             option_id: 'MASTERMIND_COMPLETE'
         });
-        if (error) setIsSubmitting(false);
+
+        if (error) {
+            console.error(error.message);
+            setIsSubmitting(false);
+        }
     };
 
     return (
         <div className="bg-slate-950 p-4 rounded-xl border border-blue-900 font-mono shadow-2xl">
             <div className="text-center mb-4">
-                <h3 className="text-blue-400 text-xs uppercase tracking-widest font-black">Encryption Breaker</h3>
-                <p className="text-[9px] text-slate-500 uppercase mt-1">Brute-force required for bypass</p>
+                <h3 className="text-blue-400 text-xs uppercase tracking-widest font-black">Data Encryption System</h3>
+                <p className="text-[9px] text-slate-500 uppercase mt-1">Four-digit code required for bypass</p>
             </div>
 
             {/* input section */}
@@ -163,17 +172,6 @@ export default function MastermindView({
                                     return <div key={j} className={`w-2 h-2 rounded-full ${color}`} />;
                                 })}
                             </div>
-
-                            {/*
-                            <div className="flex gap-0.5 ml-1">
-                                {g && Array.from({ length: 4 }).map((_, j) => {
-                                    let color = 'bg-slate-800';
-                                    if (j < g.greens) color = 'bg-emerald-500 shadow-[0_0_4px_#10b981]';
-                                    else if (j < g.greens + g.yellows) color = 'bg-yellow-500 shadow-[0_0_4px_#eab308]';
-                                    return <div key={j} className={`w-2 h-2 rounded-full ${color}`} />;
-                                })}
-                            </div>
-                            */}
                         </div>
                     );
                 })}
@@ -181,14 +179,17 @@ export default function MastermindView({
 
             {/* status footer */}
             <button
-                disabled={true}
-                className={`w-full py-3 border font-bold text-[10px] uppercase tracking-widest transition-all
-                    ${hasRegisteredSuccess
-                    ? 'bg-blue-900/30 border-emerald-500 text-emerald-400 animate-pulse'
-                    : 'bg-slate-900 border-slate-700 text-slate-500'}`}
+                onClick={handleRegisterSuccess}
+                disabled={!isSolved || hasRegisteredSuccess || isSubmitting}
+                className={`mt-10 w-full py-3 border font-bold text-xs uppercase tracking-widest transition-all 
+                    ${(isSolved && !hasRegisteredSuccess) ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' :
+                    hasRegisteredSuccess ? 'bg-blue-900/30 border-blue-500/50 text-blue-400 animate-pulse' :
+                        'bg-slate-900 border-slate-700 text-slate-500'}`}
             >
-                {hasRegisteredSuccess ? `WAITING FOR TEAM (${votes.length}/${minPlayers})` :
-                    `${maxGuesses - history.length} INJECTION ATTEMPTS LEFT`}
+                {!isSolved && !hasRegisteredSuccess && `${maxGuesses - history.length} ATTEMPTS LEFT`}
+                {isSolved && isSubmitting && !hasRegisteredSuccess && "UPLOADING BYPASS..."}
+                {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
+                {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
             </button>
         </div>
     );

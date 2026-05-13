@@ -1,8 +1,8 @@
 'use client'
 
-import { Mission, MissionStep, Option } from "@/app/actions/getMission";
 import { processStepConsequences } from "@/app/actions/processConsequences";
 import { PlayerVote } from "@/types/dbtypes";
+import { Mission, MissionStep, Option } from "@/types/types";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 

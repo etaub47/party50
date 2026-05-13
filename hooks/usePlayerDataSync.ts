@@ -51,9 +51,10 @@ export function usePlayerDataSync(playerId: string | undefined) {
                     fetchData)
                 .subscribe((status) => {
                     console.log(`📡 Unified Sync (${channelName}):`, status);
-                    setIsConnected(status === 'SUBSCRIBED');
-                    const isFailure = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
-                    if (isFailure) {
+                    const isSubscribed = status === 'SUBSCRIBED';
+                    setIsConnected(isSubscribed);
+                    const needsRetry = ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status);
+                    if (needsRetry) {
                         console.log("Retrying subscription in 5s...");
                         setTimeout(() => {
                             void setupRealtime();

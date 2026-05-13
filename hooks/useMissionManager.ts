@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { getMissionManifest, Mission } from '@/app/actions/getMission';
-import { ActiveMission } from '@/types/types';
+import { getMissionManifest } from '@/app/actions/getMission';
+import { ActiveMission, Mission } from '@/types/types';
 
 const supabase = createClient();
 

@@ -1,7 +1,7 @@
 'use client'
 
+import { MissionStep } from "@/types/types";
 import { useState, useEffect } from 'react';
-import { MissionStep } from "@/app/actions/getMission";
 import { createClient } from '@/utils/supabase/client';
 import { OverlayProps } from "@/components/Overlay";
 

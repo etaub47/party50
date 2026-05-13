@@ -11,7 +11,8 @@
       "order": 1,
       "type": "MATRIX",
       "config": {
-        "puzzle": 4
+        "baseHue": 500,
+        "label": "NUMBER"
       }
     },
     {

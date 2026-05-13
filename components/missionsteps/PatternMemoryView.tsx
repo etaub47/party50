@@ -1,6 +1,6 @@
 'use client'
 
-import { Mission } from "@/app/actions/getMission";
+import { Mission } from "@/types/types";
 import { useState, useEffect, useCallback } from 'react';
 import { PlayerVote } from "@/types/dbtypes";
 import { createClient } from "@/utils/supabase/client";
@@ -31,21 +31,22 @@ export default function PatternMemoryView({
     votes: PlayerVote[],
     onComplete: () => Promise<void>
 }) {
-    const [sequence, setSequence] = useState<number[]>([]);
-    const [userSequence, setUserSequence] = useState<number[]>([]);
-    const [activeQuadrant, setActiveQuadrant] = useState<number | null>(null);
-    const [isPlayback, setIsPlayback] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [ sequence, setSequence ] = useState<number[]>([]);
+    const [ userSequence, setUserSequence ] = useState<number[]>([]);
+    const [ activeQuadrant, setActiveQuadrant ] = useState<number | null>(null);
+    const [ isPlayback, setIsPlayback ] = useState(false);
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
+    const [ isSolved, setIsSolved ] = useState(false);
 
     const targetLength = 9;
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
     const minPlayers = missionData.requirements.min_players;
 
-    // Effect: Watch for Team Completion
+    // watch for team completion
+    // if the total votes for this step match the required players, move on!
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0) {
+        if (votes.length >= minPlayers && minPlayers > 0)
             void onComplete();
-        }
     }, [votes, minPlayers, onComplete]);
 
     // Start a new game
@@ -57,7 +58,8 @@ export default function PatternMemoryView({
     }, []);
 
     useEffect(() => {
-        if (!hasRegisteredSuccess) startNewGame();
+        if (!hasRegisteredSuccess)
+            startNewGame();
     }, [startNewGame, hasRegisteredSuccess]);
 
     // Playback the pattern to the user
@@ -73,7 +75,8 @@ export default function PatternMemoryView({
     };
 
     const handleQuadrantClick = async (idx: number) => {
-        if (isPlayback || hasRegisteredSuccess || isSubmitting) return;
+        if (isPlayback || hasRegisteredSuccess || isSubmitting || isSolved)
+            return;
 
         // visual feedback
         setActiveQuadrant(idx);
@@ -83,7 +86,6 @@ export default function PatternMemoryView({
 
         // Check if correct
         if (idx !== sequence[userSequence.length]) {
-            // failure: reset game
             startNewGame();
             return;
         }
@@ -91,7 +93,7 @@ export default function PatternMemoryView({
         if (nextUserSeq.length === sequence.length) {
             if (nextUserSeq.length === targetLength) {
                 // success: final step reached
-                await handleRegisterSuccess();
+                void setIsSolved(true);
             } else {
                 // round complete: Add one more to sequence
                 const nextMove = Math.floor(Math.random() * 4);
@@ -106,6 +108,9 @@ export default function PatternMemoryView({
     };
 
     const handleRegisterSuccess = async () => {
+        if (isSubmitting || hasRegisteredSuccess)
+            return;
+
         setIsSubmitting(true);
         const { error } = await supabase.from('player_vote').insert({
             team_id: teamId,
@@ -114,13 +119,17 @@ export default function PatternMemoryView({
             step: currentStepIndex,
             option_id: 'PATTERN_COMPLETE'
         });
-        if (error) setIsSubmitting(false);
+
+        if (error) {
+            console.error(error.message);
+            setIsSubmitting(false);
+        }
     };
 
     return (
         <div className="bg-slate-950 p-6 rounded-xl border border-blue-900 font-mono text-center">
             <div className="mb-4">
-                <h3 className="text-blue-400 text-xs uppercase tracking-widest">Uplink Synchronization</h3>
+                <h3 className="text-blue-400 text-xs uppercase tracking-widest">Pattern Synchronization</h3>
                 <p className="text-[10px] text-slate-500">Repeat sequence to verify identity</p>
             </div>
 
@@ -149,14 +158,17 @@ export default function PatternMemoryView({
                 </div>
 
                 <button
-                    disabled={true}
-                    className={`w-full py-3 border font-bold text-xs uppercase tracking-widest transition-all
-                        ${hasRegisteredSuccess
-                        ? 'bg-blue-900/30 border-blue-500/50 text-blue-400 animate-pulse'
-                        : 'bg-slate-900 border-slate-700 text-slate-500'}`}
+                    onClick={handleRegisterSuccess}
+                    disabled={!isSolved || hasRegisteredSuccess || isSubmitting}
+                    className={`mt-10 w-full py-3 border font-bold text-xs uppercase tracking-widest transition-all 
+                        ${(isSolved && !hasRegisteredSuccess) ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' :
+                        hasRegisteredSuccess ? 'bg-blue-900/30 border-blue-500/50 text-blue-400 animate-pulse' :
+                            'bg-slate-900 border-slate-700 text-slate-500'}`}
                 >
-                    {hasRegisteredSuccess ? `WAITING FOR TEAM (${votes.length}/${minPlayers})` :
-                        "AWAITING VERIFICATION"}
+                    {!isSolved && !hasRegisteredSuccess && "AWAITING SYNCHRONIZATION"}
+                    {isSolved && isSubmitting && !hasRegisteredSuccess && "UPLOADING BYPASS..."}
+                    {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
+                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
                 </button>
             </div>
         </div>
