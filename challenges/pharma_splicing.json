@@ -1,0 +1,40 @@
+{
+  "id": "pharma_splicing",
+  "title": "Pharma Splicing",
+  "description": "Extract live laboratory testing results before the automated daily encryption cycle triggers.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "1e074410-fef1-41af-858a-93baceec2559"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "MATRIX",
+      "config": {}
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Biomedical terminal isolation defeated. Select your target assets before the firewall re-initializes.",
+        "voting": "individual",
+        "options": [
+          { "id": "pharma_a", "label": "Synthetic Compound Form", "item_id": "09481116-520f-4700-a1f7-9361bb1b5755" },
+          { "id": "pharma_b", "label": "Trial Fast-Track Voucher", "item_id": "94af9b5e-214e-4203-ae69-e46efe438808" }
+        ]
+      }
+    }
+  ]
+}

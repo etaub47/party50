@@ -1,0 +1,40 @@
+{
+  "id": "ghost_protocol",
+  "title": "Ghost Protocol",
+  "description": "Breach the hardware server array to capture cold-storage infrastructure keys.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "88372c8f-bb5e-4cb6-8580-58b628b0e527"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "MASTERMIND",
+      "config": {}
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "The solid-state container has unlatched. Choose whether to strip the core infrastructure encryption drive or clear the target's internal ledger bounty pool.",
+        "voting": "individual",
+        "options": [
+          { "id": "ghost_a", "label": "Quantum SSD", "item_id": "30887acc-82e5-4626-aa28-f9c1e217ebd5" },
+          { "id": "ghost_b", "label": "Crypto Bounty Invoice", "item_id": "dbcf503a-d659-4bac-ace2-2864cc414a95" }
+        ]
+      }
+    }
+  ]
+}

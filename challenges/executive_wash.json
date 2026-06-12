@@ -1,0 +1,42 @@
+{
+  "id": "executive_wash",
+  "title": "The Executive Wash",
+  "description": "Deploy a hardwired listening device inside the C-suite boardroom wall paneling.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "3a647af2-f677-4d8f-840e-656c6f88eba6"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "SIGNAL",
+      "config": {
+        "puzzle": 0
+      }
+    },
+    {
+      "order": 2,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "There is a risk of getting caught if you proceed with inserting the wiretap. It is still possible to bail out and use your ill-gotten access to swipe an expense card instead.",
+        "voting": "individual",
+        "options": [
+          { "id": "wash_a", "label": "C-Suite Wiretap", "item_id": "7b5dcfd6-4de2-482d-bfc1-2d74c76e71e1" },
+          { "id": "wash_b", "label": "C-Suite Expense Card", "item_id": "fe554075-7dfb-4bd4-ae9b-a0c7bcfbaba4" }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "lobby_infiltration",
+  "title": "Lobby Infiltration",
+  "description": "Extract internal administrative scheduling profiles from the unguarded guest reception terminal.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "MEMORY",
+      "config": {}
+    },
+    {
+      "order": 2,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Reception dashboard unsecured. Secure the facility master keycard validation map or export the full security patrol rota schedule.",
+        "voting": "individual",
+        "options": [
+          { "id": "lobby_a", "label": "Keycard Master Access Map", "item_id": "ed4490df-fde0-45b4-9f72-a911a838596a" },
+          { "id": "lobby_b", "label": "Security Rota Schedule", "item_id": "ed0a83d6-9fcd-4485-b884-e6aa9dda729e" }
+        ]
+      }
+    }
+  ]
+}

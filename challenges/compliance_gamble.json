@@ -1,0 +1,46 @@
+{
+  "id": "compliance_gamble",
+  "title": "Compliance Gamble",
+  "description": "Secure internal audit warnings before compliance teams purge the database servers.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Compliance defense script is initialized. Do you choose to clone historical audit logs or force an immediate infrastructure wipe to reduce unwanted heat?",
+        "voting": "majority",
+        "options": [
+          { "id": "comp_clone", "label": "Clone Financial Archives", "event_id": "4ee70714-c977-42b3-9fe9-b6816c64e194" },
+          { "id": "comp_purge", "label": "Wipe Live Server Logs", "event_id": "c10b4ef5-38aa-4b58-9c04-a4f6e8911f3f" }
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Data backup complete. Prioritize your localized intelligence recovery asset parameters.",
+        "voting": "individual",
+        "options": [
+          { "id": "comp_a", "label": "Shredded SEC Memo", "item_id": "4f1e2f5b-72a2-48d6-93be-8b4ca172cc38" },
+          { "id": "comp_b", "label": "Consultant Slush Fund", "item_id": "b0a4790e-00df-4b87-bee6-16b57702e6c5" }
+        ]
+      }
+    }
+  ]
+}

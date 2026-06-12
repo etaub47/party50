@@ -1,0 +1,42 @@
+{
+  "id": "dark_site_uplink",
+  "title": "Dark-Site Uplink",
+  "description": "Intercept raw commercial satellite telemetry data directly from the rooftop terminal.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "cd865e9d-da78-4fb4-855c-65e02e3899e3"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "SIGNAL",
+      "config": {
+        "puzzle": 2
+      }
+    },
+    {
+      "order": 2,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Satellite array optimization achieved. Choose whether to secure a backdoor configuration path patch or siphon offshore network holding share configurations.",
+        "voting": "individual",
+        "options": [
+          { "id": "uplink_a", "label": "Satellite Access Patch", "item_id": "3130bafe-27ac-47cd-8bdb-0003d6cac56c" },
+          { "id": "uplink_b", "label": "Telecom Holding Shares", "item_id": "9054d5de-b0d8-44c7-b765-1553af9ffc85" }
+        ]
+      }
+    }
+  ]
+}

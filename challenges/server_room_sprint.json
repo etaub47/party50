@@ -1,0 +1,53 @@
+{
+  "id": "server_room_sprint",
+  "title": "Server Room Sprint",
+  "description": "Execute a rapid-access physical extraction from an actively alarmed main server rack stack.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "DECISION",
+      "config": {
+        "instruction": "The server room secondary alarm is counting down. Do you force-cut the main backup lines or open the emergency coolant pressure vent?",
+        "voting": "majority",
+        "options": [
+          { "id": "sprint_cut", "label": "Cut Main Backup Lines", "event_id": "27ad280f-7c3f-4e43-87ae-c9de02ce869e" },
+          { "id": "sprint_vent", "label": "Vent Emergency Coolant", "event_id": "7235224d-f63b-4243-a0f9-3bc7cf546feb" }
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "SIGNAL",
+      "config": {
+        "puzzle": 4
+      }
+    },
+    {
+      "order": 3,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 4,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Extraction completed under active pressure. Download core routing topology data parameters or dump structural SaaS subscription access codes.",
+        "voting": "individual",
+        "options": [
+          { "id": "sprint_a", "label": "Route Topology Matrix", "item_id": "0a2798c8-1d06-411b-948b-78df7ae47d90" },
+          { "id": "sprint_b", "label": "SaaS Subscription Codes", "item_id": "22baf1ae-8e8a-4bf0-aa74-94ec9598f756" }
+        ]
+      }
+    }
+  ]
+}

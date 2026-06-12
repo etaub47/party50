@@ -1,0 +1,43 @@
+{
+  "id": "deep_freeze_hub",
+  "title": "Deep-Freeze Hub",
+  "description": "Crack the physical terminal encasing the primary mainframe data-cooling apparatus.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "88372c8f-bb5e-4cb6-8580-58b628b0e527"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "SLIDER",
+      "config": {
+        "baseHue": 100,
+        "label": "LETTER"
+      }
+    },
+    {
+      "order": 2,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Chiller overrides confirmed. Route the architecture blueprints out of the facility or lease out localized rack space allocations for direct cash credits.",
+        "voting": "individual",
+        "options": [
+          { "id": "freeze_a", "label": "Cooling Blueprint", "item_id": "40abf650-edfe-41b5-8c4f-2113ab988e53" },
+          { "id": "freeze_b", "label": "Datacenter Sublease", "item_id": "1261ecbb-d079-43df-8c1e-aa0f4bf84810" }
+        ]
+      }
+    }
+  ]
+}

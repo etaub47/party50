@@ -1,0 +1,44 @@
+{
+  "id": "terminal_b_drop",
+  "title": "Terminal B Drop",
+  "description": "Retrieve a hidden encryption asset from a dead drop locker under counter-surveillance cover.",
+  "requirements": {
+    "min_players": 1
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "DECISION",
+      "config": {
+        "instruction": "A peripheral network scan sweeps the transit terminal area. Do you hold position to map data traces or sever connections and clear out?",
+        "voting": "majority",
+        "options": [
+          { "id": "term_scan", "label": "Stay and Scan Layout", "event_id": "073f71c6-170c-4030-aa8d-568b2eed5e97" },
+          { "id": "term_flee", "label": "Disconnect and Evacuate", "event_id": "99a62e3c-2ac1-42f3-9ec7-1e1b2340c4ac" }
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "The transfer window is closing. Finalize processing your recovered payload parameters.",
+        "voting": "individual",
+        "options": [
+          { "id": "term_a", "label": "Firmware Dump", "item_id": "49765c54-c3e3-4854-8bfe-d9db7948ed4d" },
+          { "id": "term_b", "label": "Bribe Cash Envelope", "item_id": "a617a567-a790-47c8-997e-5bde05a49737" }
+        ]
+      }
+    }
+  ]
+}

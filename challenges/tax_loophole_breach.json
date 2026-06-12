@@ -1,0 +1,39 @@
+{
+  "id": "tax_loophole_breach",
+  "title": "Tax Loophole Breach",
+  "description": "Exploit a weakness in the external billing server to access off-grid financial ledgers.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "PLACEHOLDER",
+      "config": {}
+    },
+    {
+      "order": 2,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Billing database structure exposed. Select whether to export an off-grid tracking network map or clear high-value liquidity allocations directly from a Cayman account.",
+        "voting": "individual",
+        "options": [
+          { "id": "tax_a", "label": "Offshore Tax Shield Map", "item_id": "4e2f23e6-832e-4cee-8c93-9f6d6d442222" },
+          { "id": "tax_b", "label": "Cayman Account Credit", "item_id": "6f01f62d-1ef3-454c-a803-7975708bb80c" }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "id": "project_aegis",
+  "title": "Project Aegis",
+  "description": "Steal the proprietary neural network weighting files from the un-indexed data vault.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "SIGNAL",
+      "config": {
+        "puzzle": 3
+      }
+    },
+    {
+      "order": 2,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Neural framework access unlatched. Extract the core weighting values or route liquidation asset codes directly to your firm.",
+        "voting": "individual",
+        "options": [
+          { "id": "aegis_a", "label": "AI Weight Matrix", "item_id": "2e5adc3e-6535-4cd2-a166-3af99d880c91" },
+          { "id": "aegis_b", "label": "Patent Liquidation Pay", "item_id": "b570fa88-6783-415b-a9bc-932a97a5029b" }
+        ]
+      }
+    }
+  ]
+}

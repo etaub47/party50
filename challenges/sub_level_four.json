@@ -1,0 +1,40 @@
+{
+  "id": "sub_level_four",
+  "title": "Sub-Level 4",
+  "description": "Bypass bio-containment barriers to secure the proprietary chemical compound data.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "1e074410-fef1-41af-858a-93baceec2559"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "MEMORY",
+      "config": {}
+    },
+    {
+      "order": 2,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "The bio-vault containment shield is opening. Secure the underlying lab blueprint files or use the terminal access to allocate corporate stock options.",
+        "voting": "individual",
+        "options": [
+          { "id": "sub_a", "label": "Enzyme Blueprint", "item_id": "7562349f-a9d0-426b-aa27-178a60a6eb9b" },
+          { "id": "sub_b", "label": "Subsidiary Options", "item_id": "b51d17ff-637b-431f-b3e2-63553821b22e" }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "park_bench_drop",
+  "title": "Park Bench Drop",
+  "description": "Collect a dropped field terminal asset containing high-value operational logs on short notice.",
+  "requirements": {
+    "min_players": 1
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Security patrol deployment pattern shifts. Do you ditch the tracking beacon immediately or risk a high-pressure breakout scenario?",
+        "voting": "majority",
+        "options": [
+          { "id": "bench_drop", "label": "Ditch Hardware Asset", "event_id": "f0fd022d-4716-44de-b63b-ccdffff8719a" },
+          { "id": "bench_keep", "label": "Smuggle Asset Past Guard", "event_id": "28a889d6-aa7b-45be-8e3f-f33c0ae1a10c" }
+        ]
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Asset container secured. Extract the real-time calendar synchronization layouts or scrape courier laundering assets.",
+        "voting": "individual",
+        "options": [
+          { "id": "bench_a", "label": "Calendar Schedule Sync", "item_id": "d3781bca-9095-4546-a90b-e352c702e7c0" },
+          { "id": "bench_b", "label": "Laundering Courier Cash", "item_id": "4eaf661c-0410-4102-90c1-ec2da8bc8d50" }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "project_hyperion",
+  "title": "Project Hyperion",
+  "description": "Breach a testbed container system to clone structural application development frameworks.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "PLACEHOLDER",
+      "config": {}
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Container isolation dropped. Clone the core framework development architecture or intercept an unallocated R&D funding vendor grant.",
+        "voting": "individual",
+        "options": [
+          { "id": "hype_a", "label": "Hyperion Framework Blueprint", "item_id": "4f6834c8-8ebd-420f-8c65-a5e4280e7e69" },
+          { "id": "hype_b", "label": "Hyperion R&D Vendor Grant", "item_id": "0e0ce49e-4c81-4cf6-9c70-2d77ddbd534c" }
+        ]
+      }
+    }
+  ]
+}

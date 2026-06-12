@@ -1,0 +1,40 @@
+{
+  "id": "shadow_grid",
+  "title": "Shadow Grid",
+  "description": "Access the regional substation hub to download critical power routing vulnerability logs.",
+  "requirements": {
+    "min_players": 3,
+    "required_item_id": "cd865e9d-da78-4fb4-855c-65e02e3899e3"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "MATRIX",
+      "config": {}
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "The network diagnostic tunnel is unstable. Select whether to map infrastructure weaknesses or clone operational security pass credentials.",
+        "voting": "individual",
+        "options": [
+          { "id": "shadow_a", "label": "Grid Vulnerability Map", "item_id": "b8827af1-3fc6-4642-892f-e7abf7c0da7f" },
+          { "id": "shadow_b", "label": "Substation Badge Pack", "item_id": "1e6b0df1-0ac3-4a53-ac6f-483471317242" }
+        ]
+      }
+    }
+  ]
+}

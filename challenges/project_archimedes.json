@@ -1,0 +1,42 @@
+{
+  "id": "project_archimedes",
+  "title": "Project Archimedes",
+  "description": "Exfiltrate the core schematics from the secure local development server.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "SLIDER",
+      "config": {
+        "baseHue": 500,
+        "label": "NUMBER"
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "The terminal is primed for final exfiltration. Select the partition layout to download before the mainframe connection cycles.",
+        "voting": "individual",
+        "options": [
+          { "id": "arch_a", "label": "Core Bio-Code Matrix", "item_id": "9776d9bc-4d2e-45f8-9cc1-77cd3db9858a" },
+          { "id": "arch_b", "label": "HVAC Overclock Logs", "item_id": "c33fa305-584e-4dbf-83f8-2d09a64ab473" }
+        ]
+      }
+    }
+  ]
+}

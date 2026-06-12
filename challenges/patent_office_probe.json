@@ -1,0 +1,42 @@
+{
+  "id": "patent_office_probe",
+  "title": "Patent Office Probe",
+  "description": "Download unreleased competitor patent designs directly from the legal substation portal.",
+  "requirements": {
+    "min_players": 3
+  },
+  "steps": [
+    {
+      "order": 1,
+      "type": "KEYPAD",
+      "config": {
+        "solution": "TODO",
+        "hints": [
+          "TODO",
+          "TODO",
+          "TODO"
+        ]
+      }
+    },
+    {
+      "order": 2,
+      "type": "SLIDER",
+      "config": {
+        "baseHue": 350,
+        "label": "LETTER"
+      }
+    },
+    {
+      "order": 3,
+      "type": "DECISION",
+      "config": {
+        "instruction": "Legal repository access confirmed. Pull unreleased pending competitor applications or siphon legal settlement accounts.",
+        "voting": "individual",
+        "options": [
+          { "id": "patent_a", "label": "Pending Competitor Patent", "item_id": "095052ae-6e06-4fbb-bd84-3eed371772dd" },
+          { "id": "patent_b", "label": "Legal Settlement Credit", "item_id": "46546b7c-4cfc-446f-9d48-b90f673c3017" }
+        ]
+      }
+    }
+  ]
+}
