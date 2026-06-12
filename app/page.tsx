@@ -128,6 +128,8 @@ export default function WelcomePage() {
     )
   }
 
+  console.log("ABC");
+  console.log(activeMission);
   if (activeMission) {
     if (isManifestLoading || !missionData) {
       return (

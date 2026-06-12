@@ -30,13 +30,14 @@ export default function MastermindView({
     const [ isSolved, setIsSolved ] = useState(false);
 
     // 2x5 grid layout
+    const largestDigit = 5;
     const maxGuesses = 10;
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
     const minPlayers = missionData?.requirements?.min_players || 0;
 
     const startNewGame = useCallback(() => {
-        // generate secret code with digits 1-6
-        const newSecret = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1);
+        // generate secret code with digits 1 to largestDigit
+        const newSecret = Array.from({ length: 4 }, () => Math.floor(Math.random() * largestDigit) + 1);
         setSecret(newSecret);
         setHistory([]);
         setCurrentGuess([1, 1, 1, 1]);
@@ -57,8 +58,8 @@ export default function MastermindView({
     const handleRotateDigit = (idx: number) => {
         if (hasRegisteredSuccess) return;
         const next = [...currentGuess];
-        // cycle 1-6
-        next[idx] = next[idx] === 6 ? 1 : next[idx] + 1;
+        // cycle 1 to largestDigit
+        next[idx] = next[idx] === largestDigit ? 1 : next[idx] + 1;
         setCurrentGuess(next);
     };
 

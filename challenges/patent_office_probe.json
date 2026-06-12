@@ -22,7 +22,7 @@
       "order": 2,
       "type": "SLIDER",
       "config": {
-        "baseHue": 350,
+        "baseHue": 850,
         "label": "LETTER"
       }
     },

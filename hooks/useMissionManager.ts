@@ -18,7 +18,7 @@ export function useMissionManager(playerId: string | null) {
             .from('player_challenge')
             .select('challenge_id, team_id, status, current_step')
             .eq('player_id', pId)
-            .or('status.eq.WAITING, status.eq.IN_PROGRESS')
+            .or('status.eq.WAITING,status.eq.IN_PROGRESS')
             .maybeSingle();
         if (error)
             console.log(error.message)

@@ -18,17 +18,35 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
     const supabase = await createClient();
 
     try {
-        const { data } = await supabase
+        // check for any active mission (any challenge) first
+        const { data: activeMission } = await supabase
             .from('player_challenge')
-            .select('*')
+            .select('challenge_id, status')
+            .eq('player_id', playerId)
+            .or('status.eq.WAITING,status.eq.IN_PROGRESS')
+            .maybeSingle();
+
+        if (activeMission) {
+            return {
+                success: false,
+                overlayProps: {
+                    type: 'INFO',
+                    title: 'MISSION IN PROGRESS',
+                    message: 'You are already engaged with an active mission.'
+                }
+            };
+        }
+
+        // check if player has a terminal record for this specific challenge
+        const { data: priorAttempt } = await supabase
+            .from('player_challenge')
+            .select('status')
             .eq('player_id', playerId)
             .eq('challenge_id', challengeId)
             .maybeSingle();
 
-        // any row in the player_challenge table should prevent this player joining again
-        // only players who have not yet attempted (or aborted) the challenge are eligible
-        if (data) {
-            const player_challenge: PlayerChallenge = data as PlayerChallenge;
+        if (priorAttempt) {
+            const player_challenge: PlayerChallenge = priorAttempt as PlayerChallenge;
             switch (player_challenge.status) {
                 case "COMPLETED":
                     return {
@@ -46,16 +64,6 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
                             type: 'INFO',
                             title: 'PREVIOUSLY FAILED',
                             message: 'You have previously failed this mission.'
-                        }
-                    };
-                case "WAITING":
-                case "IN_PROGRESS":
-                    return {
-                        success: false,
-                        overlayProps: {
-                            type: 'INFO',
-                            title: 'IN PROGRESS',
-                            message: 'You are already engaged with this mission.'
                         }
                     };
             }

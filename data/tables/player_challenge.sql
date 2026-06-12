@@ -33,3 +33,7 @@ CREATE POLICY player_challenge_lobby_view
     AS PERMISSIVE FOR SELECT
     TO anon, authenticated
     USING (status = 'WAITING'::text);
+
+CREATE UNIQUE INDEX one_active_mission_per_player
+    ON player_challenge (player_id)
+    WHERE status IN ('WAITING', 'IN_PROGRESS');
