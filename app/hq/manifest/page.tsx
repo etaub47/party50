@@ -3,18 +3,14 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { QRCodeSVG } from 'qrcode.react';
+import { listMissions } from '@/app/actions/getMission';
 
 const supabase = createClient();
 
 export default function ManifestPage() {
     const [items, setItems] = useState<any[]>([]);
+    const [missions, setMissions] = useState<{ id: string, title: string, description: string }[]>([]);
     const [loading, setLoading] = useState(true);
-
-    const missions = [
-        { id: 'vault_breach', title: 'VAULT BREACH', sub: 'High-Sec Infiltration' },
-        { id: 'piano_breach', title: 'PIANO BREACH', sub: 'Retrieve classified intel' },
-        // ...
-    ];
 
     const specialEvents = [
         { id: 'mission-funding-qr', title: 'MISSION FUNDING', sub: 'Scan to gain mission funding (+50 Credits)' },
@@ -23,15 +19,17 @@ export default function ManifestPage() {
     ];
 
     useEffect(() => {
-        const fetchItems = async () => {
-            const { data } = await supabase
-                .from('item')
-                .select('*')
-                .order('type', { ascending: true });
-            if (data) setItems(data);
+        const fetchAll = async () => {
+            const [itemRes, missionList] = await Promise.all([
+                supabase.from('item').select('*').neq('type', 'Intel').order('type', { ascending: true }),
+                listMissions(),
+            ]) as [any, any[]];
+            if (itemRes.data)
+                setItems(itemRes.data);
+            setMissions(missionList);
             setLoading(false);
         };
-        void fetchItems();
+        void fetchAll();
     }, []);
 
     const baseUrl = "https://party50.vercel.app"; // fallback for QR generation
@@ -80,7 +78,7 @@ export default function ManifestPage() {
                     <QRCard
                         key={m.id}
                         title={m.title}
-                        subtitle={`MISSION | ${m.sub}`}
+                        subtitle={`MISSION | ${m.description}`}
                         url={`${baseUrl}/scan/challenge/${m.id}`}
                     />
                 ))}
