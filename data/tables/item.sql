@@ -29,7 +29,7 @@ INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALU
     -- Emergency Relief (The Consumables)
 
     -- One-time use item. Instantly vents -30 Heat from your ledger.
-    ('49dd92f1-398e-4553-9f71-179c85ed9e21', 'Infrared Mitigation Device', 'Tool', '80', '0', '0'),
+    ('49dd92f1-398e-4553-9f71-179c85ed9e21', 'Infrared Mitigation Device', 'Tool', '80', '0', '-30'),
 
     -- Mission Prerequisites (The Gatekeepers)
 
@@ -142,13 +142,15 @@ INSERT INTO public.item(name, type, cost, intel, heat, credits) VALUES
     ('Executive Wing Key Log', 'Intel', 0, 12, 14, 0),
     ('Facility Cleaning Retainer', 'Intel', 0, 6, 2, 25);
 
-
---INSERT INTO public.item(name, type, cost, intel, heat, credits) VALUES
---    ('Manilla Envelope', 'Intel', 0, 15, 10, 0),
---    ('Floppy Disk', 'Intel', 0, 10, 5, 0);
-
 -- hidden items
-INSERT INTO public.item(name, type, intel, heat, credits) VALUES
-    ('Loose Cash', 'Miscellaneous', 0, 0, 10),
-    ('Large Credit Stick', 'Miscellaneous', 0, 0, 50),
-    ('Discarded Ledger', 'Intel', 5, 2, 0);
+INSERT INTO public.item(name, type, cost, intel, heat, credits) VALUES
+    ('Discarded Sticky Note', 'Miscellaneous', 0, 0, 0, 5),
+    ('Shredded Memo Fragment', 'Miscellaneous', 0, 5, 2, 0),
+    ('Unmarked Key Fob', 'Miscellaneous', 0, 0, 0, 10),
+    ('Unlocked Maintenance Tablet', 'Miscellaneous', 0, 8, 4, 0),
+    ('Corrupted SD Card', 'Miscellaneous', 0, 0, 1, 5),
+    ('C-Suite Badge Lanyard', 'Miscellaneous', 0, 0, 0, 15),
+    ('Visitor Pass Log', 'Miscellaneous', 0, 6, 3, 0),
+    ('Discarded Boardroom Agenda', 'Miscellaneous', 0, 4, 1, 0),
+    ('Misplaced Encrypted Fob', 'Miscellaneous', 0, 0, 0, 12),
+    ('HR Onboarding Packet', 'Miscellaneous', 0, 3, 0, 0);

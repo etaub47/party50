@@ -5,6 +5,7 @@ import Overlay, { OverlayProps } from "@/components/Overlay";
 import { useState } from 'react'
 import { InventoryItem } from "@/types/dbtypes";
 import ConnectionStatus from "@/components/ConnectionStatus";
+import Link from 'next/link';
 
 export default function InventoryView({ items, playerId, isConnected }: {
     items: InventoryItem[], playerId: string, isConnected: boolean }) {
@@ -60,7 +61,14 @@ export default function InventoryView({ items, playerId, isConnected }: {
                                 </button>
                             </span>
                         )}
-                        {i.item!.type !== 'Intel' && (
+                        {i.item!.name === 'Recon Readout' && (
+                            <span className="bg-blue-900/75 rounded-lg font-sans">
+                                <Link href={"/recon-readout"} className="text-blue-300">
+                                    &nbsp;VIEW&nbsp;
+                                </Link>
+                            </span>
+                        )}
+                        {i.item!.type !== 'Intel' && i.item!.name !== 'Recon Readout' && (
                             <span>&nbsp;</span>
                         )}
                         <span className="justify-self-end">
