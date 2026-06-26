@@ -8,14 +8,14 @@
   "steps": [
     {
       "order": 1,
-      "type": "PLACEHOLDER",
+      "type": "ROTARY",
       "config": {}
     },
     {
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "1234",
         "hints": [
           "TODO",
           "TODO",

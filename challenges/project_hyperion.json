@@ -20,7 +20,7 @@
     },
     {
       "order": 2,
-      "type": "PLACEHOLDER",
+      "type": "ROTARY",
       "config": {}
     },
     {

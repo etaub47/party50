@@ -6,6 +6,7 @@ import GridMatrixView from "@/components/missionsteps/GridMatrixView";
 import KeypadView from "@/components/missionsteps/KeypadView";
 import MastermindView from "@/components/missionsteps/MastermindView";
 import PatternMemoryView from "@/components/missionsteps/PatternMemoryView";
+import RotaryEnigmaView from "@/components/missionsteps/RotaryEnigmaView";
 import SignalPathView from "@/components/missionsteps/SignalPathView";
 import SliderPuzzleView from "@/components/missionsteps/SliderPuzzleView";
 import Overlay, { OverlayProps } from "@/components/Overlay";
@@ -274,6 +275,17 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
             {currentStep.type === 'SLIDER' && (
                 <SliderPuzzleView
+                    missionData={missionData}
+                    teamId={teamId}
+                    playerId={playerId}
+                    currentStepIndex={currentStepIndex}
+                    votes={votes}
+                    onComplete={advanceMyStep}
+                />
+            )}
+
+            {currentStep.type === 'ROTARY' && (
+                <RotaryEnigmaView
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}
