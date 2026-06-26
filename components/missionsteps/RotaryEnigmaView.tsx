@@ -27,10 +27,10 @@ export default function RotaryEnigmaView({
     votes: PlayerVote[],
     onComplete: () => Promise<void>
 }) {
-    const [currentRing, setCurrentRing] = useState<number>(0);
-    const [angles, setAngles] = useState<number[]>([0, 0, 0, 0, 0]);
-    const [isSolved, setIsSolved] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [ currentRing, setCurrentRing ] = useState<number>(0);
+    const [ angles, setAngles ] = useState<number[]>([0, 0, 0, 0, 0]);
+    const [ isSolved, setIsSolved ] = useState(false);
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
 
     const animationFrameRef = useRef<number | null>(null);
     const lastTimeRef = useRef<number | null>(null);

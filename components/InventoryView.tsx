@@ -44,55 +44,72 @@ export default function InventoryView({ items, playerId, isConnected }: {
         return <div className="p-8 text-center text-gray-500">No items collected.</div>
 
     return (
-        <div className="mt-4 w-full max-w-md">
+        <div className="mt-4 w-full max-w-md mx-auto px-2">
             <div className="w-full flex justify-end mb-2">
                 <ConnectionStatus isActive={isConnected} />
             </div>
             <h2 className="text-2xl font-bold mb-4">Inventory</h2>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
                 {items.map(i => (
-                    <li key={`${i.player_id}-${i.item_id}`}
-                        className="p-2 bg-yellow-100 border-1 border-black-800 rounded-lg flex grid grid-cols-4 gap-4 justify-items-start">
-                        <span className="text-black col-span-2">{i.item!.name}</span>
-                        {i.item!.type === 'Intel' && (
-                            <span className="bg-black/75 rounded-lg font-sans">
-                                <button onClick={() => initiateShred(i.item_id!, i.item!.name)} className="text-white">
-                                    &nbsp;SHRED&nbsp;
-                                </button>
-                            </span>
-                        )}
-                        {i.item!.name === 'Recon Readout' && (
-                            <span className="bg-blue-900/75 rounded-lg font-sans">
-                                <Link href={"/recon-readout"} className="text-blue-300">
-                                    &nbsp;VIEW&nbsp;
-                                </Link>
-                            </span>
-                        )}
-                        {i.item!.type !== 'Intel' && i.item!.name !== 'Recon Readout' && (
-                            <span>&nbsp;</span>
-                        )}
-                        <span className="justify-self-end">
-                            {i.item!.credits !== 0 && (
-                                <span className="bg-green-700 rounded-lg text-white ml-1 font-mono">
-                                    &nbsp;{i.item!.credits > 0 ? `+${i.item!.credits}` : i.item!.credits}&nbsp;
-                                </span>
-                            )}
-                            {i.item!.cost !== 0 && (
-                                <span className="bg-green-700 rounded-lg text-white ml-1 font-mono">
-                                    &nbsp;{`-${i.item!.cost}`}&nbsp;
-                                </span>
-                            )}
-                            {i.item!.intel !== 0 && (
-                                <span className="bg-blue-700 rounded-lg text-white ml-1 font-mono">
-                                    &nbsp;{i.item!.intel > 0 ? `+${i.item!.intel}` : i.item!.intel}&nbsp;
-                                </span>
-                            )}
-                            {i.item!.heat !== 0 && (
-                                <span className="bg-red-700 rounded-lg text-white ml-1 font-mono">
-                                    &nbsp;{i.item!.heat > 0 ? `+${i.item!.heat}` : i.item!.heat}&nbsp;
-                                </span>
-                            )}
-                        </span>
+                    <li
+                        key={`${i.player_id}-${i.item_id}`}
+                        className="p-3 bg-yellow-100 border border-slate-800 rounded-xl flex flex-col gap-3 font-mono shadow-sm"
+                    >
+                        <div className="flex items-center justify-between min-w-0">
+            <span className="text-black font-bold text-sm tracking-wide uppercase truncate">
+                {i.item!.name}
+            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/10">
+
+                            <div className="flex flex-wrap gap-1.5 items-center">
+                                {i.item!.credits !== 0 && (
+                                    <span className="bg-green-700 text-white text-[10px] font-bold px-2 py-0.5
+                                      rounded-md shadow-sm whitespace-nowrap">
+                                        {i.item!.credits > 0 ? `+${i.item!.credits}` : i.item!.credits} CREDITS
+                                    </span>
+                                )}
+                                {i.item!.cost !== 0 && (
+                                    <span className="bg-green-700 text-white text-[10px] font-bold px-2 py-0.5
+                                      rounded-md shadow-sm whitespace-nowrap">
+                                        -{i.item!.cost} CREDITS
+                                    </span>
+                                )}
+                                {i.item!.intel !== 0 && (
+                                    <span className="bg-blue-700 text-white text-[10px] font-bold px-2 py-0.5
+                                      rounded-md shadow-sm whitespace-nowrap">
+                                        {i.item!.intel > 0 ? `+${i.item!.intel}` : i.item!.intel} INTEL
+                                    </span>
+                                )}
+                                {i.item!.heat !== 0 && (
+                                    <span className="bg-red-700 text-white text-[10px] font-bold px-2 py-0.5
+                                      rounded-md shadow-sm whitespace-nowrap">
+                                        {i.item!.heat > 0 ? `+${i.item!.heat}` : i.item!.heat} HEAT
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex items-center shrink-0">
+                                {i.item!.type === 'Intel' && (
+                                    <button
+                                        onClick={() => initiateShred(i.item_id!, i.item!.name)}
+                                        className="bg-black/85 text-white text-[10px] font-sans font-bold px-3 py-1 rounded-md hover:bg-black transition-all"
+                                    >
+                                        SHRED
+                                    </button>
+                                )}
+                                {i.item!.name === 'Recon Readout' && (
+                                    <Link
+                                        href="/recon-readout"
+                                        className="bg-blue-900 text-blue-100 text-[10px] font-sans font-bold px-3 py-1 rounded-md hover:bg-blue-800 transition-all text-center"
+                                    >
+                                        VIEW
+                                    </Link>
+                                )}
+                            </div>
+
+                        </div>
                     </li>
                 ))}
             </ul>
