@@ -128,8 +128,6 @@ export default function WelcomePage() {
     )
   }
 
-  console.log("ABC");
-  console.log(activeMission);
   if (activeMission) {
     if (isManifestLoading || !missionData) {
       return (
@@ -158,7 +156,7 @@ export default function WelcomePage() {
     return (
         <WaitingRoom
             teamId={activeMission.teamId}
-            minPlayers={missionData.requirements.min_players}
+            missionData={missionData}
             playerId={playerStats!.id}
             onStart={startMission}
             onAbort={abortMission}

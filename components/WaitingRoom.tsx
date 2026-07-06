@@ -1,5 +1,6 @@
 'use client'
 
+import { Mission } from "@/types/types";
 import { RealtimeChannel } from "@supabase/realtime-js";
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
@@ -8,9 +9,9 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase = createClient()
 
-export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onAbort, onTerminate }: {
+export default function WaitingRoom({ teamId, missionData, playerId, onStart, onAbort, onTerminate }: {
     teamId: string,
-    minPlayers: number,
+    missionData: Mission,
     playerId: string,
     onStart: () => void,
     onAbort: () => void,
@@ -34,7 +35,43 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
         setCurrentCount(actualCount);
 
         // only proceed if the room is full
-        if (actualCount >= minPlayers) {
+        if (actualCount >= missionData.requirements.min_players) {
+
+            // verify required hardware asset across the whole team
+            if (missionData.requirements.required_item_id) {
+                const { data: teamPlayers } = await supabase
+                    .from('player_challenge')
+                    .select('player_id')
+                    .eq('team_id', teamId);
+
+                const teamPlayerIds = (teamPlayers || [])
+                    .map(p => p.player_id)
+                    .filter((id): id is string => id !== null);
+
+                const { data: matchingItems } = await supabase
+                    .from('player_item')
+                    .select('item_id')
+                    .eq('item_id', missionData.requirements.required_item_id)
+                    .in('player_id', teamPlayerIds);
+
+                const teamHasAsset = matchingItems && matchingItems.length > 0;
+
+                if (!teamHasAsset) {
+                    const { data: requiredItem } = await supabase
+                        .from('item')
+                        .select('name')
+                        .eq('id', missionData.requirements.required_item_id)
+                        .single<{ name: string | null }>();
+
+                    setOverlayProps({
+                        title: 'ACCESS RESTRICTED',
+                        message: `This operation requires specialized hardware [${requiredItem?.name ?? 'UNKNOWN ASSET'}]. No team member has the required tool in their inventory.`,
+                        type: 'ERROR',
+                        onClose: () => onAbort()
+                    });
+                    return;
+                }
+            }
 
             // check for collusion
             const { data: isRepeatTrio, error: rpcError } = await supabase
@@ -128,9 +165,9 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
             if (channel)
                 void supabase.removeChannel(channel);
         };
-    }, [teamId, minPlayers, onStart, playerId]);
+    }, [teamId, missionData, onStart, playerId]);
 
-    const needed = Math.max(0, minPlayers - currentCount);
+    const needed = Math.max(0, missionData.requirements.min_players - currentCount);
 
     return (
         <div>
@@ -145,7 +182,7 @@ export default function WaitingRoom({ teamId, minPlayers, playerId, onStart, onA
                         : "Team assembled. Commencing mission..."}
                 </p>
                 <div className="mt-4 flex gap-2">
-                    {Array.from({ length: minPlayers }).map((_, i) => (
+                    {Array.from({ length: missionData.requirements.min_players }).map((_, i) => (
                         <div
                             key={i}
                             className={`w-4 h-4 rounded-full ${i < currentCount ? 'bg-green-500' : 'bg-gray-600'}`}
