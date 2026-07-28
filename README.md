@@ -34,3 +34,49 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Potential bugs found by Claude Code
+
+High
+
+4. Client-supplied role = free cheat
+   app/actions/purchaseItem.ts:18,51 take playerRole from the caller and pass it to purchase_item_with_discount. Client can send "Bargain Hunter" → 30% off everything. Same for app/actions/discoverItem.ts:45 ("Scavenger" → steal already-claimed items). Read the role server-side from player using the session user id.
+
+Medium
+
+6. app/scan/global/[eventId]/page.tsx:27 — infinite spinner
+   else if (data && data[0]). RPC returning null/[] with no error → result stays null → spinner with no escape button. Add a final else.
+
+7. app/actions/processConsequences.ts:33 — error silently eats the reward
+   if (!existing && !checkError). A failed dedupe query means the player loses their event award, logged only to console. Should fail loud or insert anyway (DB constraint dedupes).
+
+8. components/ProfileView.tsx:24,43 — NaN width
+   (total_intel / max_intel) * 100 → max_intel = 0 gives NaN, Math.max(NaN, 2) is NaN, width: NaN% is dropped. Same for max_credits. Guard the denominator.
+
+9. components/LeaderBoard.tsx:94 — ADVISED badge lags 30s
+   handleLegalAdvice success calls fetchPlayers() but not fetchAdviceHistory(), so the button stays clickable until the interval tick. Lawyer can re-click and hit the unique violation. Also :142 and :157 omit fetchAdviceHistory from deps.
+
+10. app/actions/joinChallenge.ts:22 — maybeSingle() on a multi-row query
+    Player with two active player_challenge rows → PostgREST error, data null, error not destructured → treated as "no active mission". Same shape at :41. Use .limit(1) or check error.
+
+11. app/actions/joinChallenge.ts:86-99 — team assignment race
+    Two players scanning simultaneously both find no WAITING row and both mint a fresh team_id → two teams of 1 that never fill. Needs an atomic RPC or unique constraint.
+
+12. Team of 4 deadlocks majority vote
+    A 4th player joining before the others flip to IN_PROGRESS yields a 4-person team. DecisionView.tsx:38 needs count > totalRequired / 2 — a 2-2 split has no winner and the step never advances. Cap team size at min_players.
+
+Low
+
+13. components/missionsteps/SignalPathView.tsx:140-141 — [...grid] is shallow; newGrid[idx].rotation = ... mutates the object still held by the previous state. Works today, breaks under concurrent rendering. Use {...newGrid[idx], rotation: ...}.
+
+14. components/MissionRunner.tsx:243-296 — MEMORY/MASTERMIND/MATRIX/SLIDER/ROTARY have no key={...currentStepIndex} (KEYPAD/DECISION/SIGNAL do). Two consecutive steps of the same puzzle type would keep stale isSolved: true → instant free pass. No current mission does this, so latent.
+
+15. components/missionsteps/KeypadView.tsx:48 — findIndex returning -1 gives hints[-1] → "No intel available." instead of a hint. Happens if the team row isn't visible yet.
+
+16. components/QRScanner.tsx:28 — decodedText.includes('party50.vercel.app') hardcoded; scanner silently ignores every code on localhost or any other host.
+
+17. Client-only gates. AppGuard.tsx:12 and app/hq/layout.tsx:13 check document.cookie in the browser, and both passcodes are NEXT_PUBLIC_* (shipped in the JS bundle). HQ "god mode" — global event triggers, all agent dossiers — is reachable by typing document.cookie='hq_access=true'. Also .includes("hq_access=true") substring-matches, so a cookie named xhq_access passes. Fine if the threat model is "nobody at the party opens devtools"; not fine otherwise.
+
+Content
+
+18. 22 of 25 missions have "solution": "TODO" and "hints": ["TODO",...] — unbeatable, and on mobile the numeric keypad can't even type TODO. Only boardroom_audit (4624), cleaning_crew_shift (4991), tax_loophole_breach (1234) are real. Your two uncommitted diffs are exactly this work; both check out (4·6=24 → 4624; 4991 reversed → 1994).

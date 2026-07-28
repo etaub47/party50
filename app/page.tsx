@@ -22,6 +22,7 @@ export default function WelcomePage() {
   const [ playerId, setPlayerId ] = useState<any | null>(null);
   const [ isRegistered, setIsRegistered ] = useState(false);
   const [ isLoading, setIsLoading ] = useState(true);
+  const [ registrationError, setRegistrationError ] = useState<string | null>(null);
 
   const supabase = createClient()
 
@@ -55,32 +56,47 @@ export default function WelcomePage() {
   const registerNewPlayer = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
+    setRegistrationError(null);
 
-    let { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
-      if (signInError) {
-        setIsLoading(false);
+    // every exit path must clear isLoading, or the form is replaced by
+    // "Loading Game..." forever with nothing telling the player what broke
+    try {
+      let { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
+        if (signInError) {
+          setRegistrationError(`Could not open a secure channel: ${signInError.message}`);
+          return;
+        }
+        user = signInData.user;
+      }
+
+      if (!user) {
+        setRegistrationError("Could not open a secure channel. Check your connection and try again.");
         return;
       }
-      user = signInData.user;
-    }
 
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
+      const formData = new FormData()
+      formData.append('playerName', name)
+      formData.append('playerRole', role)
+      formData.append('playerId', user.id)
+      const result = await registerPlayer(formData as any)
 
-    const formData = new FormData()
-    formData.append('playerName', name)
-    formData.append('playerRole', role)
-    formData.append('playerId', user.id)
-    const result = await registerPlayer(formData as any)
+      if (!result.success) {
+        setRegistrationError(result.error || "Registration was refused. Please try again.");
+        return;
+      }
 
-    if (result.success) {
       setIsRegistered(true);
       setPlayerId(user.id);
       void refresh();
+    } catch (err) {
+      setRegistrationError(
+          err instanceof Error && err.message
+              ? err.message
+              : "Unexpected error during registration."
+      );
+    } finally {
       setIsLoading(false);
     }
   }
@@ -123,6 +139,18 @@ export default function WelcomePage() {
             >
               Register
             </button>
+
+            {registrationError && (
+                <div
+                    role="alert"
+                    className="p-3 border-2 border-red-600 bg-red-950/40 rounded-lg font-mono text-xs text-red-400"
+                >
+                  <span className="block font-bold uppercase tracking-widest mb-1">
+                    Registration Failed
+                  </span>
+                  {registrationError}
+                </div>
+            )}
           </form>
         </main>
     )

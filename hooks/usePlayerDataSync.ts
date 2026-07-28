@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { RealtimeChannel } from '@supabase/realtime-js';
 import { createClient } from '@/utils/supabase/client';
 import { PlayerStats, InventoryItem, HistoryEvent } from '@/types/dbtypes';
 
@@ -32,13 +33,45 @@ export function usePlayerDataSync(playerId: string | undefined) {
     }, [playerId]);
 
     useEffect(() => {
-        let channel: any;
-        const setupRealtime = async () => {
-            if (!playerId)
+        if (!playerId)
+            return;
+
+        let isActive = true;
+        let channel: RealtimeChannel | null = null;
+        let retryTimer: ReturnType<typeof setTimeout> | null = null;
+        // bumped per subscribe attempt, so a superseded channel's own status
+        // callbacks (notably the CLOSED we cause by removing it) are ignored
+        let generation = 0;
+
+        // only one retry may be in flight, and never after teardown
+        const scheduleRetry = () => {
+            if (!isActive || retryTimer)
                 return;
+            console.log("Retrying subscription in 5s...");
+            retryTimer = setTimeout(() => {
+                retryTimer = null;
+                void setupRealtime();
+            }, 5000);
+        };
+
+        const setupRealtime = async () => {
+            if (!isActive)
+                return;
+            const myGen = ++generation;
+
+            // on a retry this also pulls anything that changed while we were dark
             void fetchData();
 
-            const channelName = `player-sync-${Date.now()}`;
+            // drop the previous channel first so retries don't stack up subscriptions
+            if (channel) {
+                const stale = channel;
+                channel = null;
+                await supabase.removeChannel(stale);
+                if (!isActive || myGen !== generation)
+                    return;
+            }
+
+            const channelName = `player-sync-${playerId}-${Date.now()}`;
             channel = supabase.channel(channelName)
                 .on('postgres_changes' as any,
                     { event: '*', schema: 'public', table: 'player', filter: `id=eq.${playerId}` },
@@ -51,22 +84,24 @@ export function usePlayerDataSync(playerId: string | undefined) {
                     fetchData)
                 .subscribe((status) => {
                     console.log(`📡 Unified Sync (${channelName}):`, status);
+                    if (!isActive || myGen !== generation)
+                        return;
                     const isSubscribed = status === 'SUBSCRIBED';
                     setIsConnected(isSubscribed);
-                    const needsRetry = ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status);
-                    if (needsRetry) {
-                        console.log("Retrying subscription in 5s...");
-                        setTimeout(() => {
-                            void setupRealtime();
-                        }, 5000);
-                    }
+                    if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status))
+                        scheduleRetry();
                 });
         };
+
         void setupRealtime();
         return () => {
-            if (channel) {
+            // must flip before removeChannel: unsubscribing fires the status
+            // callback with CLOSED, which would otherwise schedule a retry
+            isActive = false;
+            if (retryTimer)
+                clearTimeout(retryTimer);
+            if (channel)
                 void supabase.removeChannel(channel);
-            }
         };
     }, [playerId, fetchData]);
 

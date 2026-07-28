@@ -2,6 +2,7 @@
 
 import { GlobalEvent } from "@/types/dbtypes";
 import { createClient } from '@/utils/supabase/client';
+import { RealtimeChannel } from "@supabase/realtime-js";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from 'react';
 
@@ -49,34 +50,75 @@ export default function GlobalAlertListener() {
         }
     }, [isInSafeZone]);
 
-    const setupRealtime = useCallback(() => {
-        const channelName = `global-alert-listener-${Date.now()}`;
-        return supabase.channel(channelName)
-            .on('postgres_changes' as any,
-                {event: 'INSERT', schema: 'public', table: 'global_event'},
-                (payload) => {
-                    setAlert(payload.new as GlobalEvent);
-                    setIsAcknowledged(false);
-                    if ('vibrate' in navigator)
-                        navigator.vibrate([500, 110, 500]);
-                }
-            )
-            .subscribe((status: string) => {
-                if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                    setTimeout(setupRealtime, 5000);
-                }
-            });
-    }, []);
-
     useEffect(() => {
-        void syncExistingAlert();
-        const channel = setupRealtime();
+        let isActive = true;
+        let channel: RealtimeChannel | null = null;
+        let retryTimer: ReturnType<typeof setTimeout> | null = null;
+        // bumped per subscribe attempt, so a superseded channel's own status
+        // callbacks (notably the CLOSED we cause by removing it) are ignored
+        let generation = 0;
+
+        // only one retry may be in flight, and never after teardown
+        const scheduleRetry = () => {
+            if (!isActive || retryTimer)
+                return;
+            retryTimer = setTimeout(() => {
+                retryTimer = null;
+                void setupRealtime();
+            }, 5000);
+        };
+
+        const setupRealtime = async () => {
+            if (!isActive)
+                return;
+            const myGen = ++generation;
+
+            // on a retry this also picks up any alert raised while we were dark
+            void syncExistingAlert();
+
+            // drop the previous channel first so retries don't stack up subscriptions
+            if (channel) {
+                const stale = channel;
+                channel = null;
+                await supabase.removeChannel(stale);
+                if (!isActive || myGen !== generation)
+                    return;
+            }
+
+            const channelName = `global-alert-listener-${Date.now()}`;
+            channel = supabase.channel(channelName)
+                .on('postgres_changes' as any,
+                    {event: 'INSERT', schema: 'public', table: 'global_event'},
+                    (payload) => {
+                        if (!isActive || myGen !== generation)
+                            return;
+                        setAlert(payload.new as GlobalEvent);
+                        setIsAcknowledged(false);
+                        if ('vibrate' in navigator)
+                            navigator.vibrate([500, 110, 500]);
+                    }
+                )
+                .subscribe((status: string) => {
+                    if (!isActive || myGen !== generation)
+                        return;
+                    if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status))
+                        scheduleRetry();
+                });
+        };
+
+        void setupRealtime();
         window.addEventListener('focus', syncExistingAlert);
         return () => {
-            void supabase.removeChannel(channel);
+            // must flip before removeChannel: unsubscribing fires the status
+            // callback with CLOSED, which would otherwise schedule a retry
+            isActive = false;
+            if (retryTimer)
+                clearTimeout(retryTimer);
+            if (channel)
+                void supabase.removeChannel(channel);
             window.removeEventListener('focus', syncExistingAlert)
         };
-    }, [setupRealtime, syncExistingAlert]);
+    }, [syncExistingAlert]);
 
     useEffect(() => {
         if (!alert)

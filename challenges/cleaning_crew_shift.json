@@ -22,11 +22,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "4991",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "What year did the movie come out?",
+          "What is Eddie's favorite movie?",
+          "Make sure to enter the passcode from back to front!"
         ]
       }
     },

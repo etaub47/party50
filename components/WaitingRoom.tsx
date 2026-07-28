@@ -9,6 +9,9 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 
 const supabase = createClient()
 
+// how often to reconcile with the database when realtime has nothing to say
+const POLL_MS = 4000;
+
 export default function WaitingRoom({ teamId, missionData, playerId, onStart, onAbort, onTerminate }: {
     teamId: string,
     missionData: Mission,
@@ -23,7 +26,13 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
 
     const isRetryingRef = useRef(false);
 
+    // once the team is blocked (missing hardware, or a repeat trio) the answer will
+    // not change on its own, so stop the poll redoing that work every few seconds
+    const isBlockedRef = useRef(false);
+
     const updateTeamStatus = async () => {
+        if (isBlockedRef.current)
+            return;
 
         // fetch current count for UI and logic gating
         const { count } = await supabase
@@ -63,7 +72,8 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
                         .eq('id', missionData.requirements.required_item_id)
                         .single<{ name: string | null }>();
 
-                    setOverlayProps({
+                    isBlockedRef.current = true;
+                    setOverlayProps(prev => prev ?? {
                         title: 'ACCESS RESTRICTED',
                         message: `This operation requires specialized hardware [${requiredItem?.name ?? 'UNKNOWN ASSET'}]. No team member has the required tool in their inventory.`,
                         type: 'ERROR',
@@ -84,7 +94,8 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
             // check to make sure that these same three players haven't already done a mission together
             // otherwise, flip MY status to IN_PROGRESS and start the mission
             if (isRepeatTrio) {
-                setOverlayProps({
+                isBlockedRef.current = true;
+                setOverlayProps(prev => prev ?? {
                     title: 'MISSION COMPROMISED',
                     message: "This specific trio is drawing too much suspicion. You have aborted the mission to avoid detection.",
                     type: 'ERROR',
@@ -103,6 +114,37 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
             }
         }
     };
+
+    // reach the newest updateTeamStatus from the interval without making the
+    // interval depend on a function that is rebuilt on every render
+    const updateTeamStatusRef = useRef(updateTeamStatus);
+    useEffect(() => {
+        updateTeamStatusRef.current = updateTeamStatus;
+    });
+
+    // Polling floor: if the INSERT that completes the team is missed, this player
+    // would wait forever while everyone else starts. Realtime still drives the
+    // fast path; this only picks up what the socket dropped.
+    useEffect(() => {
+        const tick = () => {
+            if (document.hidden)
+                return;
+            void updateTeamStatusRef.current();
+        };
+
+        const interval = setInterval(tick, POLL_MS);
+
+        const onVisibilityChange = () => {
+            if (!document.hidden)
+                tick();
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+    }, []);
 
     useEffect(() => {
         const channelName = `waiting-${teamId}-${playerId}-${Date.now()}`;

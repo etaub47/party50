@@ -18,11 +18,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "4624",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The first digit is how many siblings Eddie has",
+          "The second digit is the number of gnomes on the fireplace mantel",
+          "The last two digits are the equivalent of the product of the first two"
         ]
       }
     },

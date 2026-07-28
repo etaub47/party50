@@ -18,6 +18,19 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 
 const supabase = createClient()
 
+// how often to reconcile with the database when realtime has nothing to say
+const POLL_MS = 4000;
+
+/** Votes only matter as a set, so compare by content rather than array identity. */
+function sameVotes(a: PlayerVote[], b: PlayerVote[]): boolean {
+    if (a.length !== b.length)
+        return false;
+    const key = (v: PlayerVote) => `${v.player_id}:${v.option_id}`;
+    const left = a.map(key).sort();
+    const right = b.map(key).sort();
+    return left.every((k, i) => k === right[i]);
+}
+
 export default function MissionRunner({teamId, missionData, playerRole, initialStep, playerId, onAbort, onTerminate}: {
     teamId: string,
     missionData: Mission,
@@ -42,17 +55,32 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
     // refresh data
     const fetchVotesOnly = useCallback(async () => {
+        const stepAtRequest = currentStepIndex;
         const {data} = await supabase
             .from('player_vote')
             .select('*')
             .eq('team_id', teamId)
             .eq('challenge_id', missionData.id)
-            .eq('step', currentStepIndex);
+            .eq('step', stepAtRequest);
 
-        const currentVotes = (data as PlayerVote[]) || [];
-        setVotes(currentVotes);
-        return currentVotes;
-    }, [teamId, missionData.id, currentStepIndex, playerId]);
+        // a response that lands after the step moved on must be dropped: it holds
+        // a full set of votes for the step we already left, and applying it would
+        // read as "everyone voted" and advance us a second time
+        if (stepAtRequest !== stepRef.current)
+            return;
+
+        // one vote per player. A retried insert after a lost response can leave two
+        // rows for the same player, which would otherwise let a 3-player step
+        // advance on 2 real voters, since every consumer just reads votes.length
+        const rows = (data as PlayerVote[]) || [];
+        const currentVotes = rows.filter(
+            (row, i) => rows.findIndex(other => other.player_id === row.player_id) === i
+        );
+
+        // keep the previous array when the vote set is unchanged, so a poll tick
+        // does not re-fire every effect that depends on `votes`
+        setVotes(prev => sameVotes(prev, currentVotes) ? prev : currentVotes);
+    }, [teamId, missionData.id, currentStepIndex]);
 
     // advance self
     const advanceMyStep = useCallback(async (targetStep?: number) => {
@@ -93,31 +121,103 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
         void fetchVotesOnly();
     }, [currentStepIndex, fetchVotesOnly]);
 
+    // read the team's real progress from the database: catch up to whoever is
+    // furthest ahead, and notice a failure even if we missed the realtime event
+    const syncTeamProgress = useCallback(async () => {
+        const { data } = await supabase
+            .from('player_challenge')
+            .select('current_step, status')
+            .eq('team_id', teamId)
+            .order('current_step', { ascending: false });
+        if (!data || data.length === 0)
+            return;
+
+        if (data.some(row => row.status === 'FAILED')) {
+            // `prev ?? ...` so a repeated poll cannot rebuild the overlay object
+            setOverlayProps(prev => prev ?? {
+                title: 'MISSION FAILED',
+                message: 'An incorrect keypad code triggered the alarm!',
+                type: 'ERROR',
+                onClose: () => onTerminate()
+            });
+            return;
+        }
+
+        const furthestStep = data[0].current_step;
+        if (furthestStep > stepRef.current) {
+            console.log("🏃 Catching up to teammate at step:", furthestStep);
+            await advanceMyStep(furthestStep);
+        }
+    }, [teamId, advanceMyStep, onTerminate]);
+
     // if teammate is a step ahead, let's catch up
     useEffect(() => {
-        const checkTeammates = async () => {
-            const { data } = await supabase
-                .from('player_challenge')
-                .select('current_step')
-                .eq('team_id', teamId)
-                .gt('current_step', stepRef.current)
-                .order('current_step', { ascending: false })
-                .limit(1);
-            if (data && data.length > 0) {
-                console.log("🏃 Catching up to teammate at step:", data[0].current_step);
-                await advanceMyStep(data[0].current_step);
-            }
+        void syncTeamProgress();
+    }, [currentStepIndex, syncTeamProgress]);
+
+    // Polling floor. postgres_changes are never replayed, so an event that lands
+    // while the socket is down is gone for good and this player would sit on
+    // "waiting for teammates" until they reload. Realtime still drives the fast
+    // path; this only picks up what the socket dropped.
+    useEffect(() => {
+        const tick = () => {
+            if (document.hidden)
+                return;
+            void syncTeamProgress();
+            void fetchVotesOnly();
         };
-        void checkTeammates();
-    }, [teamId, currentStepIndex, advanceMyStep]);
+
+        const interval = setInterval(tick, POLL_MS);
+
+        // a backgrounded phone is the likeliest way to miss an event, so reconcile
+        // the moment the player returns instead of up to POLL_MS later
+        const onVisibilityChange = () => {
+            if (!document.hidden)
+                tick();
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+    }, [syncTeamProgress, fetchVotesOnly]);
 
     // realtime stuff
     useEffect(() => {
-        const channelName = `mission-runner-${Date.now()}`;
         let isActive: boolean = true;
-        let channel: RealtimeChannel;
+        let channel: RealtimeChannel | null = null;
+        let retryTimer: ReturnType<typeof setTimeout> | null = null;
+        // bumped per subscribe attempt, so a superseded channel's own status
+        // callbacks (notably the CLOSED we cause by removing it) are ignored
+        let generation = 0;
 
-        const setupRealtime = () => {
+        // only one retry may be in flight, and never after teardown
+        const scheduleRetry = () => {
+            if (!isActive || retryTimer)
+                return;
+            console.log("Retrying subscription in 5s...");
+            retryTimer = setTimeout(() => {
+                retryTimer = null;
+                void setupRealtime();
+            }, 5000);
+        };
+
+        const setupRealtime = async () => {
+            if (!isActive)
+                return;
+            const myGen = ++generation;
+
+            // drop the previous channel first so retries don't stack up subscriptions
+            if (channel) {
+                const stale = channel;
+                channel = null;
+                await supabase.removeChannel(stale);
+                if (!isActive || myGen !== generation)
+                    return;
+            }
+
+            const channelName = `mission-runner-${teamId}-${Date.now()}`;
             channel = supabase.channel(channelName)
 
                 // teammate challenge row changed; let's check for a failure status or a step advance
@@ -160,30 +260,30 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                         console.log("VOTES / INSERT - REALTIME SIGNAL RECEIVED");
                         if (!isActive)
                             return;
-                        const latest = await fetchVotesOnly();
-                        setVotes(latest);
+                        await fetchVotesOnly();
                     })
 
                 // called when we subscribe to the channel
                 .subscribe(status => {
                     console.log(`Realtime status (${channelName}):`, status);
+                    if (!isActive || myGen !== generation)
+                        return;
                     const isSubscribed = status === 'SUBSCRIBED';
                     setIsConnected(isSubscribed);
-                    const needsRetry = ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status);
-                    if (needsRetry) {
-                        console.log("Retrying subscription in 5s...");
-                        setTimeout(() => {
-                            void setupRealtime();
-                        }, 5000);
-                    }
+                    if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status))
+                        scheduleRetry();
                 });
         };
 
         void setupRealtime();
         return () => {
-            if (channel) {
+            // must flip before removeChannel: unsubscribing fires the status
+            // callback with CLOSED, which would otherwise schedule a retry
+            isActive = false;
+            if (retryTimer)
+                clearTimeout(retryTimer);
+            if (channel)
                 void supabase.removeChannel(channel);
-            }
         };
     }, [teamId, playerId, missionData.requirements.min_players, fetchVotesOnly]);
 
