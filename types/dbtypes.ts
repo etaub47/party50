@@ -54,7 +54,8 @@ export interface PlayerStats {
     max_intel: number,
     total_heat: number,
     current_credits: number,
-    max_credits: number
+    max_credits: number,
+    is_locked_out: boolean
 }
 
 export interface PlayerVote {

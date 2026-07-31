@@ -37,6 +37,18 @@ export default function ProfileView({ playerStats, isConnected }: {
                         Heat: {playerStats.total_heat}
                     </span>
                 </div>
+                {playerStats.is_locked_out && (
+                    <div
+                        role="alert"
+                        className="w-full mt-3 p-3 border-2 border-red-600 bg-red-950/40 rounded-lg font-mono text-xs text-red-400"
+                    >
+                        <span className="block font-bold uppercase tracking-widest mb-1">
+                            Surveillance Critical
+                        </span>
+                        You are too hot to run operations. Missions will refuse you until your
+                        heat drops below 100.
+                    </div>
+                )}
                 <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-5 border border-gray-600">
                     <div
                         className="h-full bg-green-600 transition-all duration-500 ease-out"

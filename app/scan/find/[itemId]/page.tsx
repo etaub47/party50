@@ -20,7 +20,7 @@ export default function FindItem() {
             if (hasScanned || !itemId) return;
             setHasScanned(true);
             const singleItemId = Array.isArray(itemId) ? itemId[0] : itemId;
-            const overlayProps: OverlayProps = await handleItemDiscovery(player!.id!, player!.role!, singleItemId);
+            const overlayProps: OverlayProps = await handleItemDiscovery(player!.id!, singleItemId);
             setOverlayProps({ onClose: () => router.push('/'), ...overlayProps });
         }
         void handleScan();

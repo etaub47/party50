@@ -5,8 +5,19 @@ import { InventoryItem } from "@/types/dbtypes";
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function handleItemDiscovery(playerId: string, playerRole: string, itemId: string): Promise<OverlayProps> {
+export async function handleItemDiscovery(playerId: string, itemId: string): Promise<OverlayProps> {
     const supabase = await createClient();
+
+    // Trust the stored role, not the caller's copy of it. The Scavenger bonus below is the
+    // right to take an item someone else already claimed, so a client that simply says it is
+    // a Scavenger would otherwise strip every claimed location in the game.
+    const { data: playerData, error: playerError } = await supabase
+        .from('player')
+        .select('role')
+        .eq('id', playerId)
+        .single<{ role: string | null }>();
+    if (playerError || !playerData)
+        return { type: 'ERROR', title: 'UNKNOWN AGENT', message: "Your dossier could not be found." };
 
     // get the item details (so we know what it is)
     const { data: itemData, error: itemError } = await supabase
@@ -42,7 +53,7 @@ export async function handleItemDiscovery(playerId: string, playerRole: string, 
     if (myClaim)
         return { type: 'INFO', title: 'DATA ALREADY SYNCED', message: `You have already recovered the ${itemData.name}.` };
 
-    const isScavenger = playerRole === 'Scavenger';
+    const isScavenger = playerData.role === 'Scavenger';
     if (firstFinder && !isScavenger) {
         const timeStr = new Date(firstFinder.created_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         return {
