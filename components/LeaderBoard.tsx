@@ -168,24 +168,27 @@ export default function Leaderboard({ playerStats, items, isActive, isConnected 
                     const isSelf = playerStats?.id === p.id;
 
                     return (
-                        <li key={p.id} className="p-2 border-1 border-black-800 bg-blue-100 rounded-lg flex justify-between items-center">
-                            <div className="flex flex-col">
-                                <span className="text-black">
+                        <li key={p.id} className="p-3 border-1 border-black-800 bg-blue-100 rounded-lg flex justify-between items-center gap-2 text-left">
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-black break-words">
                                     {p.name} {isSelf && "(YOU)"}
                                 </span>
                                 {hasDossier && (
                                     <div className="text-xs mt-1">
-                                        <div className="text-yellow-200 mb-1">Specialization: {p.role}</div>
-                                        <div className="text-gray-400 flex gap-2 font-mono text-[10px]">
-                                            <span className="text-blue-300">INT: {p.total_intel}</span>
-                                            <span className="text-red-300">HEA: {p.total_heat}</span>
-                                            <span className="text-green-300">CRD: {p.current_credits}</span>
+                                        <div className="text-slate-700 mb-1 break-words">
+                                            <span className="uppercase tracking-wide text-[10px] text-slate-500">Specialization: </span>
+                                            <span className="font-semibold">{p.role}</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-x-3 font-mono text-[11px] font-semibold">
+                                            <span className="text-blue-800">INT: {p.total_intel}</span>
+                                            <span className="text-red-800">HEA: {p.total_heat}</span>
+                                            <span className="text-green-800">CRD: {p.current_credits}</span>
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 shrink-0">
                                 {isLawyer && (
                                     <button
                                         disabled={hasReceivedAdvice}
