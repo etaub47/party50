@@ -1,7 +1,7 @@
 {
   "id": "park_bench_drop",
   "title": "Park Bench Drop",
-  "description": "Collect a dropped field terminal asset containing high-value operational logs on short notice.",
+  "description": "Collect a dropped device containing high-value operational logs, on short notice.",
   "requirements": {
     "min_players": 1
   },
@@ -20,7 +20,7 @@
       "order": 2,
       "type": "DECISION",
       "config": {
-        "instruction": "Security patrol deployment pattern shifts. Do you ditch the tracking beacon immediately or risk a high-pressure breakout scenario?",
+        "instruction": "Security patrol patterns shift. Do you ditch the tracking beacon now, or risk a high-pressure breakout?",
         "voting": "majority",
         "options": [
           { "id": "bench_drop", "label": "Ditch Hardware Asset", "event_id": "f0fd022d-4716-44de-b63b-ccdffff8719a" },
@@ -32,7 +32,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Asset container secured. Extract the real-time calendar synchronization layouts or scrape courier laundering assets.",
+        "instruction": "Container secured. Take the synced calendar data, or grab the courier's laundered cash.",
         "voting": "individual",
         "options": [
           { "id": "bench_a", "label": "Calendar Schedule Sync", "item_id": "d3781bca-9095-4546-a90b-e352c702e7c0" },

@@ -27,7 +27,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Inventory console cracked. Exfiltrate the full supply route logistics tracking manifest or log a fraudulent vendor kickback fee.",
+        "instruction": "Inventory console cracked. Grab the full supply route manifest, or log a fraudulent kickback fee.",
         "voting": "individual",
         "options": [
           { "id": "sweep_a", "label": "Logistics Route Manifest", "item_id": "3150171c-fb1f-4189-be6a-4892325855eb" },

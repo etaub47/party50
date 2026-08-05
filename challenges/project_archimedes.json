@@ -30,7 +30,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "The terminal is primed for final exfiltration. Select the partition layout to download before the mainframe connection cycles.",
+        "instruction": "The terminal's ready for exfiltration. Pick what to download before the connection cycles.",
         "voting": "individual",
         "options": [
           { "id": "arch_a", "label": "Core Bio-Code Matrix", "item_id": "9776d9bc-4d2e-45f8-9cc1-77cd3db9858a" },

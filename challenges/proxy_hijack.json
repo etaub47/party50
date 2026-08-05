@@ -1,7 +1,7 @@
 {
   "id": "proxy_hijack",
   "title": "Proxy Hijack",
-  "description": "Inject structural route redirection packets into the peripheral network switching gateway.",
+  "description": "Inject rerouting packets into the network's switching gateway.",
   "requirements": {
     "min_players": 3
   },
@@ -27,7 +27,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Redirection tables stabilized. Select whether to download the system's decrypted internal firewall ruleset map or leverage an ISP vendor infrastructure credit.",
+        "instruction": "Redirection tables stabilized. Download the firewall ruleset, or cash in an ISP infrastructure credit.",
         "voting": "individual",
         "options": [
           { "id": "proxy_a", "label": "Firewall Rule Map", "item_id": "44c21114-eba9-4c25-be4d-d94cee2820d1" },

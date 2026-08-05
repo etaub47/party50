@@ -1,7 +1,7 @@
 {
   "id": "terminal_b_drop",
   "title": "Terminal B Drop",
-  "description": "Retrieve a hidden encryption asset from a dead drop locker under counter-surveillance cover.",
+  "description": "Retrieve a hidden encryption device from a dead-drop locker while dodging surveillance.",
   "requirements": {
     "min_players": 1
   },
@@ -20,7 +20,7 @@
       "order": 2,
       "type": "DECISION",
       "config": {
-        "instruction": "A peripheral network scan sweeps the transit terminal area. Do you hold position to map data traces or sever connections and clear out?",
+        "instruction": "A network scan sweeps the terminal area. Do you hold position to map the traces, or cut the connection and clear out?",
         "voting": "majority",
         "options": [
           { "id": "term_scan", "label": "Stay and Scan Layout", "event_id": "073f71c6-170c-4030-aa8d-568b2eed5e97" },
@@ -32,7 +32,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "The transfer window is closing. Finalize processing your recovered payload parameters.",
+        "instruction": "The transfer window is closing. Choose what to keep.",
         "voting": "individual",
         "options": [
           { "id": "term_a", "label": "Firmware Dump", "item_id": "49765c54-c3e3-4854-8bfe-d9db7948ed4d" },

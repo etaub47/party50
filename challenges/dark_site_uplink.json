@@ -1,7 +1,7 @@
 {
   "id": "dark_site_uplink",
   "title": "Dark-Site Uplink",
-  "description": "Intercept raw commercial satellite telemetry data directly from the rooftop terminal.",
+  "description": "Intercept raw satellite signal data straight from the rooftop terminal.",
   "requirements": {
     "min_players": 3,
     "required_item_id": "cd865e9d-da78-4fb4-855c-65e02e3899e3"
@@ -18,11 +18,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "1640",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "Count the number affixed to doorways on each floor of this house.",
+          "Start at the basement for the first digit, and work your way upward.",
+          "Please note that there are no mezuzot in the attic."
         ]
       }
     },
@@ -30,7 +30,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Satellite array optimization achieved. Choose whether to secure a backdoor configuration path patch or siphon offshore network holding share configurations.",
+        "instruction": "Satellite array optimized. Choose whether to secure a backdoor for easy entry or siphon offshore holdings for profit.",
         "voting": "individual",
         "options": [
           { "id": "uplink_a", "label": "Satellite Access Patch", "item_id": "3130bafe-27ac-47cd-8bdb-0003d6cac56c" },

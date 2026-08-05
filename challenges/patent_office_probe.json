@@ -30,7 +30,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Legal repository access confirmed. Pull unreleased pending competitor applications or siphon legal settlement accounts.",
+        "instruction": "Legal repository access confirmed. Pull the pending competitor patents, or skim the legal settlement funds.",
         "voting": "individual",
         "options": [
           { "id": "patent_a", "label": "Pending Competitor Patent", "item_id": "095052ae-6e06-4fbb-bd84-3eed371772dd" },

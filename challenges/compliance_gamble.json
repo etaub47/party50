@@ -10,11 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "3819",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The second digit is 1 less than three times the first digit.",
+          "The fourth digit is equal to the square of the first digit.",
+          "The third digit is equal to the fourth digit minus the second digit."
         ]
       }
     },
@@ -22,7 +22,7 @@
       "order": 2,
       "type": "DECISION",
       "config": {
-        "instruction": "Compliance defense script is initialized. Do you choose to clone historical audit logs or force an immediate infrastructure wipe to reduce unwanted heat?",
+        "instruction": "Compliance defense script running. Copy the old audit logs, or wipe the servers now to thwart counterintelligence?",
         "voting": "majority",
         "options": [
           { "id": "comp_clone", "label": "Clone Financial Archives", "event_id": "4ee70714-c977-42b3-9fe9-b6816c64e194" },
@@ -34,7 +34,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Data backup complete. Prioritize your localized intelligence recovery asset parameters.",
+        "instruction": "Backup complete. Choose what to take.",
         "voting": "individual",
         "options": [
           { "id": "comp_a", "label": "Shredded SEC Memo", "item_id": "4f1e2f5b-72a2-48d6-93be-8b4ca172cc38" },

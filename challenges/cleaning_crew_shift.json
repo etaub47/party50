@@ -1,7 +1,7 @@
 {
   "id": "cleaning_crew_shift",
   "title": "Cleaning Crew Shift",
-  "description": "Use a janitorial window of opportunity to tap hardware logging devices on backend office terminals.",
+  "description": "Use a janitorial window of opportunity to plant a hardware logger on the office terminals.",
   "requirements": {
     "min_players": 3
   },
@@ -10,7 +10,7 @@
       "order": 1,
       "type": "DECISION",
       "config": {
-        "instruction": "An off-hours supervisor checks the floor log. Do you expend operational capital to bribe a facility cleaner or try to actively dodge the terminal sweeps?",
+        "instruction": "An off-hours supervisor checks the floor log. Do you spend cash to bribe a cleaner, or try to dodge the patrol sweeps?",
         "voting": "majority",
         "options": [
           { "id": "crew_bribe", "label": "Bribe Facilities Worker", "event_id": "9a533b7f-b2d4-4d59-9b33-d678ce45f719" },
@@ -26,7 +26,7 @@
         "hints": [
           "What year did the movie come out?",
           "What is Eddie's favorite movie?",
-          "Make sure to enter the passcode from back to front!"
+          "The passcode must be entered backward."
         ]
       }
     },
@@ -39,7 +39,7 @@
       "order": 4,
       "type": "DECISION",
       "config": {
-        "instruction": "Terminal logging tap verified. Secure the master executive wing hardware access logs or register a permanent facilities service retainer credit.",
+        "instruction": "Logger installed. Grab the executive wing's access logs, or lock in a standing facilities services credit.",
         "voting": "individual",
         "options": [
           { "id": "crew_a", "label": "Executive Wing Key Log", "item_id": "59b853de-fc5e-4586-90e8-485c9e7c7567" },

@@ -29,7 +29,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Neural framework access unlatched. Extract the core weighting values or route liquidation asset codes directly to your firm.",
+        "instruction": "AI system access unlocked. Take the core weight files, or route liquidation funds to your firm.",
         "voting": "individual",
         "options": [
           { "id": "aegis_a", "label": "AI Weight Matrix", "item_id": "2e5adc3e-6535-4cd2-a166-3af99d880c91" },

@@ -1,7 +1,7 @@
 {
   "id": "boardroom_audit",
   "title": "The Boardroom Audit",
-  "description": "Clone high-level accounting ledgers detailing off-the-books executive payout networks.",
+  "description": "Copy high-level accounting ledgers detailing off-the-books executive payouts.",
   "requirements": {
     "min_players": 3,
     "required_item_id": "d83c10ed-c2c8-47af-987c-fe8115f0cdf8"
@@ -30,7 +30,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Financial access verified. Extract the black-budget tracking manifests or redirect an off-the-books retainer fee into your clearing ledger.",
+        "instruction": "Financial access confirmed. Grab the black-budget records or redirect an off-the-books fee into your own account.",
         "voting": "individual",
         "options": [
           { "id": "audit_a", "label": "Black-Budget Ledger", "item_id": "694e6036-e203-4e82-8746-93d2bbf42962" },

@@ -1,7 +1,7 @@
 {
   "id": "executive_flight",
   "title": "Executive Flight",
-  "description": "Intercept clear-text communications from the private hangar ground-control uplink panel.",
+  "description": "Intercept unencrypted radio traffic from the private hangar's ground-control panel.",
   "requirements": {
     "min_players": 3,
     "required_item_id": "3a647af2-f677-4d8f-840e-656c6f88eba6"
@@ -28,7 +28,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "The hangar terminal is recording tracking profiles. Download avionics audio intercepts or siphon fuel supply logistic credits.",
+        "instruction": "The hangar terminal is logging flight data. Download the audio intercepts, or skim fuel supply credits.",
         "voting": "individual",
         "options": [
           { "id": "flight_a", "label": "Avionics Audio Log", "item_id": "5d4c5bd1-e7f2-4b2d-b053-79ca8a9ab615" },

@@ -1,7 +1,7 @@
 {
   "id": "laundromat_drop",
   "title": "Laundromat Drop",
-  "description": "Swap a physical data payload ledger under the cover of a casual public commercial exchange.",
+  "description": "Swap a data drive for another under cover of a casual public exchange.",
   "requirements": {
     "min_players": 1
   },
@@ -20,7 +20,7 @@
       "order": 2,
       "type": "DECISION",
       "config": {
-        "instruction": "A security vehicle parks outside the transfer point. Do you stay put to verify your courier contact or walk immediately with baseline assets?",
+        "instruction": "A security vehicle parks outside. Do you wait to confirm your courier, or walk away now with what you already have?",
         "voting": "majority",
         "options": [
           { "id": "laund_wait", "label": "Wait to Confirm Courier", "event_id": "3029a57c-5801-4cdf-a795-61cb6932ee67" },
@@ -32,7 +32,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "The hand-off exchange is complete. Finalize processing your tactical asset payload details.",
+        "instruction": "The hand-off is complete. Choose what to keep.",
         "voting": "individual",
         "options": [
           { "id": "laund_a", "label": "Vendor Contact Ledger", "item_id": "7e849a92-be88-4ddb-9175-43bd4776d1be" },

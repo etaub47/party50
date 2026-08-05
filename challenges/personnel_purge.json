@@ -1,7 +1,7 @@
 {
   "id": "personnel_purge",
   "title": "Personnel Purge",
-  "description": "Purge damning operational files from the central human resources digital archival mainframe.",
+  "description": "Purge damning files from HR's central digital archive.",
   "requirements": {
     "min_players": 3,
     "required_item_id": "d83c10ed-c2c8-47af-987c-fe8115f0cdf8"
@@ -28,7 +28,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Database isolation overridden. Retain personal affairs dossiers for leverage or adjust severance liability code variables for immediate cash allocation.",
+        "instruction": "Database lock overridden. Keep the personal dossiers for leverage, or rewrite the severance numbers for quick cash.",
         "voting": "individual",
         "options": [
           { "id": "purge_a", "label": "VP Personal Dossier", "item_id": "c58ed147-7f75-4013-b552-7a9a7de2a77a" },

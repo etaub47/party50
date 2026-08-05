@@ -1,7 +1,7 @@
 {
   "id": "server_room_sprint",
   "title": "Server Room Sprint",
-  "description": "Execute a rapid-access physical extraction from an actively alarmed main server rack stack.",
+  "description": "Pull off a fast physical extraction from an alarmed server rack.",
   "requirements": {
     "min_players": 3
   },
@@ -41,7 +41,7 @@
       "order": 4,
       "type": "DECISION",
       "config": {
-        "instruction": "Extraction completed under active pressure. Download core routing topology data parameters or dump structural SaaS subscription access codes.",
+        "instruction": "Extraction complete, alarm still blaring. Download the core routing map, or dump the SaaS subscription codes.",
         "voting": "individual",
         "options": [
           { "id": "sprint_a", "label": "Route Topology Matrix", "item_id": "0a2798c8-1d06-411b-948b-78df7ae47d90" },

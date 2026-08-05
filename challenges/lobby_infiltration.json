@@ -1,7 +1,7 @@
 {
   "id": "lobby_infiltration",
   "title": "Lobby Infiltration",
-  "description": "Extract internal administrative scheduling profiles from the unguarded guest reception terminal.",
+  "description": "Pull staff scheduling records from the unguarded reception terminal.",
   "requirements": {
     "min_players": 3
   },
@@ -27,7 +27,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Reception dashboard unsecured. Secure the facility master keycard validation map or export the full security patrol rota schedule.",
+        "instruction": "Reception dashboard unlocked. Grab the master keycard map, or export the security patrol schedule.",
         "voting": "individual",
         "options": [
           { "id": "lobby_a", "label": "Keycard Master Access Map", "item_id": "ed4490df-fde0-45b4-9f72-a911a838596a" },

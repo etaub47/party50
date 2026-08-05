@@ -1,7 +1,7 @@
 {
   "id": "shell_entity",
   "title": "Shell Entity",
-  "description": "Map the intricate layout of corporate shell companies moving capital through foreign nodes.",
+  "description": "Map the layout of shell companies moving money through foreign accounts.",
   "requirements": {
     "min_players": 3
   },
@@ -10,7 +10,7 @@
       "order": 1,
       "type": "DECISION",
       "config": {
-        "instruction": "Foreign accounting clearing channel intercepted. Choose whether to execute an immediate high-volume wire transfer or freeze the target node to preserve clear tracking logs.",
+        "instruction": "Foreign accounting channel intercepted. Fire off a big wire transfer now, or freeze the account to keep clean tracking logs.",
         "voting": "majority",
         "options": [
           { "id": "shell_wire", "label": "Execute Capital Diversion", "event_id": "9c8e9a81-1e38-448d-8f83-867ac66a3506" },
@@ -34,7 +34,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Target mapping completed. Download the global shell company structural layout map or complete processing the anonymous wire transfer payload.",
+        "instruction": "Mapping complete. Download the shell company network map, or finish the anonymous wire transfer.",
         "voting": "individual",
         "options": [
           { "id": "shell_a", "label": "Shell Entity Network Map", "item_id": "6adafb78-e823-4625-8354-af46425154c4" },

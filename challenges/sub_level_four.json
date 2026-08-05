@@ -28,7 +28,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "The bio-vault containment shield is opening. Secure the underlying lab blueprint files or use the terminal access to allocate corporate stock options.",
+        "instruction": "The bio-vault shield is opening. Grab the lab blueprints, or use terminal access to cash in stock options.",
         "voting": "individual",
         "options": [
           { "id": "sub_a", "label": "Enzyme Blueprint", "item_id": "7562349f-a9d0-426b-aa27-178a60a6eb9b" },
