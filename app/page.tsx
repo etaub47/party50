@@ -227,7 +227,7 @@ export default function WelcomePage() {
             <ProfileView playerStats={playerStats} isConnected={isConnected} />
           </div>
           <div className={activeTab === 'inventory' ? 'block' : 'hidden'}>
-            <InventoryView items={items} playerId={playerStats!.id} isConnected={isConnected} />
+            <InventoryView items={items} playerId={playerStats!.id} playerRole={playerStats!.role} isConnected={isConnected} />
           </div>
           <div className={activeTab === 'leaderboard' ? 'block' : 'hidden'}>
             <Leaderboard

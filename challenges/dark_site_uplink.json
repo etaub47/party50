@@ -18,9 +18,9 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "1640",
+        "solution": "1740",
         "hints": [
-          "Count the number affixed to doorways on each floor of this house.",
+          "Carefully count the number affixed to doorways on each floor of this house.",
           "Start at the basement for the first digit, and work your way upward.",
           "Please note that there are no mezuzot in the attic."
         ]

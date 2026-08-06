@@ -7,8 +7,8 @@ import { InventoryItem } from "@/types/dbtypes";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import Link from 'next/link';
 
-export default function InventoryView({ items, playerId, isConnected }: {
-    items: InventoryItem[], playerId: string, isConnected: boolean }) {
+export default function InventoryView({ items, playerId, playerRole, isConnected }: {
+    items: InventoryItem[], playerId: string, playerRole: string, isConnected: boolean }) {
     const [ overlayProps, setOverlayProps ] = useState<OverlayProps | null>(null);
     const [ isShredding, setIsShredding ] = useState(false);
 
@@ -50,7 +50,9 @@ export default function InventoryView({ items, playerId, isConnected }: {
             </div>
             <h2 className="text-2xl font-bold mb-4">Inventory</h2>
             <ul className="space-y-2">
-                {items.map(i => (
+                {items.map(i => {
+                    const itemCost = playerRole === 'Bargain Hunter' ? Math.floor(i.item!.cost * 0.7) : i.item!.cost;
+                    return (
                     <li
                         key={`${i.player_id}-${i.item_id}`}
                         className="px-3 py-2 bg-yellow-100 border border-slate-800 rounded-xl flex flex-col gap-2 font-mono shadow-sm"
@@ -70,10 +72,10 @@ export default function InventoryView({ items, playerId, isConnected }: {
                                         {i.item!.credits > 0 ? `+${i.item!.credits}` : i.item!.credits} CREDITS
                                     </span>
                                 )}
-                                {i.item!.cost !== 0 && (
+                                {itemCost !== 0 && (
                                     <span className="bg-green-700 text-white text-[10px] font-bold px-2 py-0.5
                                       rounded-md shadow-sm whitespace-nowrap">
-                                        -{i.item!.cost} CREDITS
+                                        -{itemCost} CREDITS
                                     </span>
                                 )}
                                 {i.item!.intel !== 0 && (
@@ -111,7 +113,8 @@ export default function InventoryView({ items, playerId, isConnected }: {
 
                         </div>
                     </li>
-                ))}
+                    );
+                })}
             </ul>
             {overlayProps && <Overlay {...overlayProps} />}
         </div>
