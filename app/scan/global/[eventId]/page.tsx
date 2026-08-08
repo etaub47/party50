@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 
@@ -12,9 +12,14 @@ export default function GlobalScanPage() {
     const [ status, setStatus ] = useState('VERIFYING OBJECTIVE...');
     const [ result, setResult ] = useState<{ success: boolean; message: string } | null>(null);
 
+    // One scan is one check-in. Without this, a re-render (or StrictMode's
+    // second effect pass in dev) fires the RPC twice for the same scan.
+    const hasScannedRef = useRef(false);
+
     useEffect(() => {
         const checkIn = async () => {
-            if (!eventId) return;
+            if (!eventId || hasScannedRef.current) return;
+            hasScannedRef.current = true;
 
             setStatus('UPLOADING ENCRYPTED DATA...');
             const { data, error } = await supabase.rpc('process_global_checkin', {

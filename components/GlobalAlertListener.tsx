@@ -16,9 +16,26 @@ export default function GlobalAlertListener() {
     const [ alert, setAlert ] = useState<GlobalEvent | null>(null);
     const [ timeLeft, setTimeLeft ] = useState<number>(0);
     const [ isAcknowledged, setIsAcknowledged ] = useState(false);
+    // queued rather than a single value: a resync can settle more than one missed
+    // event at once, and each still deserves its own card
+    const [ penalties, setPenalties ] = useState<{ event_title: string }[]>([]);
 
     const pathname = usePathname();
     const isInSafeZone = pathname?.startsWith('/hq');
+
+    // shared with the countdown timer below: whichever path notices the alert is
+    // gone (timer tick or a resync) is responsible for settling any expired,
+    // un-participated event so the player gets a failure message either way
+    const runReckoning = useCallback(async () => {
+        const { data, error } = await supabase.rpc('apply_missed_global_penalties');
+        if (error) {
+            console.log("Reckoning Error:", error);
+            return;
+        }
+        if (data && data.length > 0) {
+            setPenalties(prev => [...prev, ...data]);
+        }
+    }, []);
 
     // check if there is an existing, unexpired, un-participated event in the DB
     const syncExistingAlert = useCallback(async () => {
@@ -47,8 +64,11 @@ export default function GlobalAlertListener() {
         } else {
             setAlert(null);
             setIsAcknowledged(false);
+            // the query above excludes anything past expires_at, so an event that
+            // just expired drops out silently here unless this settles it
+            void runReckoning();
         }
-    }, [isInSafeZone]);
+    }, [isInSafeZone, runReckoning]);
 
     useEffect(() => {
         let isActive = true;
@@ -131,33 +151,38 @@ export default function GlobalAlertListener() {
                 setAlert(null);
                 setIsAcknowledged(false);
                 clearInterval(timer);
+                void runReckoning();
             } else {
                 setTimeLeft(diff);
             }
         }, 1000);
         return () => clearInterval(timer);
-    }, [alert]);
+    }, [alert, runReckoning]);
 
-    if (!alert || isInSafeZone)
+    if (isInSafeZone)
+        return null;
+
+    if (!alert && penalties.length === 0)
         return null;
 
     const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
     return (
         <>
-            {/* persistent mini-banner */}
+            {/* persistent mini-banner: sticky reserves its own space, so height
+                tracks content (long text on narrow screens) with no manual sync */}
             {alert && (
                 <div
-                    className={`fixed top-0 inset-x-0 h-18 border-b-2 text-white flex justify-between items-center px-6 font-mono shadow-2xl transition-all duration-500 z-[10002]
+                    className={`sticky top-0 border-b-2 text-white flex justify-between items-center px-6 py-2 font-mono shadow-2xl transition-all duration-500 z-[10002]
                         ${alert.event_type === 'BANE' ? 'bg-red-950 border-red-600' : 'bg-emerald-950 border-emerald-600'}
                         ${isAcknowledged ? 'translate-y-0' : '-translate-y-full'}`}
                 >
                     <div className="flex flex-col min-w-0">
                         <span className="text-[8px] uppercase font-bold tracking-widest opacity-70">Priority Alert</span>
-                        <span className="text-xs font-black truncate pb-2">{alert.title}</span>
-                        <span className="text-[10px] font-black truncate">{alert.message}</span>
+                        <span className="text-xs font-black truncate pb-1">{alert.title}</span>
+                        <span className="text-[10px] font-black leading-tight">{alert.message}</span>
                     </div>
-                    <div className="flex flex-col items-end">
+                    <div className="flex flex-col items-end shrink-0 pl-4">
                         <span className="text-xl font-bold tabular-nums leading-none">{formatTime(timeLeft)}</span>
                         <span className="text-[8px] opacity-50 uppercase">Remaining</span>
                     </div>
@@ -182,6 +207,24 @@ export default function GlobalAlertListener() {
                             className={`w-full py-4 font-bold rounded-xl active:scale-95 transition-all ${alert.event_type === 'BANE' ? 'bg-red-600' : 'bg-emerald-600'}`}
                         >
                             ACKNOWLEDGE
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* missed-event penalty, same card the scan page shows on a too-late check-in */}
+            {penalties.length > 0 && (
+                <div className="fixed inset-0 z-[10005] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 font-mono text-white">
+                    <div className="p-8 border-2 rounded-2xl max-w-sm w-full border-red-500">
+                        <h2 className="text-2xl font-bold mb-4 text-red-500">CHECK IN FAILED</h2>
+                        <p className="text-slate-300 text-sm mb-8 leading-relaxed italic">
+                            "You failed to check in for {penalties[0].event_title} before time expired."
+                        </p>
+                        <button
+                            onClick={() => setPenalties(prev => prev.slice(1))}
+                            className="w-full py-3 bg-slate-900 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-800 transition-all uppercase text-xs tracking-widest"
+                        >
+                            Return to Field
                         </button>
                     </div>
                 </div>

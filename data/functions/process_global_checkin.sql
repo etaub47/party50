@@ -9,6 +9,13 @@ DECLARE
 BEGIN
     v_player_id := auth.uid();
 
+    -- Serialise repeat check-ins from this same player for this same slug. A double-fired
+    -- scan (or a re-scan while the first call is still in flight) used to pass every
+    -- "already participated?" check before either INSERT committed, then both tried to
+    -- INSERT into global_event_participation and the second died on the unique constraint
+    -- with a raw duplicate-key error even though the first call had already succeeded.
+    PERFORM pg_advisory_xact_lock(hashtext(p_target_slug || v_player_id::text));
+
     -- fetch the event details
     SELECT * INTO v_log_record
     FROM public.global_event
