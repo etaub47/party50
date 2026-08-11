@@ -93,6 +93,7 @@ export default function Leaderboard({ playerStats, items, isActive, isConnected 
 
         if (result.success) {
             void fetchPlayers();
+            void fetchAdviceHistory();
             setOverlayProps({
                 title: isSelf ? 'PROTECTIONS APPLIED' : 'COUNSEL APPLIED',
                 message: isSelf
@@ -139,7 +140,7 @@ export default function Leaderboard({ playerStats, items, isActive, isConnected 
             void fetchPlayers();
             void fetchAdviceHistory();
         }
-    }, [isActive, fetchPlayers]);
+    }, [isActive, fetchPlayers, fetchAdviceHistory]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -154,7 +155,7 @@ export default function Leaderboard({ playerStats, items, isActive, isConnected 
             if (interval)
                 clearInterval(interval);
         };
-    }, [isActive, fetchPlayers]);
+    }, [isActive, fetchPlayers, fetchAdviceHistory]);
 
     return (
         <div className="mt-4 w-full max-w-md">

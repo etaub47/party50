@@ -37,29 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Potential bugs found by Claude Code
 
-High
-
-4. Client-supplied role = free cheat — FIXED
-   app/actions/purchaseItem.ts:18,51 take playerRole from the caller and pass it to purchase_item_with_discount. Client can send "Bargain Hunter" → 30% off everything. Same for app/actions/discoverItem.ts:45 ("Scavenger" → steal already-claimed items). Read the role server-side from player using the session user id.
-   purchase_item_with_discount now ignores p_player_role and prices off player.role; handleItemDiscovery no longer takes playerRole and reads it from player by id. No client-supplied role grants anything. Two leftovers, neither exploitable as item 4 described: validatePurchase:42 still prices the pre-flight check off the caller's role, so a faker passes the affordability check and then gets "Insufficient credits" from the RPC instead of a clean message; and see 19 for the same shape of bug in KeypadView.
-
 Medium
-
-6. app/scan/global/[eventId]/page.tsx:27 — infinite spinner
-   else if (data && data[0]). RPC returning null/[] with no error → result stays null → spinner with no escape button. Add a final else.
-
-7. app/actions/processConsequences.ts:33 — error silently eats the reward
-   if (!existing && !checkError). A failed dedupe query means the player loses their event award, logged only to console. Should fail loud or insert anyway (DB constraint dedupes).
-
-8. components/ProfileView.tsx:24,43 — NaN width
-   (total_intel / max_intel) * 100 → max_intel = 0 gives NaN, Math.max(NaN, 2) is NaN, width: NaN% is dropped. Same for max_credits. Guard the denominator.
-
-9. components/LeaderBoard.tsx:94 — ADVISED badge lags 30s
-   handleLegalAdvice success calls fetchPlayers() but not fetchAdviceHistory(), so the button stays clickable until the interval tick. Lawyer can re-click and hit the unique violation. Also :142 and :157 omit fetchAdviceHistory from deps.
-
-10. app/actions/joinChallenge.ts:22 — maybeSingle() on a multi-row query — FIXED here, still open elsewhere
-    Player with two active player_challenge rows → PostgREST error, data null, error not destructured → treated as "no active mission". Same shape at :41. Use .limit(1) or check error.
-    Both joinChallenge queries are gone: the active-mission and prior-attempt checks now run inside join_challenge() as SELECT ... LIMIT 1 into a scalar, which cannot error on extra rows. processConsequences still has the same shape.
 
 11. app/actions/joinChallenge.ts:86-99 — team assignment race — FIXED, not yet tested under concurrency
     Two players scanning simultaneously both find no WAITING row and both mint a fresh team_id → two teams of 1 that never fill. Needs an atomic RPC or unique constraint.

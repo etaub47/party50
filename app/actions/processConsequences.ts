@@ -25,12 +25,13 @@ export async function processStepConsequences({ playerId, challengeId, stepIndex
             .eq('player_id', playerId)
             .eq('event.challenge_id', challengeId)
             .eq('event.step', stepIndex)
-            .maybeSingle();
+            .limit(1);
 
         if (checkError)
             console.error("CONSEQUENCE_CHECK_ERROR: ", checkError.message);
 
-        if (!existing && !checkError) {
+        // insert regardless of checkError; player_event_pkey (player_id, event_id) dedupes
+        if (!existing || existing.length === 0) {
             const { error: insertError } = await supabase
                 .from('player_event')
                 .insert({ player_id: playerId, event_id: eventId });

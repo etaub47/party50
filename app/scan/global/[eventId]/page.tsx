@@ -32,6 +32,8 @@ export default function GlobalScanPage() {
             } else if (data && data[0]) {
                 // the RPC returns a table/array, so we take the first row
                 setResult({ success: data[0].success, message: data[0].message });
+            } else {
+                setResult({ success: false, message: "Check-in returned no result." });
             }
         };
 
