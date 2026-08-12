@@ -15,6 +15,15 @@ BEGIN
         RAISE EXCEPTION 'Internal loop detected: Cannot transfer to self.';
     END IF;
 
+    IF p_amount <= 0 THEN
+        RAISE EXCEPTION 'Transfer amount must be positive.';
+    END IF;
+
+    -- Lock the sender's row so concurrent transfers serialise instead of both
+    -- reading the same pre-transaction balance (see purchase_item_with_discount
+    -- for the same pattern).
+    PERFORM 1 FROM player WHERE id = p_sender_id FOR UPDATE;
+
     -- 2. Check Sender's current balance from our View
     SELECT current_credits INTO v_sender_balance
     FROM player_stats

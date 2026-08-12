@@ -20,7 +20,7 @@ export async function executeLegalAdvice(
         console.error("Legal Advice Error: ", error.message);
         return {
             success: false,
-            error: error.message.includes('unique_violation')
+            error: error.code === '23505'
                 ? "Counsel already provided to this agent."
                 : error.message
         };

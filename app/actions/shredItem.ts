@@ -8,6 +8,21 @@ export async function shredItem(playerId: string, itemId: string): Promise<{succ
 
     console.log(`SHRED: Agent ${playerId} is destroying evidence: ${itemId}`);
 
+    const { data: item, error: itemError } = await supabase
+        .from('item')
+        .select('type')
+        .eq('id', itemId)
+        .single();
+
+    if (itemError) {
+        console.error("SHRED_ERROR:", itemError.message);
+        return { success: false, error: itemError.message };
+    }
+
+    if (item.type !== 'Intel') {
+        return { success: false, error: 'Only Intel items can be shredded.' };
+    }
+
     const { error } = await supabase
         .from('player_item')
         .delete()
