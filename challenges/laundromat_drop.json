@@ -20,7 +20,7 @@
       "order": 2,
       "type": "DECISION",
       "config": {
-        "instruction": "A security vehicle parks outside. Do you wait to confirm your courier, or walk away now with what you already have?",
+        "instruction": "A security vehicle parks outside. Do you wait to confirm your courier, or rush the hand-off now before they get closer?",
         "voting": "majority",
         "options": [
           { "id": "laund_wait", "label": "Wait to Confirm Courier", "event_id": "3029a57c-5801-4cdf-a795-61cb6932ee67" },

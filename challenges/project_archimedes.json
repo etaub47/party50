@@ -33,7 +33,7 @@
         "instruction": "The terminal's ready for exfiltration. Pick what to download before the connection cycles.",
         "voting": "individual",
         "options": [
-          { "id": "arch_a", "label": "Core Bio-Code Matrix", "item_id": "9776d9bc-4d2e-45f8-9cc1-77cd3db9858a" },
+          { "id": "arch_a", "label": "Core Bio-Code", "item_id": "9776d9bc-4d2e-45f8-9cc1-77cd3db9858a" },
           { "id": "arch_b", "label": "HVAC Overclock Logs", "item_id": "c33fa305-584e-4dbf-83f8-2d09a64ab473" }
         ]
       }

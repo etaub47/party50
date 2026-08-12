@@ -19,11 +19,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "8318",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The first digit is double the number of leaves on a lucky clover",
+          "The second digit is the number of paintings in this house that feature a vase",
+          "The last two digits are Eddie's age on March 3, 1996"
         ]
       }
     },
