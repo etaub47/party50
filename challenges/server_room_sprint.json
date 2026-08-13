@@ -41,7 +41,7 @@
       "order": 4,
       "type": "DECISION",
       "config": {
-        "instruction": "Extraction complete, alarm still blaring. Download the core routing map, or dump the SaaS subscription codes.",
+        "instruction": "Extraction complete, alarm still blaring. Download the core routing map, or dump the subscription codes for resale credits.",
         "voting": "individual",
         "options": [
           { "id": "sprint_a", "label": "Route Topology Matrix", "item_id": "0a2798c8-1d06-411b-948b-78df7ae47d90" },

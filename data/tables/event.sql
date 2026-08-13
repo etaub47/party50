@@ -42,12 +42,12 @@ INSERT INTO public.event(id, type, intel, heat, credits, description, challenge_
 
 INSERT INTO public.event (id, description, heat, intel, credits, type)
 VALUES
-    ('c001da01-0000-4000-8000-000000000001', 'You have maintained a low profile.', -10, 0, 0, 'COOLDOWN'),
-    ('c001da01-0000-4000-8000-000000000002', 'You have maintained a low profile.', -10, 0, 0, 'COOLDOWN'),
-    ('c001da01-0000-4000-8000-000000000003', 'You have maintained a low profile.', -10, 0, 0, 'COOLDOWN'),
-    ('c001da01-0000-4000-8000-000000000004', 'You have maintained a low profile.', -10, 0, 0, 'COOLDOWN'),
-    ('c001da01-0000-4000-8000-000000000005', 'You have maintained a low profile.', -10, 0, 0, 'COOLDOWN'),
-    ('c001da01-0000-4000-8000-000000000006', 'You have maintained a low profile.', -10, 0, 0, 'COOLDOWN');
+    ('c001da01-0000-4000-8000-000000000001', 'You have maintained a low profile.', -8, 0, 0, 'COOLDOWN'),
+    ('c001da01-0000-4000-8000-000000000002', 'You have maintained a low profile.', -8, 0, 0, 'COOLDOWN'),
+    ('c001da01-0000-4000-8000-000000000003', 'You have maintained a low profile.', -8, 0, 0, 'COOLDOWN'),
+    ('c001da01-0000-4000-8000-000000000004', 'You have maintained a low profile.', -8, 0, 0, 'COOLDOWN'),
+    ('c001da01-0000-4000-8000-000000000005', 'You have maintained a low profile.', -8, 0, 0, 'COOLDOWN'),
+    ('c001da01-0000-4000-8000-000000000006', 'You have maintained a low profile.', -8, 0, 0, 'COOLDOWN');
 
 -- global events
 INSERT INTO public.event (description, heat, intel, credits, type)

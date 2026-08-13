@@ -28,7 +28,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Lab terminal lock defeated. Grab your target files before the firewall resets.",
+        "instruction": "Lab terminal lock defeated. Grab the compound formula, or cash in a trial fast-track voucher before the firewall resets.",
         "voting": "individual",
         "options": [
           { "id": "pharma_a", "label": "Synthetic Compound Form", "item_id": "09481116-520f-4700-a1f7-9361bb1b5755" },

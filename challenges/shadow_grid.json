@@ -28,7 +28,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "The diagnostic tunnel is unstable. Map the grid's weak points, or clone the security badge credentials.",
+        "instruction": "The diagnostic tunnel is unstable. Map the grid's weak points, or clone the badge credentials and sell substation access to a buyer.",
         "voting": "individual",
         "options": [
           { "id": "shadow_a", "label": "Grid Vulnerability Map", "item_id": "b8827af1-3fc6-4642-892f-e7abf7c0da7f" },

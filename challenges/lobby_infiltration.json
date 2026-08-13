@@ -27,7 +27,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Reception dashboard unlocked. Grab the master keycard map, or export the security patrol schedule.",
+        "instruction": "Reception dashboard unlocked. Grab the master keycard map, or sell the patrol schedule to a rival security contractor.",
         "voting": "individual",
         "options": [
           { "id": "lobby_a", "label": "Keycard Master Access Map", "item_id": "ed4490df-fde0-45b4-9f72-a911a838596a" },

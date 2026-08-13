@@ -14,7 +14,7 @@ INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALU
 
     -- Core Upgrades (The Progression Gates)
 
-    -- Increases Max Intel cap from 250 to 500.
+    -- Increases Max Intel cap from 200 to 400.
     ('e4d2bd62-daee-4686-bf4b-5108c4d8512f', '8TB Thumb Drive', 'Tool', '50', '0', '0'),
     -- Increases Max Credit cap from 100 to 500.
     ('78abe62a-9ab4-4b52-819e-f7b022843425', 'Offshore Bank Account', 'Tool', '20', '0', '0'),
