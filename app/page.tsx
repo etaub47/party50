@@ -174,6 +174,7 @@ export default function WelcomePage() {
               playerRole={playerStats!.role}
               initialStep={activeMission.currentStep}
               playerId={playerStats!.id}
+              hasAssetValidator={items?.some(row => row.item?.name === 'Asset Validator') ?? false}
               onAbort={abortMission}
               onTerminate={terminateMission}
           />

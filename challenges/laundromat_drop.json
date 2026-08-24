@@ -10,7 +10,7 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "1234",
         "hints": [
           "TODO"
         ]

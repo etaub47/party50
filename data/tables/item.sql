@@ -16,8 +16,6 @@ INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALU
 
     -- Increases Max Intel cap from 200 to 400.
     ('e4d2bd62-daee-4686-bf4b-5108c4d8512f', '8TB Thumb Drive', 'Tool', '50', '0', '0'),
-    -- Increases Max Credit cap from 100 to 500.
-    ('78abe62a-9ab4-4b52-819e-f7b022843425', 'Offshore Bank Account', 'Tool', '20', '0', '0'),
 
     -- Information Warfare (The Utility Tools)
 
@@ -25,6 +23,8 @@ INSERT INTO "public"."item" ("id", "name", "type", "cost", "intel", "heat") VALU
     ('707d9af2-6725-4e8c-8fa5-9b42162cec01', 'Agent Dossier', 'Tool', '40', '0', '0'),
     -- Displays uncompleted missions and remaining undiscovered Hidden Items.
     ('e16ac235-511b-42e6-9ae3-8481f963a221', 'Recon Readout', 'Tool', '50', '0', '0'),
+    -- Reveals the exact Intel/Heat/Credit yield of each option in an end-of-mission item reward choice.
+    ('78abe62a-9ab4-4b52-819e-f7b022843425', 'Asset Validator', 'Tool', '60', '0', '0'),
 
     -- Emergency Relief (The Consumables)
 

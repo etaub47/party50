@@ -93,7 +93,7 @@ export default function InventoryView({ items, playerId, playerRole, isConnected
                             </div>
 
                             <div className="flex items-center shrink-0">
-                                {i.item!.type === 'Intel' && (
+                                {i.item!.type === 'Intel' && i.item!.heat > 0 && (
                                     <button
                                         onClick={() => initiateShred(i.item_id!, i.item!.name)}
                                         className="bg-black/85 text-white text-[10px] font-sans font-bold px-3 py-1 rounded-md hover:bg-black transition-all"

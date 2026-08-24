@@ -31,12 +31,13 @@ function sameVotes(a: PlayerVote[], b: PlayerVote[]): boolean {
     return left.every((k, i) => k === right[i]);
 }
 
-export default function MissionRunner({teamId, missionData, playerRole, initialStep, playerId, onAbort, onTerminate}: {
+export default function MissionRunner({teamId, missionData, playerRole, initialStep, playerId, hasAssetValidator, onAbort, onTerminate}: {
     teamId: string,
     missionData: Mission,
     playerRole: string,
     initialStep: number,
     playerId: string,
+    hasAssetValidator: boolean,
     onAbort: () => void,
     onTerminate: () => void
 }) {
@@ -323,6 +324,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                     teamId={teamId}
                     playerId={playerId}
                     votes={votes}
+                    hasAssetValidator={hasAssetValidator}
                     onComplete={advanceMyStep}
                 />
             )}
