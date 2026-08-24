@@ -7,6 +7,20 @@ export default function HQDashboard() {
 
     const modules = [
         {
+            title: "GAME CONTROL",
+            desc: "Start, end, and reset the overall game state.",
+            path: "/hq/game",
+            icon: "🕹️",
+            color: "border-emerald-500/50"
+        },
+        {
+            title: "FINAL SCORES",
+            desc: "Live-ranked leaderboard by Intel, ties broken by Heat. Usable mid-game or at the end.",
+            path: "/hq/scores",
+            icon: "🏆",
+            color: "border-yellow-500/50"
+        },
+        {
             title: "OPERATIONS MANIFEST",
             desc: "Generate and print QR codes for items, missions, and registration.",
             path: "/hq/manifest",

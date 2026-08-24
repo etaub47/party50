@@ -10,6 +10,8 @@ DECLARE
     v_debit_event_id UUID := gen_random_uuid();
     v_credit_event_id UUID := gen_random_uuid();
 BEGIN
+    PERFORM assert_game_in_progress();
+
     -- 1. Security Check: Prevent self-transfers
     IF p_sender_id = p_receiver_id THEN
         RAISE EXCEPTION 'Internal loop detected: Cannot transfer to self.';

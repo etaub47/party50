@@ -12,11 +12,13 @@ ALTER TABLE player REPLICA IDENTITY FULL;
 ALTER TABLE player ENABLE ROW LEVEL SECURITY;
 ALTER PUBLICATION supabase_realtime add table player;
 
+-- Re-applying to an existing table: DROP first, CREATE POLICY is not idempotent.
+DROP POLICY IF EXISTS player_allow_anonymous_insert ON player;
 CREATE POLICY player_allow_anonymous_insert
     ON player
     AS PERMISSIVE FOR INSERT
     TO anon, authenticated
-    WITH CHECK (true);
+    WITH CHECK (current_game_status() != 'POST_GAME');
 
 CREATE POLICY player_view_all
     ON player

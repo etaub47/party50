@@ -17,8 +17,12 @@ CREATE POLICY player_event_view_all
     TO anon, authenticated
     USING (true);
 
+-- Re-applying to an existing table: DROP first, CREATE POLICY is not idempotent.
+-- SELECT stays open regardless (player_event_view_all is a separate, unconditional
+-- permissive policy) -- this only gates the write paths (decision consequences).
+DROP POLICY IF EXISTS player_event_manage_own ON player_event;
 CREATE POLICY player_event_manage_own
     ON player_event
     AS PERMISSIVE FOR ALL
     TO anon, authenticated
-    USING (player_id = auth.uid());
+    USING (player_id = auth.uid() AND current_game_status() = 'IN_GAME');

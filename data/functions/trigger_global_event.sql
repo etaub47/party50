@@ -10,6 +10,8 @@ CREATE OR REPLACE FUNCTION trigger_global_event(
 DECLARE
     new_id UUID;
 BEGIN
+    PERFORM assert_game_in_progress();
+
     INSERT INTO public.global_event (
         title,
         message,

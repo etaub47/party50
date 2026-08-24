@@ -8,6 +8,7 @@ DECLARE
     v_is_lawyer BOOLEAN;
     v_description TEXT;
 BEGIN
+    PERFORM assert_game_in_progress();
 
     -- role check
     SELECT (role = 'Lawyer') INTO v_is_lawyer

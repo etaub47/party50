@@ -11,6 +11,10 @@ BEGIN
         RETURN;
     END IF;
 
+    IF current_game_status() != 'IN_GAME' THEN
+        RETURN;
+    END IF;
+
     FOR v_record IN
         SELECT ge.id, ge.title, ge.failure_event_id
         FROM public.global_event ge

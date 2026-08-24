@@ -10,6 +10,11 @@ DECLARE
     v_prior_team_id UUID;
     v_team_id UUID;
 BEGIN
+    IF current_game_status() != 'IN_GAME' THEN
+        RETURN QUERY SELECT 'GAME_NOT_ACTIVE'::text, NULL::uuid, NULL::text;
+        RETURN;
+    END IF;
+
     IF p_min_players IS NULL OR p_min_players < 1 THEN
         RAISE EXCEPTION 'Invalid team size';
     END IF;

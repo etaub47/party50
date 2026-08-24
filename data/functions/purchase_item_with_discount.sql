@@ -8,6 +8,8 @@ DECLARE
     v_current_credits INTEGER;
     v_player_role TEXT;
 BEGIN
+    PERFORM assert_game_in_progress();
+
     -- Serialise concurrent purchases by the same player. The balance is derived from
     -- inventory, so a plain read-then-insert lets two purchases in flight at once both
     -- see the pre-purchase balance and both succeed. Buying the same item twice is

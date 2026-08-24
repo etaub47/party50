@@ -20,6 +20,11 @@ interface JoinChallengeRow {
 
 // refusals the RPC can report, in the wording the agent sees
 const REFUSALS: Record<string, OverlayProps> = {
+    GAME_NOT_ACTIVE: {
+        type: 'INFO',
+        title: 'GAME NOT ACTIVE',
+        message: 'The game is not currently running. Check with your handler before attempting to join a mission.'
+    },
     LOCKED_OUT: {
         type: 'ERROR',
         title: 'SURVEILLANCE CRITICAL',

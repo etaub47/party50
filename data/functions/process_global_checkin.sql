@@ -9,6 +9,11 @@ DECLARE
 BEGIN
     v_player_id := auth.uid();
 
+    IF current_game_status() != 'IN_GAME' THEN
+        RETURN QUERY SELECT FALSE, 'There is no active event for this location at this time.';
+        RETURN;
+    END IF;
+
     -- Serialise repeat check-ins from this same player for this same slug. A double-fired
     -- scan (or a re-scan while the first call is still in flight) used to pass every
     -- "already participated?" check before either INSERT committed, then both tried to

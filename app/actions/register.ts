@@ -21,7 +21,12 @@ export async function registerPlayer(formData: FormData):
         .single();
 
     if (error)
-        return { success: false, error: error.message };
+        return {
+            success: false,
+            error: error.code === '42501'
+                ? 'Registration is closed -- the game is not currently accepting new agents.'
+                : error.message
+        };
 
     return { success: true, player: data };
 }
