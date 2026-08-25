@@ -81,13 +81,29 @@ export default function GameControlPage() {
                 <button
                     disabled={isBusy}
                     onClick={() => runTransition(
+                        'undo_end_game',
+                        'Undo End Game',
+                        'Undo End Game? This returns to IN_GAME and reverses the credit-to-intel ' +
+                        'conversion. Teams that were mid-mission when you ended the game will need ' +
+                        'to rejoin -- their progress was already deleted and cannot be restored.'
+                    )}
+                    className="bg-amber-700 hover:bg-amber-600 text-white px-6 py-4 rounded-xl font-bold uppercase text-sm tracking-widest disabled:opacity-50 transition-all shadow-lg active:scale-95"
+                >
+                    Undo End Game
+                </button>
+
+                <button
+                    disabled={isBusy}
+                    onClick={() => runTransition(
                         'reset_game',
                         'Reset',
-                        'Reset back to pre-game? (Testing only -- this does not wipe any player data yet.)'
+                        'Reset the game? This PERMANENTLY DELETES every player, mission progress, ' +
+                        'lawyer advice, global event, and transfer/legal/conversion history, then ' +
+                        'returns to PRE_GAME. Items stay. This cannot be undone.'
                     )}
                     className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-4 rounded-xl font-bold uppercase text-sm tracking-widest disabled:opacity-50 transition-all shadow-lg active:scale-95"
                 >
-                    Reset (Testing)
+                    Reset (Wipes Everything)
                 </button>
             </div>
 

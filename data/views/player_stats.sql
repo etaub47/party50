@@ -1,4 +1,7 @@
-CREATE OR REPLACE VIEW player_stats
+-- Re-applying to an existing view that's dropping a column: CREATE OR REPLACE
+-- VIEW can't do that (42P16), only bare CREATE can -- so DROP first.
+DROP VIEW IF EXISTS player_stats;
+CREATE VIEW player_stats
 WITH (security_invoker = true)
 AS SELECT
     id,
@@ -8,7 +11,6 @@ AS SELECT
     LEAST(max_intel, raw_intel) AS total_intel,
     total_heat,
     max_intel,
-    max_credits,
     is_locked_out
 FROM (
     SELECT
@@ -38,8 +40,6 @@ FROM (
                 WHERE pi.player_id = p.id AND i.name = '8TB Thumb Drive'
             ) THEN 200 ELSE 0 END
         ) AS max_intel,
-
-        250 AS max_credits,
 
         ( CASE WHEN (
             COALESCE((SELECT SUM(i.heat) FROM player_item pi JOIN item i ON pi.item_id = i.id WHERE pi.player_id = p.id), 0) +

@@ -5,6 +5,10 @@ import { PlayerStats } from "@/types/dbtypes";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import QRScanner from '@/components/QRScanner';
 
+// Credits have no real cap -- this is purely how much balance it takes to
+// visually fill the bar. Past this, the bar just shows full.
+const CREDITS_BAR_SCALE = 250;
+
 export default function ProfileView({ playerStats, isConnected }: {
     playerStats: PlayerStats, isConnected: boolean }) {
     const [ isScanning, setIsScanning ] = useState(false);
@@ -52,10 +56,10 @@ export default function ProfileView({ playerStats, isConnected }: {
                 <div className="relative w-full bg-gray-700 h-10 rounded-lg overflow-hidden mt-5 border border-gray-600">
                     <div
                         className="h-full bg-green-600 transition-all duration-500 ease-out"
-                        style={{ width: `${Math.max((playerStats.current_credits / playerStats.max_credits) * 100, 2)}%` }}
+                        style={{ width: `${Math.min(Math.max((playerStats.current_credits / CREDITS_BAR_SCALE) * 100, 2), 100)}%` }}
                     />
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                        Credits: {playerStats.current_credits} / {playerStats.max_credits}
+                        Credits: {playerStats.current_credits}
                     </span>
                 </div>
 
