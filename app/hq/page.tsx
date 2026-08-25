@@ -35,6 +35,13 @@ export default function HQDashboard() {
             color: "border-emerald-500/50"
         },
         {
+            title: "LIVE MISSIONS",
+            desc: "Every team currently waiting on players or mid-mission, with roster and step.",
+            path: "/hq/missions",
+            icon: "🗺️",
+            color: "border-purple-500/50"
+        },
+        {
             title: "GLOBAL TRIGGERS",
             desc: "Manual event overrides, game freeze, and mass alerts.",
             path: "/hq/triggers",

@@ -34,6 +34,20 @@ CREATE POLICY player_challenge_lobby_view
     TO anon, authenticated
     USING (status = 'WAITING'::text);
 
+-- Re-applying to an existing table: CREATE POLICY is not idempotent, DROP first.
+-- Read-only, matches the *_view_all idiom on player/player_item/player_event --
+-- everything here (challenge_id, team_id, status, current_step) is no more
+-- sensitive than what those tables already expose to any authenticated user.
+-- Needed so HQ's live mission view can see IN_PROGRESS teams an admin isn't a
+-- member of -- player_challenge_all_team only covers the admin's own team,
+-- and player_challenge_lobby_view only covers WAITING rows.
+DROP POLICY IF EXISTS player_challenge_view_all ON player_challenge;
+CREATE POLICY player_challenge_view_all
+    ON player_challenge
+    AS PERMISSIVE FOR SELECT
+    TO authenticated
+    USING (true);
+
 CREATE UNIQUE INDEX one_active_mission_per_player
     ON player_challenge (player_id)
     WHERE status IN ('WAITING', 'IN_PROGRESS');
