@@ -21,7 +21,7 @@
         "solution": "4624",
         "hints": [
           "The first digit is how many siblings Eddie has",
-          "The second digit is the number of gnomes on the fireplace mantel",
+          "TODO (6)",
           "The last two digits are the equivalent of the product of the first two"
         ]
       }

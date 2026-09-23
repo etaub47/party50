@@ -14,19 +14,16 @@ export async function registerPlayer(formData: FormData):
     if (!playerId)
         return { success: false, error: 'Missing Player ID' };
 
+    // one round trip does the lot: game-status gate, role-balance check, and the insert
+    // itself, so two agents registering at the same instant can't both slip past the check.
     const { data, error } = await supabase
-        .from('player')
-        .insert([{ id: playerId, name, role }])
-        .select() // This returns the row we just created
-        .single();
+        .rpc('register_player', { p_player_id: playerId, p_name: name, p_role: role });
 
     if (error)
-        return {
-            success: false,
-            error: error.code === '42501'
-                ? 'Registration is closed -- the game is not currently accepting new agents.'
-                : error.message
-        };
+        return { success: false, error: error.message };
 
-    return { success: true, player: data };
+    // a set-returning function comes back as rows; there is exactly one
+    const player = (data as any[] | null)?.[0];
+
+    return { success: true, player };
 }
