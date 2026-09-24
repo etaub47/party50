@@ -91,13 +91,29 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
                 return;
             }
 
-            // check to make sure that these same three players haven't already done a mission together
-            // otherwise, flip MY status to IN_PROGRESS and start the mission
+            const { data: isRepeatPair, error: pairRpcError } = await supabase
+                .rpc('check_pair_collusion', { p_team_id: teamId });
+            if (pairRpcError) {
+                console.error("Pair Collusion Check Error:", pairRpcError);
+                return;
+            }
+
+            // check to make sure that these same three players haven't already done a mission together,
+            // and that no two of them have already teamed up 4 times before -- otherwise, flip MY status
+            // to IN_PROGRESS and start the mission
             if (isRepeatTrio) {
                 isBlockedRef.current = true;
                 setOverlayProps(prev => prev ?? {
                     title: 'MISSION COMPROMISED',
                     message: "This specific trio is drawing too much suspicion. You have aborted the mission to avoid detection.",
+                    type: 'ERROR',
+                    onClose: () => onAbort()
+                });
+            } else if (isRepeatPair) {
+                isBlockedRef.current = true;
+                setOverlayProps(prev => prev ?? {
+                    title: 'MISSION COMPROMISED',
+                    message: "Two members of this team have partnered up too many times. You have aborted the mission to avoid detection.",
                     type: 'ERROR',
                     onClose: () => onAbort()
                 });
