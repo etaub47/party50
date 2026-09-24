@@ -3,7 +3,7 @@
   "title": "Shadow Grid",
   "description": "Access the regional substation hub to download critical power routing vulnerability logs.",
   "requirements": {
-    "min_players": 3,
+    "required_players": 3,
     "required_item_id": "cd865e9d-da78-4fb4-855c-65e02e3899e3"
   },
   "steps": [

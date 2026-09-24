@@ -3,7 +3,7 @@
   "title": "Proxy Hijack",
   "description": "Inject rerouting packets into the network's switching gateway.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

@@ -3,7 +3,7 @@
   "title": "Shell Entity",
   "description": "Map the layout of shell companies moving money through foreign accounts.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

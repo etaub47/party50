@@ -3,7 +3,7 @@
   "title": "Project Hyperion",
   "description": "Breach a test container system to copy the development framework.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

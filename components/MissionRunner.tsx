@@ -286,7 +286,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
             if (channel)
                 void supabase.removeChannel(channel);
         };
-    }, [teamId, playerId, missionData.requirements.min_players, fetchVotesOnly]);
+    }, [teamId, playerId, missionData.requirements.required_players, fetchVotesOnly]);
 
     if (!currentStep)
         return null;

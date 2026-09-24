@@ -23,7 +23,7 @@ export default function GridMatrixView({
     const [ isSolved, setIsSolved ] = useState(false);
 
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
-    const minPlayers = missionData?.requirements?.min_players || 0;
+    const requiredPlayers = missionData?.requirements?.required_players || 0;
 
     // generate a solvable puzzle by starting with all "off" and simulating a number of random "taps"
     const generatePuzzle = useCallback(() => {
@@ -100,7 +100,7 @@ export default function GridMatrixView({
     // watch for team completion
     // if the total votes for this step match the required players, move on!
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0)
+        if (votes.length >= requiredPlayers && requiredPlayers > 0)
             void onComplete();
     }, [votes, missionData, onComplete]);
 
@@ -140,7 +140,7 @@ export default function GridMatrixView({
                     {!isSolved && !hasRegisteredSuccess && "SYSTEM LOCKED"}
                     {isSolved && isSubmitting && !hasRegisteredSuccess && "UPLOADING BYPASS..."}
                     {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
-                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
+                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.required_players})`}
                 </button>
             </div>
         </div>

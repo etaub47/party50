@@ -3,7 +3,7 @@
   "title": "Project Archimedes",
   "description": "Exfiltrate the core schematics from the secure local development server.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

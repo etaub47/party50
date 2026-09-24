@@ -3,7 +3,7 @@
   "title": "Ghost Protocol",
   "description": "Breach the server array to grab the cold-storage encryption keys.",
   "requirements": {
-    "min_players": 3,
+    "required_players": 3,
     "required_item_id": "88372c8f-bb5e-4cb6-8580-58b628b0e527"
   },
   "steps": [

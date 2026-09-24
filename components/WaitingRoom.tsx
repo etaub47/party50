@@ -44,7 +44,7 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
         setCurrentCount(actualCount);
 
         // only proceed if the room is full
-        if (actualCount >= missionData.requirements.min_players) {
+        if (actualCount >= missionData.requirements.required_players) {
 
             // verify required hardware asset across the whole team
             if (missionData.requirements.required_item_id) {
@@ -225,7 +225,7 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
         };
     }, [teamId, missionData, onStart, playerId]);
 
-    const needed = Math.max(0, missionData.requirements.min_players - currentCount);
+    const needed = Math.max(0, missionData.requirements.required_players - currentCount);
 
     return (
         <div>
@@ -240,7 +240,7 @@ export default function WaitingRoom({ teamId, missionData, playerId, onStart, on
                         : "Team assembled. Commencing mission..."}
                 </p>
                 <div className="mt-4 flex gap-2">
-                    {Array.from({ length: missionData.requirements.min_players }).map((_, i) => (
+                    {Array.from({ length: missionData.requirements.required_players }).map((_, i) => (
                         <div
                             key={i}
                             className={`w-4 h-4 rounded-full ${i < currentCount ? 'bg-green-500' : 'bg-gray-600'}`}

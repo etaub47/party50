@@ -3,7 +3,7 @@
   "title": "Pharma Splicing",
   "description": "Extract live laboratory testing results before the automated daily encryption cycle triggers.",
   "requirements": {
-    "min_players": 3,
+    "required_players": 3,
     "required_item_id": "1e074410-fef1-41af-858a-93baceec2559"
   },
   "steps": [

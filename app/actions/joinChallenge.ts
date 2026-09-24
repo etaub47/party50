@@ -80,7 +80,7 @@ export async function joinChallenge(playerId: string, challengeId: string): Prom
             .rpc('join_challenge', {
                 p_player_id: playerId,
                 p_challenge_id: challengeId,
-                p_min_players: missionManifest.data.requirements.min_players
+                p_required_players: missionManifest.data.requirements.required_players
             });
 
         if (error) {

@@ -33,7 +33,7 @@ export interface Mission {
     title: string,
     description: string,
     requirements: {
-        min_players: number,
+        required_players: number,
         required_item_id?: string
     },
     steps: MissionStep[]

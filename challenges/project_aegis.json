@@ -3,7 +3,7 @@
   "title": "Project Aegis",
   "description": "Steal the proprietary neural network weighting files from the un-indexed data vault.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

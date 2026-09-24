@@ -3,7 +3,7 @@
   "title": "Lobby Infiltration",
   "description": "Pull staff scheduling records from the unguarded reception terminal.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

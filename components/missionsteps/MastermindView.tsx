@@ -33,7 +33,7 @@ export default function MastermindView({
     const largestDigit = 5;
     const maxGuesses = 10;
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
-    const minPlayers = missionData?.requirements?.min_players || 0;
+    const requiredPlayers = missionData?.requirements?.required_players || 0;
 
     const startNewGame = useCallback(() => {
         // generate secret code with digits 1 to largestDigit
@@ -51,9 +51,9 @@ export default function MastermindView({
     // watch for team completion
     // if the total votes for this step match the required players, move on!
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0)
+        if (votes.length >= requiredPlayers && requiredPlayers > 0)
             void onComplete();
-    }, [votes, minPlayers, onComplete]);
+    }, [votes, requiredPlayers, onComplete]);
 
     const handleRotateDigit = (idx: number) => {
         if (hasRegisteredSuccess) return;
@@ -190,7 +190,7 @@ export default function MastermindView({
                 {!isSolved && !hasRegisteredSuccess && `${maxGuesses - history.length} ATTEMPTS LEFT`}
                 {isSolved && isSubmitting && !hasRegisteredSuccess && "UPLOADING BYPASS..."}
                 {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
-                {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
+                {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.required_players})`}
             </button>
         </div>
     );

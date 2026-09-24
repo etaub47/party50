@@ -3,7 +3,7 @@
   "title": "Sub-Level 4",
   "description": "Bypass bio-containment barriers to secure the proprietary chemical compound data.",
   "requirements": {
-    "min_players": 3,
+    "required_players": 3,
     "required_item_id": "1e074410-fef1-41af-858a-93baceec2559"
   },
   "steps": [

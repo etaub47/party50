@@ -3,7 +3,7 @@
   "title": "Deep-Freeze Hub",
   "description": "Crack the terminal that controls the mainframe's cooling system.",
   "requirements": {
-    "min_players": 3,
+    "required_players": 3,
     "required_item_id": "88372c8f-bb5e-4cb6-8580-58b628b0e527"
   },
   "steps": [

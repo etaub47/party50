@@ -18,7 +18,7 @@ BEGIN
 
     -- check every pair within the current team: has this exact pair already
     -- reached the cap of 4 prior terminal (COMPLETED/FAILED) teams together?
-    -- Team size can exceed 3 (p_min_players varies by mission), so this is
+    -- Team size can exceed 3 (required_players varies by mission), so this is
     -- checked pairwise rather than against the whole roster at once.
     FOR i IN 1..array_length(v_current_player_ids, 1) LOOP
         FOR j IN i + 1..array_length(v_current_player_ids, 1) LOOP

@@ -3,7 +3,7 @@
   "title": "Server Room Sprint",
   "description": "Pull off a fast physical extraction from an alarmed server rack.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

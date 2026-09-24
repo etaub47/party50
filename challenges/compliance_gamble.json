@@ -3,7 +3,7 @@
   "title": "Compliance Gamble",
   "description": "Secure internal audit warnings before compliance teams purge the database servers.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

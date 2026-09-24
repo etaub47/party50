@@ -3,7 +3,7 @@
   "title": "The Executive Wash",
   "description": "Plant a hardwired bug inside the boardroom wall paneling.",
   "requirements": {
-    "min_players": 3,
+    "required_players": 3,
     "required_item_id": "3a647af2-f677-4d8f-840e-656c6f88eba6"
   },
   "steps": [

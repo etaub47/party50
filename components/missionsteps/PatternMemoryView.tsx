@@ -40,14 +40,14 @@ export default function PatternMemoryView({
 
     const targetLength = 9;
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
-    const minPlayers = missionData.requirements.min_players;
+    const requiredPlayers = missionData.requirements.required_players;
 
     // watch for team completion
     // if the total votes for this step match the required players, move on!
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0)
+        if (votes.length >= requiredPlayers && requiredPlayers > 0)
             void onComplete();
-    }, [votes, minPlayers, onComplete]);
+    }, [votes, requiredPlayers, onComplete]);
 
     // Start a new game
     const startNewGame = useCallback(() => {
@@ -168,7 +168,7 @@ export default function PatternMemoryView({
                     {!isSolved && !hasRegisteredSuccess && "AWAITING SYNCHRONIZATION"}
                     {isSolved && isSubmitting && !hasRegisteredSuccess && "UPLOADING BYPASS..."}
                     {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
-                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
+                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.required_players})`}
                 </button>
             </div>
         </div>

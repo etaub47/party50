@@ -26,7 +26,7 @@ export default function SliderPuzzleView({
     const labelType = config.label || 'LETTER'
 
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
-    const minPlayers = missionData?.requirements?.min_players || 0;
+    const requiredPlayers = missionData?.requirements?.required_players || 0;
 
     const generatePuzzle = useCallback(() => {
         let newGrid = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
@@ -90,9 +90,9 @@ export default function SliderPuzzleView({
 
     // watch for team completion; if the total votes equal the required players, move on!
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0)
+        if (votes.length >= requiredPlayers && requiredPlayers > 0)
             void onComplete();
-    }, [votes, minPlayers, onComplete]);
+    }, [votes, requiredPlayers, onComplete]);
 
     // helper to format the label
     const formatLabel = (val: number) => {
@@ -168,7 +168,7 @@ export default function SliderPuzzleView({
                     {!isSolved && !hasRegisteredSuccess && "ALIGNMENT REQUIRED"}
                     {isSolved && isSubmitting && !hasRegisteredSuccess && "UPLOADING BYPASS..."}
                     {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
-                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
+                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.required_players})`}
                 </button>
             </div>
         </div>

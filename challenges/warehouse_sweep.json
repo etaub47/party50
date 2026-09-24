@@ -3,7 +3,7 @@
   "title": "Warehouse Sweep",
   "description": "Infiltrate the localized terminal to pull real-time container delivery timetables and routes.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

@@ -3,7 +3,7 @@
   "title": "Cleaning Crew Shift",
   "description": "Use a janitorial window of opportunity to plant a hardware logger on the office terminals.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

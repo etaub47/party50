@@ -3,7 +3,7 @@
   "title": "Patent Office Probe",
   "description": "Download unreleased competitor patent designs directly from the legal substation portal.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

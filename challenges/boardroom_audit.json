@@ -3,7 +3,7 @@
   "title": "The Boardroom Audit",
   "description": "Copy high-level accounting ledgers detailing off-the-books executive payouts.",
   "requirements": {
-    "min_players": 3,
+    "required_players": 3,
     "required_item_id": "d83c10ed-c2c8-47af-987c-fe8115f0cdf8"
   },
   "steps": [

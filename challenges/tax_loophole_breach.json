@@ -3,7 +3,7 @@
   "title": "Tax Loophole Breach",
   "description": "Exploit a weakness in the external billing server to access off-grid financial ledgers.",
   "requirements": {
-    "min_players": 3
+    "required_players": 3
   },
   "steps": [
     {

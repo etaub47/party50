@@ -55,7 +55,7 @@ export default function DecisionView({ missionData, currentStep, currentStepInde
     // re-run whenever the parent sends new votes via Realtime
     useEffect(() => {
         const checkWin = async () => {
-            const totalRequired = missionData.requirements.min_players;
+            const totalRequired = missionData.requirements.required_players;
             if (votes.length < totalRequired) return;
 
             const votingType = currentStep!.config.voting;
@@ -108,7 +108,7 @@ export default function DecisionView({ missionData, currentStep, currentStepInde
                 <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded text-center">
                     <p className="text-blue-400 animate-pulse">
                         {hasVoted
-                            ? `Waiting for teammates (${votes.length}/${missionData.requirements.min_players})...`
+                            ? `Waiting for teammates (${votes.length}/${missionData.requirements.required_players})...`
                             : "Recording Vote..."
                         }
                     </p>
@@ -150,7 +150,7 @@ export default function DecisionView({ missionData, currentStep, currentStepInde
             )}
 
             {/* warning labels */}
-            {missionData.requirements.min_players > 1 && (
+            {missionData.requirements.required_players > 1 && (
                 <div className="p-4 bg-blue-900/30 border border-blue-500/50 rounded text-blue-200 text-sm italic">
                     <span className="text-red-500 font-bold block mb-1 uppercase text-xs">Note:</span>
                     {currentStep.config.voting === 'majority'

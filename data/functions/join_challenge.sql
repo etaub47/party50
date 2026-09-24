@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION join_challenge(
     p_player_id UUID,
     p_challenge_id TEXT,
-    p_min_players INTEGER
+    p_required_players INTEGER
 ) RETURNS TABLE (result_code TEXT, out_team_id UUID, out_status TEXT) AS $$
 DECLARE
     v_is_locked_out BOOLEAN;
@@ -15,7 +15,7 @@ BEGIN
         RETURN;
     END IF;
 
-    IF p_min_players IS NULL OR p_min_players < 1 THEN
+    IF p_required_players IS NULL OR p_required_players < 1 THEN
         RAISE EXCEPTION 'Invalid team size';
     END IF;
 
@@ -79,7 +79,7 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Join the oldest team for this mission that is still short of min_players and has not
+    -- Join the oldest team for this mission that is still short of required_players and has not
     -- started. A team at capacity is deliberately not offered: the mission begins as soon as
     -- it is full, so a later scanner has to seed a new team rather than land in a trio that
     -- is already under way. Clients flip their own row to IN_PROGRESS one at a time, so a
@@ -88,7 +88,7 @@ BEGIN
     FROM player_challenge pc
     WHERE pc.challenge_id = p_challenge_id
     GROUP BY pc.team_id
-    HAVING COUNT(*) < p_min_players
+    HAVING COUNT(*) < p_required_players
        AND COUNT(*) FILTER (WHERE pc.status <> 'WAITING') = 0
     ORDER BY MIN(pc.created_at)
     LIMIT 1;

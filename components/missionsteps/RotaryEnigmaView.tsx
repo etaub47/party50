@@ -37,13 +37,13 @@ export default function RotaryEnigmaView({
     const currentAnglesRef = useRef<number[]>([0, 0, 0, 0, 0]);
 
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
-    const minPlayers = missionData?.requirements?.min_players || 0;
+    const requiredPlayers = missionData?.requirements?.required_players || 0;
 
     useEffect(() => {
-        if (votes.length >= minPlayers && minPlayers > 0) {
+        if (votes.length >= requiredPlayers && requiredPlayers > 0) {
             void onComplete();
         }
-    }, [votes, minPlayers, onComplete]);
+    }, [votes, requiredPlayers, onComplete]);
 
     // Delta-Time Clock Loop for Cross-Browser Consistency (Safari Fix)
     useEffect(() => {
@@ -204,7 +204,7 @@ export default function RotaryEnigmaView({
                     {!isSolved && !hasRegisteredSuccess && "SEQUENCE STABILITY REQUIRED"}
                     {isSolved && isSubmitting && !hasRegisteredSuccess && "TRANSMITTING BYPASS..."}
                     {isSolved && !hasRegisteredSuccess && !isSubmitting && "CONFIRM BYPASS"}
-                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.min_players})`}
+                    {hasRegisteredSuccess && `WAITING FOR TEAM (${votes.length}/${missionData.requirements.required_players})`}
                 </button>
             </div>
         </div>

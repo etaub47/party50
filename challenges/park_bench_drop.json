@@ -3,7 +3,7 @@
   "title": "Park Bench Drop",
   "description": "Collect a dropped device containing high-value operational logs, on short notice.",
   "requirements": {
-    "min_players": 1
+    "required_players": 3
   },
   "steps": [
     {

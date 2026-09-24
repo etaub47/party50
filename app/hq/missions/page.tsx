@@ -67,7 +67,7 @@ export default function LiveMissionsPage() {
 
         const rows = Array.from(byTeam.values());
 
-        // warm the manifest cache for every challenge in play, so title/min_players/
+        // warm the manifest cache for every challenge in play, so title/required_players/
         // step count are available without an extra round trip per render.
         const uncached = [ ...new Set(rows.map(r => r.challengeId)) ]
             .filter(id => !manifestsRef.current[id]);
@@ -122,7 +122,7 @@ export default function LiveMissionsPage() {
 function TeamCard({ team, manifest }: { team: TeamRow, manifest: Mission | 'ERROR' | undefined }) {
     const title = manifest && manifest !== 'ERROR' ? manifest.title : team.challengeId;
     const totalSteps = manifest && manifest !== 'ERROR' ? manifest.steps.length : null;
-    const minPlayers = manifest && manifest !== 'ERROR' ? manifest.requirements.min_players : null;
+    const requiredPlayers = manifest && manifest !== 'ERROR' ? manifest.requirements.required_players : null;
     const isInProgress = team.status === 'IN_PROGRESS';
 
     return (
@@ -145,7 +145,7 @@ function TeamCard({ team, manifest }: { team: TeamRow, manifest: Mission | 'ERRO
             <div className="text-xs font-mono text-slate-400 border-t border-slate-800/50 pt-3">
                 {isInProgress
                     ? `Step ${team.currentStep}${totalSteps ? ` / ${totalSteps}` : ''}`
-                    : `${team.players.length}${minPlayers ? ` / ${minPlayers}` : ''} agents present`}
+                    : `${team.players.length}${requiredPlayers ? ` / ${requiredPlayers}` : ''} agents present`}
             </div>
         </div>
     );

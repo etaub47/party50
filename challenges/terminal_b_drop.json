@@ -3,7 +3,7 @@
   "title": "Terminal B Drop",
   "description": "Retrieve a hidden encryption device from a dead-drop locker while dodging surveillance.",
   "requirements": {
-    "min_players": 1
+    "required_players": 3
   },
   "steps": [
     {
