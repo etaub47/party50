@@ -11,11 +11,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "7142",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The first digit is the number of college semesters it took Eddie to earn his degree.",
+          "The middle digits are the number of Charlie Brown encyclopedias in the basement bookcase.",
+          "The last digit is the total number of dream catchers found in the upstairs bedrooms."
         ]
       }
     },

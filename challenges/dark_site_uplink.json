@@ -20,9 +20,9 @@
       "config": {
         "solution": "1740",
         "hints": [
-          "Carefully count the number affixed to doorways on each floor of this house.",
+          "Carefully count the number affixed to doorways on each floor of this house, respectively.",
           "Start at the basement for the first digit, and work your way upward.",
-          "Please note that there are no mezuzot in the attic."
+          "Please note that there are no mezuzot in the attic, so the fourth digit is straightforward."
         ]
       }
     },

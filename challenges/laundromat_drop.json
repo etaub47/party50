@@ -10,9 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "1234",
+        "solution": "4412",
         "hints": [
-          "TODO"
+          "The code begins with the exact number of games in the basement playable on the Wii U.",
+          "The code ends with X divided by 11 (dropping any remainder) and then multiplied by 6.",
+          "X = the number of boats across all paintings in the main floor living room."
         ]
       }
     },

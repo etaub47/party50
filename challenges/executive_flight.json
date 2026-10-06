@@ -11,11 +11,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "2623",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The passcode begins with the number of shot glasses in the display case.",
+          "The second digit is the number of Slinkys on display on the upstairs bookshelf.",
+          "The third digit is the number of televisions (not monitors) to be found in this house."
         ]
       }
     },

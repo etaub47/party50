@@ -10,9 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "1212",
         "hints": [
-          "TODO"
+          "How many signed Brodney paintings are there on each floor of this house?",
+          "The first half of the code counts those in the basement plus those on the main floor.",
+          "The second half of the code counts those across the four upstairs bedrooms."
         ]
       }
     },

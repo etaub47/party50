@@ -24,8 +24,8 @@
       "config": {
         "solution": "4991",
         "hints": [
-          "What year did the movie come out?",
-          "What is Eddie's favorite movie?",
+          "What year was the movie initially released in United States theaters?",
+          "What is Eddie's all-time favorite movie? The passcode is somehow related.",
           "The passcode must be entered backward."
         ]
       }

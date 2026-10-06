@@ -22,7 +22,7 @@
         "solution": "8318",
         "hints": [
           "The first digit is double the number of leaves on a lucky clover",
-          "The second digit is the number of paintings in this house that feature a vase",
+          "The second digit is the number of paintings on the main floor that feature the identical vase",
           "The last two digits are Eddie's age on March 3, 1996"
         ]
       }
@@ -31,7 +31,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Chiller overrides confirmed. Smuggle out the blueprints, or sell off rack space for quick cash.",
+        "instruction": "Chiller override confirmed. Smuggle out the blueprints, or sell off rack space for quick cash.",
         "voting": "individual",
         "options": [
           { "id": "freeze_a", "label": "Cooling Blueprint", "item_id": "40abf650-edfe-41b5-8c4f-2113ab988e53" },

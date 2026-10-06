@@ -15,11 +15,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "3068",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The first digit is X divided by 6, then rounded up to the nearest whole number.",
+          "X = the total number of horses to be found in paintings in the upstairs bedrooms.",
+          "The remaining digits are Eddie's year of birth divided by his house number, rounded down."
         ]
       }
     },

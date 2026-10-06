@@ -18,11 +18,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "2599",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "Precisely how many Lego vehicles are on display in the entire basement? This is the beginning of the code.",
+          "Vehicles include cars, buses, bicycles, helicopters, trains, trucks, and horse-drawn carts. Wheelchairs and strollers are not considered vehicles.",
+          "The last two digits follow the borough where Eddie was born in a popular sitcom."
         ]
       }
     },
