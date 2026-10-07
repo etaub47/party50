@@ -16,9 +16,9 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "2004",
+        "solution": "2008",
         "hints": [
-          "The keypad code is equal to X + Y - Z, where X is the year Eddie got married.",
+          "The keypad code is equal to X + Y + Z, where X is the year Eddie got married.",
           "Y is the number of Lego assemblies on display on the main floor of this house.",
           "Z is the number of fish-themed paintings on the main floor of this house."
         ]
