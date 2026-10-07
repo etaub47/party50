@@ -16,11 +16,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "2004",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The keypad code is equal to X + Y - Z, where X is the year Eddie got married.",
+          "Y is the number of Lego assemblies on display on the main floor of this house.",
+          "Z is the number of fish-themed paintings on the main floor of this house."
         ]
       }
     },
@@ -28,7 +28,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Database lock overridden. Keep the personal dossiers for leverage, or rewrite the severance numbers for quick cash.",
+        "instruction": "Database lock overridden. Keep the personal dossiers for leverage, or rewrite the severance numbers for some quick cash.",
         "voting": "individual",
         "options": [
           { "id": "purge_a", "label": "VP Personal Dossier", "item_id": "c58ed147-7f75-4013-b552-7a9a7de2a77a" },

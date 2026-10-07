@@ -10,11 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "5319",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The first digit is the number of working clocks on the main floor, of any type.",
+          "The second digit is the number of latch hook wall hangings throughout the house.",
+          "The remainder of the code is the number of weeks according to the title of a bookshelf book."
         ]
       }
     },
