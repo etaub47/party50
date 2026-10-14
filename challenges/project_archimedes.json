@@ -10,11 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "8712",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The first part of the code: every idea gives hope today.",
+          "The second part of the code: sunny evenings visit every neighborhood.",
+          "The last part of the code: tiny wolves explore lush valleys everywhere."
         ]
       }
     },
@@ -30,7 +30,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "The terminal's ready for exfiltration. Pull the core bio-code, or grab the overclock logs to fence to a buyer before the connection cycles.",
+        "instruction": "The terminal's ready for exfiltration. Either pull the core bio-code, or grab the overclock logs to fence to a buyer before the connection cycles.",
         "voting": "individual",
         "options": [
           { "id": "arch_a", "label": "Core Bio-Code", "item_id": "9776d9bc-4d2e-45f8-9cc1-77cd3db9858a" },

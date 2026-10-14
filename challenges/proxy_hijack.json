@@ -10,11 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "2129",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The beginning of the code is the number of A/C vents in the stairwell leading upstairs.",
+          "The middle of the code is the number of A/C vents upstairs excluding closets and the stairwell.",
+          "The end of the code is the number of A/C vents on the main floor."
         ]
       }
     },

@@ -10,11 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "3029",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The first part of the code is the number of fuzzy dice displayed in the entire house.",
+          "The second digit is the number of vampires shown in paintings on the upper floor.",
+          "The last part of the code is equal to the number of jigsaw puzzles visible in the basement."
         ]
       }
     },

@@ -29,11 +29,11 @@
       "order": 3,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "2650",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "For the first half of the code, complete the pattern: 312831303??",
+          "The second half of the code is the total number of available missions.",
+          "Warning: Both halves of the code must be independently doubled before entering!"
         ]
       }
     },
