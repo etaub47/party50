@@ -15,11 +15,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "1234",
+        "solution": "7545",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "Find each board game on the shelf, and count the number of letters in the missing word.",
+          "First digit: Aeon's End: War [___]. Second digit: Lost Ruins of [___].",
+          "Third digit: Fields of [___]. Fourth digit: Under Falling [___]."
         ]
       }
     },

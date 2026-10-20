@@ -16,11 +16,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "0400",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The keypad code is equal to A x B x C, padded with leading zeroes if necessary.",
+          "A, B, and C are the number of movie DVDs of a particular type in the display case under the main floor TV.",
+          "A = Star Wars, B = Terminator, C = Superhero (Marvel or DC)."
         ]
       }
     },

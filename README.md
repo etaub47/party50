@@ -61,7 +61,3 @@ Low
 
 19. components/missionsteps/KeypadView.tsx:73 — keypad attempt limit is client-side only
     maxAllowed = playerRole === 'Hacker' ? 3 : 1 runs in the browser, and the client also writes both the attempt count (player_attempt upsert) and the team's status: 'FAILED'. Devtools gets unlimited guesses, or can skip recording a failure entirely; RLS keeps it to the player's own team, so it is self-serving rather than griefing. Same class as 17. Fix needs the attempt count and the fail transition moved into an RPC that reads the role itself.
-
-Content
-
-18. 22 of 25 missions have "solution": "TODO" and "hints": ["TODO",...] — unbeatable, and on mobile the numeric keypad can't even type TODO. Only boardroom_audit (4624), cleaning_crew_shift (4991), tax_loophole_breach (1234) are real. Your two uncommitted diffs are exactly this work; both check out (4·6=24 → 4624; 4991 reversed → 1994).

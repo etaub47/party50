@@ -10,9 +10,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "0620",
         "hints": [
-          "TODO"
+          "The first half of the code is equal to the number of birds in the china cabinet. Count carefully.",
+          "The second half of the code is the number of words in the sentence found within a particular framed photo.",
+          "The sentence you are looking for begins like this: It does not really matter..."
         ]
       }
     },

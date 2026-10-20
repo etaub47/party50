@@ -32,7 +32,7 @@
         "solution": "2650",
         "hints": [
           "For the first half of the code, complete the pattern: 312831303??",
-          "The second half of the code is the total number of available missions.",
+          "The second half of the code is the total number of missions in this game.",
           "Warning: Both halves of the code must be independently doubled before entering!"
         ]
       }

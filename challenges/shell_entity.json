@@ -22,11 +22,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "7913",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "First part of the code is the number of James Bond DVDs in the display case under the main floor TV.",
+          "Second part of the code is the number of Tarantino-directed movie DVDs in the display case.",
+          "Third part of the code is the number of basement stair mats."
         ]
       }
     },

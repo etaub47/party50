@@ -15,11 +15,11 @@
       "order": 2,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "4335",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "First digit: I am the only number that is spelled with the same number of letters as my spoken value.",
+          "Second digit: I am the number of wheels on a standard unicycle, plus the number of wheels on a standard bicycle.",
+          "Third digit: I am the total number of primary colors. Fourth digit: Multiply the second digit by the third digit, then subtract the first digit."
         ]
       }
     },

@@ -11,11 +11,11 @@
       "order": 1,
       "type": "KEYPAD",
       "config": {
-        "solution": "TODO",
+        "solution": "7157",
         "hints": [
-          "TODO",
-          "TODO",
-          "TODO"
+          "The code starts out with the number of letters in Eddie's middle name.",
+          "The middle of the code is the width of the fireplace measured in vertically-positioned bricks.",
+          "The code ends with the width of the fireplace measured in horizontally-positioned bricks."
         ]
       }
     },

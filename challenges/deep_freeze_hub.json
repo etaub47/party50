@@ -21,9 +21,9 @@
       "config": {
         "solution": "8318",
         "hints": [
-          "The first digit is double the number of leaves on a lucky clover",
-          "The second digit is the number of paintings on the main floor that feature the identical vase",
-          "The last two digits are Eddie's age on March 3, 1996"
+          "The first digit is double the number of leaves on a lucky clover.",
+          "The second digit is the number of paintings on the main floor that feature the identical vase.",
+          "The last two digits are Eddie's age on March 3, 1996."
         ]
       }
     },
