@@ -87,6 +87,18 @@ export default function WelcomePage() {
         return;
       }
 
+      // the insert can succeed while player_stats still returns no row; without
+      // this check the form silently re-renders as if nothing happened
+      const { data: stats } = await supabase
+          .from('player_stats')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+      if (!stats) {
+        setRegistrationError("Your agent was registered, but your dossier could not be loaded. Reload the page to continue.");
+        return;
+      }
+
       setIsRegistered(true);
       setPlayerId(user.id);
       void refresh();

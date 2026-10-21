@@ -25,6 +25,8 @@ export default function KeypadView({ currentStep, missionId, playerId, teamId, p
     const [ playerHint, setPlayerHint ] = useState<string | null>(null);
 
     useEffect(() => {
+        let isActive = true;
+
         const initializeKeypad = async () => {
 
             // fetch historical attempts
@@ -34,24 +36,36 @@ export default function KeypadView({ currentStep, missionId, playerId, teamId, p
                 .eq('player_id', playerId)
                 .eq('challenge_id', missionId)
                 .maybeSingle();
-            if (attemptData)
+            if (attemptData && isActive)
                 setLocalAttempts(attemptData.attempts_used);
 
-            // fetch team lineup to determine this player's specific hint
+            // fetch team lineup to determine this player's specific hint; our own
+            // row may not be visible yet while the team is starting, so retry a
+            // few times rather than reading hints[-1]
             if (currentStep.config.hints) {
-                const { data: teammates } = await supabase
-                    .from('player_challenge')
-                    .select('player_id')
-                    .eq('team_id', teamId)
-                    .order('created_at', { ascending: true });
-                if (teammates) {
-                    const myIndex = teammates.findIndex(t => t.player_id === playerId);
-                    setPlayerHint(currentStep.config.hints[myIndex] || "No intel available.");
+                for (let tries = 0; tries < 3 && isActive; tries++) {
+                    const { data: teammates } = await supabase
+                        .from('player_challenge')
+                        .select('player_id')
+                        .eq('team_id', teamId)
+                        .order('created_at', { ascending: true });
+                    const myIndex = teammates?.findIndex(t => t.player_id === playerId) ?? -1;
+                    if (myIndex >= 0) {
+                        if (isActive)
+                            setPlayerHint(currentStep.config.hints[myIndex] || "No intel available.");
+                        return;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
+                if (isActive)
+                    setPlayerHint("No intel available.");
             }
         };
 
         void initializeKeypad();
+        return () => {
+            isActive = false;
+        };
     }, [missionId, teamId, playerId, currentStep]);
 
     // user has submitted a code on the keypad

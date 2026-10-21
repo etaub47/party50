@@ -138,7 +138,7 @@ export default function SignalPathView({
     const rotate = (idx: number) => {
         if (isSolved) return;
         const newGrid = [...grid];
-        newGrid[idx].rotation = (newGrid[idx].rotation + 1) % 4;
+        newGrid[idx] = { ...newGrid[idx], rotation: (newGrid[idx].rotation + 1) % 4 };
         setGrid(newGrid);
         if (checkPath(newGrid))
             setIsSolved(true);

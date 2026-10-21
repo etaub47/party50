@@ -344,6 +344,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
             {currentStep.type === 'MEMORY' && (
                 <PatternMemoryView
+                    key={`memory-${currentStepIndex}`}
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}
@@ -355,6 +356,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
             {currentStep.type === 'MASTERMIND' && (
                 <MastermindView
+                    key={`mastermind-${currentStepIndex}`}
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}
@@ -366,6 +368,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
             {currentStep.type === 'MATRIX' && (
                 <GridMatrixView
+                    key={`matrix-${currentStepIndex}`}
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}
@@ -377,6 +380,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
             {currentStep.type === 'SLIDER' && (
                 <SliderPuzzleView
+                    key={`slider-${currentStepIndex}`}
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}
@@ -388,6 +392,7 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
 
             {currentStep.type === 'ROTARY' && (
                 <RotaryEnigmaView
+                    key={`rotary-${currentStepIndex}`}
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}

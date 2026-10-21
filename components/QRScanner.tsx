@@ -25,9 +25,17 @@ export default function QRScanner({ onClose }: { onClose: () => void }) {
                         qrbox: { width: 250, height: 250 },
                     },
                     (decodedText) => {
-                        if (decodedText.includes('party50.vercel.app')) {
+                        // accept codes for whatever host is serving the app (prod,
+                        // preview or localhost); printed codes point at prod, so
+                        // that host is always accepted too
+                        let url: URL;
+                        try {
+                            url = new URL(decodedText);
+                        } catch {
+                            return;
+                        }
+                        if (url.host === window.location.host || url.host === 'party50.vercel.app') {
                             stopScanner().then(() => {
-                                const url = new URL(decodedText);
                                 router.push(url.pathname);
                                 onClose();
                             });
