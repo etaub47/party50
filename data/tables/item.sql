@@ -5,7 +5,7 @@ create table public.item (
     cost    integer not null default 0,
     intel   integer not null default 0,
     heat    integer not null default 0,
-    credits integer not null default 0
+    credits integer not null default 0,
     constraint item_pkey primary key (id)
 );
 

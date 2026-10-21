@@ -11,13 +11,14 @@ BEGIN
                 -- fallback: the moment the account was created
                 p.created_at,
 
-            -- latest from player_event (excluding cooldowns)
+            -- latest from player_event (excluding cooldowns, which cron grants
+            -- to everyone and so say nothing about whether the player is active)
                 COALESCE((
                     SELECT MAX(pe.created_at)
                     FROM player_event pe
                         JOIN event e ON pe.event_id = e.id
                     WHERE pe.player_id = p.id
-                        AND e.description NOT ILIKE '%cooldown%'
+                        AND e.type IS DISTINCT FROM 'COOLDOWN'
                              ), p.created_at),
 
             -- latest from player_item

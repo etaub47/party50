@@ -13,9 +13,9 @@ export default function ManifestPage() {
     const [loading, setLoading] = useState(true);
 
     const specialEvents = [
-        { id: 'mission-funding-qr', title: 'MISSION FUNDING', sub: 'Scan to gain mission funding (+50 Credits)' },
-        { id: 'security-sweep-qr', title: 'SECURITY SWEEP', sub: 'Scan to avoid suspicion (+10 Heat)' },
-        { id: 'privileged-conversation-qr', title: 'PRIVILEGED CONVERSATION', sub: 'Scan to score intel (+25 Intel)' },
+        { id: 'mission-funding-qr', title: 'MISSION FUNDING', sub: 'Meet your contact here at the proper time.' },
+        { id: 'security-sweep-qr', title: 'SECURITY SWEEP', sub: 'Stash your evidence here at the proper time.' },
+        { id: 'privileged-conversation-qr', title: 'PRIVILEGED CONVERSATION', sub: 'Bug the conversation here at the proper time.' },
     ];
 
     useEffect(() => {
