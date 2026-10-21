@@ -851,7 +851,6 @@ FINAL - PRE-PARTY RESET AND GO / NO-GO
 [ ] All Phase 1-9 FAILs fixed and re-tested
 [ ] Collusion functions restored (re-run check_team_collusion.sql and
     check_pair_collusion.sql from data/functions/)
-[ ] get_agent_pulse.sql (2026-10-21 cooldown filter) applied in Supabase
 [ ] /hq/game: End Game, then Reset (Reset only works from POST_GAME).
     Status PRE_GAME
 [ ] Delete QA events (after Reset, so no player_event rows point at them):
