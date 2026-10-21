@@ -1,0 +1,871 @@
+PARTY50 MASTER TEST PLAN
+Drafted 2026-10-21
+
+======================================================================
+HOW TO USE THIS PLAN
+======================================================================
+
+Work through the phases in order. Phases 1-9 cover every code path. Phase 10
+covers content (all 25 missions). Each phase fits in one sitting.
+
+Each test has:
+  ID        e.g. M-07, so you can log a failure in one word
+  People    [1] = you alone (two browsers is enough)
+            [2] = two devices or people
+            [3] = three devices or people at once (save these for family time)
+  Steps     what to do
+  Expect    what should happen; exact on-screen text is in quotes
+
+Record each result as PASS, FAIL or BLOCKED. For a FAIL, note what you saw
+(screenshot if you can).
+
+Code-path failures (Phases 1-9) may need real fixing time, so do them first.
+Phase 10 failures are usually a JSON or SQL edit.
+
+Do not reset between phases unless a phase says to. A messy database is
+closer to party conditions.
+
+
+LOCALHOST OR VERCEL?
+
+Test on Vercel for anything involving a phone. Use localhost only to try a
+fix at your desk.
+
+- Phone cameras need HTTPS. A phone loading http://192.168.x.x:3000 cannot
+  open the camera, so QR scanning on localhost only works from the laptop's
+  own webcam.
+- Printed QR codes point at party50.vercel.app, so on Vercel they behave
+  exactly as at the party.
+- Vercel preview deploys also work: since the 2026-10-21 scanner fix, a
+  preview URL accepts the printed production codes and stays on the preview
+  site. Good for testing a fix branch on phones before merging.
+- The database is shared either way, so one reset at the end covers both.
+
+
+======================================================================
+FINDINGS TO DECIDE ON BEFORE TESTING
+======================================================================
+
+The code survey for this plan turned up the items below. F1 is already
+fixed. The rest are judgment calls.
+
+F1. Cooldowns fired outside the game. FIXED 2026-10-21
+    (trigger_specific_cooldown.sql) and applied to Supabase. Verify with
+    R-04 and C-01.
+
+F2. Collusion, keypad attempt limits, the HQ gate, and admin RPCs (start,
+    end, reset, trigger) are all enforced only in the browser, or callable
+    by any signed-in client. Same "nobody opens devtools" class you already
+    accepted (old README 17/19). Listed so the acceptance is explicit.
+
+F3. Typing /scan/find/<tool-id> by hand grants a Tool without paying, and
+    the balance can go negative. Printed codes for Tools use /scan/buy, so
+    only reachable by URL-typing. Same accepted class as F2.
+
+F4. A blocked team (missing tool, repeat trio, repeat pair): the first
+    teammate to close the overlay deletes the whole team, and the others
+    see "CONNECTION TERMINATED". Probably fine, but confirm you like it
+    during M-tests.
+
+F5. Keypad attempts are counted per player per mission, and the count
+    survives abort and rejoin. For non-Hackers this never matters: one
+    wrong guess fails the mission, and it can't be rejoined. It matters for
+    a Hacker who uses 2 of 3 attempts, aborts, and rejoins with only 1 left.
+    Decide whether that is intended (M-15).
+
+F6. Ending the game mid-mission: end_game deletes active mission rows, and
+    any reward insert in flight fails silently (RLS needs IN_GAME). By
+    design, but worth seeing once (see L-08).
+
+
+======================================================================
+PHASE 0 - TEST SETUP AND TEMPORARY CONCESSIONS
+======================================================================
+
+Devices
+- Laptop: HQ pages (Chrome) plus one player (a separate Chrome profile).
+- Your phone: main player.
+- Family phones or extra browsers: players 2 and 3.
+
+Getting more players than you have devices
+Every private/incognito window, separate browser profile, or browser with
+site data cleared is a brand-new anonymous player. Each needs the party
+passcode again. One phone with Safari, Chrome and a private tab = 3 players.
+
+Party gate
+Every browser first needs the party passcode at /gatekeeper (stored for 7
+days). HQ needs the HQ passcode at /hq/login (24 hours).
+
+Concession A - collusion caps (trio once ever, any pair at most 4 times)
+- Phases 4-5: leave them ON, since M-tests check them. Use fresh identities
+  to make new trios.
+- Phase 10 (25 missions with the same few people): temporarily disable
+  them. In the Supabase SQL editor, re-run check_team_collusion and
+  check_pair_collusion with "RETURN FALSE;" added as the first line after
+  BEGIN. Re-apply the originals from data/functions/ in the Final
+  checklist.
+
+Concession B - role-balance cap
+register_player refuses a role once it leads the runner-up by 4. With many
+test identities, rotate roles so you don't trip it by accident. You test it
+on purpose in R-05.
+
+Concession C - test credits and heat
+Players start with 25 credits; Tools cost 30-80. To fund purchases or force
+a heat lockout without playing for hours, add QA events by SQL:
+
+  -- one-time setup
+  INSERT INTO event (id, type, intel, heat, credits, description) VALUES
+   ('0a000000-0000-4000-8000-000000000001','CONSEQUENCE',0,0,200,'QA credit grant'),
+   ('0a000000-0000-4000-8000-000000000002','CONSEQUENCE',0,500,0,'QA heat spike');
+
+  -- give one to a player (copy their id from HQ Monitor)
+  INSERT INTO player_event (player_id, event_id)
+    VALUES ('<player-id>','0a000000-0000-4000-8000-000000000001');
+
+Each player can receive each QA event once (primary key). For the heat spike
+use +500, not +100: cooldowns and other negative heat would cancel a smaller
+spike. The Final checklist removes both rows.
+
+Concession D - time-based features
+- Global events last 5 minutes.
+- Cooldowns fire at :00 and :30 (UTC cron; the minute is the same in any
+  time zone).
+- HQ pulse thresholds are 20 and 45 minutes.
+Plan to have an idle stretch for C- and H-tests, or run them while doing
+something else.
+
+
+======================================================================
+PHASE 1 - GATES, HQ AND GAME LIFECYCLE
+======================================================================
+
+Start state: game in PRE_GAME. If not, End Game then Reset at /hq/game.
+
+G-01 [1] Party gate, wrong code
+  Steps: Fresh private window, open the site, enter a wrong passcode.
+  Expect: Red border, field cleared, "INVALID KEY. SECURITY PROTOCOL
+  INITIATED."
+
+G-02 [1] Party gate, right code in lowercase
+  Steps: Enter the correct passcode in lowercase.
+  Expect: Accepted (input is uppercased), lands on the registration page.
+
+G-03 [1] Any page without the party cookie
+  Steps: Fresh private window, go straight to /hq or /scan/find/x.
+  Expect: Redirect to /gatekeeper.
+
+H-01 [1] HQ login
+  Steps: /hq, wrong passcode, then correct passcode.
+  Expect: Wrong = nothing happens (no message, field not cleared; note
+  whether that's acceptable). Correct = HQ dashboard with 6 tiles: GAME
+  CONTROL, FINAL SCORES, OPERATIONS MANIFEST, AGENT MONITOR, LIVE MISSIONS,
+  GLOBAL TRIGGERS.
+
+H-02 [1] HQ nav
+  Steps: Click DASHBOARD and EXIT TO FIELD in the HQ header.
+  Expect: Go to /hq and / respectively.
+
+L-01 [1] Lifecycle buttons in the wrong state (PRE_GAME)
+  Steps: /hq/game. Press End Game, Undo End Game, Reset (confirm each).
+  Expect: Each says "<Label> had no effect -- the game wasn't in the right
+  state for it." Status still PRE_GAME.
+
+L-02 [1] Start Game
+  Steps: Press Start Game, confirm.
+  Expect: "Start Game complete." Status IN_GAME.
+
+L-03 [1] Start Game twice
+  Steps: Press Start Game again.
+  Expect: "had no effect" message. Status unchanged.
+
+L-04 [1] Cancel a confirm
+  Steps: Press any button, Cancel the browser confirm.
+  Expect: Nothing happens.
+
+(L-05 to L-09 come at the end, in Phase 8, once there is data to convert.)
+
+H-03 [1] Manifest
+  Steps: /hq/manifest. Check every QR has a title. Press PRINT SHEET.
+  Expect: QR codes for REGISTRATION, every Tool (buy), every Miscellaneous
+  item (find), all 25 missions, and 3 global events. Print preview is clean.
+  Check the 3 global-event captions read as in-fiction instructions
+  (e.g. "Stash your evidence here at the proper time.").
+
+H-04 [1] Scan manifest codes
+  Steps: With a player phone, scan one of each kind straight off the laptop
+  screen: one Tool, one Misc item, one mission, one global. Just confirm
+  each routes to the right page; the outcomes are tested later. Back out
+  of each.
+  Expect: /scan/buy, /scan/find, /scan/challenge, /scan/global pages open.
+
+
+======================================================================
+PHASE 2 - REGISTRATION, SESSION AND RECOVERY
+======================================================================
+
+Game state: IN_GAME (from L-02), except where a test says otherwise.
+
+R-01 [1] Happy path
+  Steps: New identity, enter a name, pick a role, Register.
+  Expect: Tabs appear (Profile, Inventory, Leaderboard, History). Profile
+  shows 25 credits, 0 intel ("Intel: 0 / 200"), 0 heat.
+
+R-02 [1] Missing fields
+  Steps: Try Register with no name, then with no role.
+  Expect: Browser blocks submit (required fields).
+
+R-03 [1] Reload after registering
+  Steps: Reload the page; close and reopen the browser.
+  Expect: Still registered, same player, no form.
+
+R-04 [1] Registration in PRE_GAME
+  Steps: (Do this before L-02 if you can, or after a Reset.) Register while
+  PRE_GAME.
+  Expect: Allowed. No cooldown events appear in History
+  while PRE_GAME, even across a :00 or :30 mark.
+
+R-05 [1] Role-balance cap
+  Steps: With fresh identities, register 4 players as the same role while
+  the other roles have 0, then try a 5th of that role.
+  Expect: 5th refused: "<Role> has too big a lead over the other roles
+  right now. Pick a different role -- <Role> opens back up once another role
+  catches up." Pick another role, it works. Register one of a different role
+  and the blocked role opens again.
+
+R-06 [1] Registration in POST_GAME
+  Steps: (Run during Phase 8 while POST_GAME.) Try to register a new
+  identity.
+  Expect: "Registration is closed -- the game is not currently accepting
+  new agents."
+
+R-07 [1] Bad connection while registering
+  Steps: Turn on airplane mode, press Register.
+  Expect: An error in the "Registration Failed" box, never an endless
+  "Loading Game...". Turn the network back on and retry: it works.
+
+S-01 [1] Connection indicator
+  Steps: On Profile, toggle airplane mode on for 10 seconds, then off.
+  Expect: "Link Unstable" while off, "Link Active" within ~5-10s after.
+  Data changes made by another player meanwhile show up.
+
+S-02 [1] Profile bars
+  Steps: Watch the bars as intel/heat/credits change in later phases.
+  Expect: Intel bar "X / 200" (400 with 8TB Thumb Drive). Heat bar pulses at
+  80+. Credits bar full at 250. Every bar shows a sliver at 0.
+
+S-03 [1] History tab
+  Steps: Open History with no events, then after events.
+  Expect: "No mission events recorded." then cards with time, description,
+  and +/- INTEL, HEAT, CREDITS badges (only nonzero ones).
+
+REC-01 [2] Recovery happy path
+  Steps: Player A registered on device 1. HQ Monitor, open A's dossier,
+  Generate Recovery Token. Scan it with device 2 (which may have its own
+  player B).
+  Expect: "Syncing Field Identity..." then device 2 is player A, with all
+  items, events and missions. Device 1 drops back to the registration form.
+  If device 2 had a player B, B is gone from HQ Monitor (deleted).
+
+REC-02 [2] Recovery of a mid-mission player
+  Steps: Player A in an IN_PROGRESS mission. Recover A onto another device.
+  Expect: The new device resumes the mission at the current step.
+
+REC-03 [1] Recovery failure (never exercised before)
+  Steps: After REC-01, scan the same recovery QR again from a third
+  identity, after first deleting A (or use a recovery URL with a made-up
+  id: /scan/recovery/00000000-0000-0000-0000-000000000000).
+  Expect: Overlay "Recovery Failed" / "Target player identity not found."
+  CONFIRM retries, CANCEL goes home. No endless "Syncing" screen. The
+  scanning device's own player is NOT deleted (the transaction rolls back).
+
+REC-04 [1] Same device scans its own recovery QR
+  Steps: Scan player A's recovery QR on A's own device.
+  Expect: Goes home, nothing changes.
+
+
+======================================================================
+PHASE 3 - ITEMS, PURCHASES, SHREDDING
+======================================================================
+
+Give the test players credits first (Concession C).
+
+QR-01 [1] Scanner basics
+  Steps: Profile, Scan. Deny camera permission once, then allow.
+  Expect: Denied: "ACCESS DENIED: ..." Allowed: "INITIALIZING OPTICAL
+  SENSOR..." then "SENSOR ACTIVE". "Abort Scan" closes it.
+
+QR-02 [1] Foreign QR codes
+  Steps: Scan a random QR (a product, a Wi-Fi code, plain text).
+  Expect: Ignored, scanner keeps running.
+
+QR-03 [1] Preview / localhost host
+  Steps: On a Vercel preview URL (or laptop localhost with webcam), scan a
+  printed production code.
+  Expect: Routes within the preview / localhost site, not to production.
+
+I-01 [1] Find a Misc item
+  Steps: Scan a Miscellaneous item QR.
+  Expect: "ITEM SECURED" / "You secured the <name>. Item added to
+  inventory." Inventory and Profile update.
+
+I-02 [1] Find it again
+  Steps: Same player scans the same QR.
+  Expect: "DATA ALREADY SYNCED" / "You have already recovered the <name>."
+
+I-03 [2] Someone else found it first (non-Scavenger)
+  Steps: Second player (not Scavenger) scans the same item.
+  Expect: "RESOURCE EXHAUSTED" / "<first player> already stripped this
+  location at HH:MM. The <name> is gone."
+
+I-04 [2] Scavenger bonus
+  Steps: A Scavenger scans an item someone else found first.
+  Expect: "Scavenger Bonus: You recovered the <name> overlooked by
+  <first player>!" Scanning again gives DATA ALREADY SYNCED.
+
+I-05 [1] Find outside IN_GAME
+  Steps: (During Phase 8, POST_GAME) scan an unclaimed Misc item.
+  Expect: "LINK FAILURE" / "Transmission interrupted." Nothing added.
+
+I-06 [1] Bad item id
+  Steps: Visit /scan/find/00000000-0000-0000-0000-000000000000.
+  Expect: "INVALID SIGNATURE" / "This scan point is unrecognized."
+
+B-01 [1] Buy a Tool
+  Steps: Player with enough credits scans a Tool, CONFIRM.
+  Expect: "CONFIRM ACQUISITION" / "Authorize transfer of <cost> credits for
+  the <name>?" then "TRANSACTION COMPLETE". Credits drop by the cost.
+
+B-02 [1] Cancel a purchase
+  Steps: Scan a Tool, press CANCEL.
+  Expect: Goes home, credits unchanged.
+
+B-03 [1] Already owned
+  Steps: Scan the same Tool again.
+  Expect: "OWNERSHIP DETECTED".
+
+B-04 [1] Not enough credits
+  Steps: Player with 25 credits scans an 80-credit Tool.
+  Expect: "INSUFFICIENT FUNDS".
+
+B-05 [1] Bargain Hunter price
+  Steps: Bargain Hunter scans the 50-credit Recon Readout.
+  Expect: Confirm says 35 credits; balance drops by 35; inventory badge
+  shows -35.
+
+B-06 [1] Double-tap CONFIRM
+  Steps: Tap CONFIRM twice fast.
+  Expect: One purchase, one charge. Second tap shows PROCESSING or a clean
+  error, never a double charge.
+
+B-07 [1] Buy outside IN_GAME
+  Steps: (POST_GAME) scan an unowned Tool, CONFIRM.
+  Expect: "ENCRYPTION FAILURE" / "The game is not currently active."
+
+T-01 [1] 8TB Thumb Drive
+  Steps: Buy it.
+  Expect: Profile shows "Intel: X / 400". If intel was capped at 200, the
+  extra now shows.
+
+T-02 [1] Agent Dossier
+  Steps: Check Leaderboard before and after buying.
+  Expect: Before: names only. After: role and INT / HEA / CRD for everyone.
+
+T-03 [1] Recon Readout
+  Steps: Visit /recon-readout before buying (type the URL), then buy and
+  press VIEW in Inventory.
+  Expect: Before: "ACCESS RESTRICTED". After: "<n> / 10" hidden assets, and
+  every mission with READY / ACTIVE / CLEARED / FAILED plus squad names.
+
+T-04 [1] Infrared Mitigation Device
+  Steps: Note heat, buy it.
+  Expect: Heat drops 30 (floor 0). Confirm the -30 being permanent while
+  owned is what you want.
+
+T-05 Asset Validator: tested in P-DEC-04.
+
+SH-01 [1] Shred Intel
+  Steps: Own an Intel item with heat > 0 (mission reward). Inventory, SHRED,
+  CONFIRM.
+  Expect: "CONFIRM DESTRUCTION" overlay, item gone, its intel, heat and
+  credits removed.
+
+SH-02 [1] No shred button
+  Steps: Look at Tools, Misc items and Intel with heat 0.
+  Expect: No SHRED button on any of them.
+
+SH-03 [1] Shred making credits negative
+  Steps: Own a credit-carrying Intel reward (e.g. Advisory Retainer
+  Ledger 6/1/35), spend credits, then shred it.
+  Expect: Note the result; balance may go negative. Decide if that's OK.
+
+
+======================================================================
+PHASE 4 - MISSIONS: JOIN, TEAM, RUN, ABORT, FAIL
+======================================================================
+
+Pick one ungated mission with a KEYPAD step (e.g. project_hyperion:
+KEYPAD, ROTARY, DECISION). Collusion caps ON. Every mission needs 3
+players. Use fresh trios each time a test completes or fails a mission.
+
+M-01 [1] Join while not IN_GAME
+  Steps: (PRE_GAME or POST_GAME) scan a mission.
+  Expect: "GAME NOT ACTIVE" / "The game is not currently running. Check
+  with your handler before attempting to join a mission."
+
+M-02 [1] Join, wait alone
+  Steps: Player 1 scans the mission.
+  Expect: Waiting room "Team Formation in Progress", "Waiting for 2 more
+  agent(s)...", 3 dots. HQ Live Missions shows "1 / 3 required agents
+  present".
+
+M-03 [1] Re-scan while waiting
+  Steps: Player 1 scans the same mission again; also reload the app.
+  Expect: Back in the same waiting room, no error, no second team.
+
+M-04 [1] Scan a different mission while waiting
+  Steps: Player 1 scans another mission.
+  Expect: "MISSION IN PROGRESS" / "You are already engaged with an active
+  mission."
+
+M-05 [3] Team fills and starts
+  Steps: Players 2 and 3 scan the mission.
+  Expect: All three see "Team assembled. Commencing mission..." then step 1.
+  HQ Live Missions shows "Step 1 / 3".
+
+M-06 [3] Fourth player
+  Steps: A 4th identity scans the same mission after M-05.
+  Expect: 4th player gets a new waiting room, not added to the running
+  team.
+
+M-07 [3] Keypad hints
+  Steps: On the KEYPAD step compare all 3 screens.
+  Expect: Each player sees a different hint (hint 1 = first to join).
+  No one stuck on "Decrypting hint..." and no "No intel available."
+
+M-08 [3] Advance and catch-up
+  Steps: One player enters the correct code.
+  Expect: That player advances. The other two catch up within ~4s.
+
+M-09 [3] Final decision and completion
+  Steps: Finish the remaining steps, each choose a final reward.
+  Expect: "Waiting for teammates (n/3)..." until all vote. Each gets their
+  OWN chosen item. "MISSION ACCOMPLISHED". Items show in Inventory and
+  Profile.
+
+M-10 [1] Rejoin a completed mission
+  Steps: Any of the trio scans it again.
+  Expect: "ALREADY COMPLETED".
+
+M-11 [3] Abort from waiting room
+  Steps: New trio forming; one player presses Abort, CONFIRM.
+  Expect: "CRITICAL WARNING" confirm. Others get "CONNECTION TERMINATED".
+  All are back on tabs. The mission can be joined fresh.
+
+M-12 [3] Abort mid-mission
+  Steps: Running mission; one player presses Abort Mission.
+  Expect: Others get "MISSION TERMINATED". HQ Live Missions clears it.
+  Rewards from earlier steps stay.
+
+M-13 [3] Wrong keypad code, non-Hacker
+  Steps: New trio; a non-Hacker enters a wrong code.
+  Expect: All three get "MISSION FAILED". Rejoining gives "PREVIOUSLY
+  FAILED".
+
+M-14 [3] Wrong keypad code, Hacker
+  Steps: New trio with a Hacker; Hacker enters 2 wrong codes, then the
+  right one.
+  Expect: "ACCESS DENIED" / "Attempts remaining: 2", then 1, then success.
+
+M-15 [3] Hacker attempts across abort (F5)
+  Steps: Hacker uses 2 attempts, team aborts, team rejoins.
+  Expect: Hacker has 1 attempt left. Decide if intended.
+
+M-16 [3] Gated mission without the tool
+  Steps: Trio with no RFID Keycard Replicator scans boardroom_audit.
+  Expect: When full: "ACCESS RESTRICTED" / "This operation requires
+  specialized hardware [RFID Keycard Replicator]..." Closing it deletes the
+  team for everyone (F4).
+
+M-17 [3] Gated mission with the tool
+  Steps: One teammate owns the tool; scan again.
+  Expect: Mission starts. Tool still in inventory afterwards.
+
+M-18 [3] Repeat trio
+  Steps: The trio from M-09 tries any other mission together.
+  Expect: "MISSION COMPROMISED" / "This specific trio is drawing too much
+  suspicion..."
+
+M-19 [3] Repeat pair (5th time)
+  Steps: Players A and B finish 4 missions together with different third
+  players, then try a 5th.
+  Expect: "MISSION COMPROMISED" / "Two members of this team have partnered
+  up too many times..." Note: expensive; do it alongside Phase 10.
+
+M-20 [1] Heat lockout
+  Steps: Give a player the +500 QA heat spike. Check Profile, then scan a
+  mission.
+  Expect: Profile banner "Surveillance Critical". Join refused: "SURVEILLANCE
+  CRITICAL" / "Your heat has maxed out...". Item scanning still works.
+
+M-21 [3] Lockout mid-mission
+  Steps: Player in a running mission gets the heat spike, then reloads.
+  Expect: Resumes the mission (lockout only blocks joining).
+
+M-22 [3] Resume after closing the app
+  Steps: Mid-mission, close the browser fully, reopen.
+  Expect: Back in the mission at the team's current step.
+
+M-23 [3] Phone sleeps mid-mission
+  Steps: Lock one phone for 2 minutes while others advance a step.
+  Expect: On unlock it catches up; indicator returns to "Link Active".
+
+M-24 [3] Rapid double scan
+  Steps: Scan a mission QR and immediately scan again / double-tap.
+  Expect: One waiting room, no "MISSION IN PROGRESS" error.
+
+
+======================================================================
+PHASE 5 - EACH STEP TYPE
+======================================================================
+
+Run each type once with 3 players. For each: every player solves their
+own copy, presses CONFIRM BYPASS, sees "WAITING FOR TEAM (n/3)", and the
+step advances when all three confirm. Suggested missions in brackets.
+
+P-SIG [3] SIGNAL (project_aegis)
+  Expect: Tapping rotates a tile. Button "SIGNAL INTERRUPTED" until a path
+  connects top-left to bottom-right, then rotation locks.
+
+P-MEM [3] MEMORY (lobby_infiltration)
+  Expect: Simon pattern to length 9 ("Progress: n / 9"). A wrong tap
+  restarts at length 1. Try one wrong tap on purpose.
+
+P-MM [3] MASTERMIND (warehouse_sweep)
+  Expect: 4 digits 1-5, green/yellow pegs, "N ATTEMPTS LEFT". Burn all 10
+  guesses on one phone: a new secret appears, history clears.
+
+P-MAT [3] MATRIX (proxy_hijack)
+  Expect: Lights-out 4x4, tap toggles a cross. Solved when all off.
+
+P-SLD [3] SLIDER (project_archimedes = numbers; deep_freeze_hub = letters)
+  Expect: 15-puzzle solvable; numbers vs letters as configured.
+
+P-ROT [3] ROTARY (project_hyperion)
+  Expect: 5 rings. LOCK DIAL near 12 o'clock locks a ring; a miss sends
+  you back to ring 1. Ring 5 solves it. Try on a slow phone too.
+
+P-KEY KEYPAD: covered by M-07, M-08, M-13, M-14. Also try a code with a
+  leading zero (sub_level_four "0400", terminal_b_drop "0620").
+
+P-DEC-01 [3] Majority decision, 2-1 split (cleaning_crew_shift step 1)
+  Expect: All three get the winning option's event. Losing option's effect
+  appears for no one.
+
+P-DEC-02 [3] Majority decision, unanimous
+  Expect: Same, everyone gets that event.
+
+P-DEC-03 [3] Individual final decision, mixed picks
+  Expect: Each player gets the item they personally picked.
+
+P-DEC-04 [3] Asset Validator
+  Steps: One player owns Asset Validator.
+  Expect: That player sees +N INTEL / HEAT / CREDITS badges on the final
+  reward options. Others don't. Majority (event) options never show
+  badges.
+
+P-DEC-05 [3] Double-tap a vote
+  Expect: One vote recorded.
+
+P-ALL [3] Two steps of the same type in a row
+  No mission does this today, so nothing to run. The 2026-10-21 key fix
+  covers it.
+
+
+======================================================================
+PHASE 6 - GLOBAL EVENTS AND COOLDOWNS
+======================================================================
+
+Each event lasts 5 minutes. Have 2-3 players open on phones.
+
+GE-01 [2] Trigger
+  Steps: /hq/triggers, DEPLOY MISSION FUNDING, confirm.
+  Expect: "Global event triggered". Every player phone: full-screen
+  "PRIORITY ALERT", m:ss countdown, vibrate (Android). HQ pages show nothing.
+
+GE-02 [1] Acknowledge
+  Steps: ACKNOWLEDGE on a phone.
+  Expect: Sticky top banner with countdown; nothing covers the top nav.
+
+GE-03 [1] Check in on time
+  Steps: Scan mission-funding-qr.
+  Expect: "OBJECTIVE COMPLETE" / "You completed the objective within the
+  time limit. Well done." +50 credits. Banner gone.
+
+GE-04 [1] Check in twice
+  Steps: Scan it again.
+  Expect: "This objective was already completed successfully."
+
+GE-05 [1] Miss it with the app open
+  Steps: Second player ignores the event until the countdown hits 0.
+  Expect: "CHECK IN FAILED" / "You failed to check in for <title> before
+  time expired." card. For SECURITY SWEEP, +10 heat.
+
+GE-06 [1] Miss it with the app closed
+  Steps: Third player closes the app, reopens after expiry.
+  Expect: The missed-event message shows once (card or browser alert),
+  failure event in History, never twice.
+
+GE-07 [1] Scan after expiry
+  Steps: After missing, scan the event's QR.
+  Expect: "This objective has already expired." (or "...too slow." if not
+  yet penalized).
+
+GE-08 [1] Scan with no active event
+  Steps: Scan a global QR when nothing has been triggered.
+  Expect: "There is no active event for this location at this time."
+
+GE-09 [2] All three templates
+  Steps: Repeat GE-01/03/05 for SECURITY SWEEP and PRIVILEGED CONVERSATION.
+  Expect: Sweep: on time -15 heat, missed +10. Conversation: on time +25
+  intel, missed nothing.
+
+GE-10 [2] Same template twice
+  Steps: Trigger MISSION FUNDING again after the first expires.
+  Expect: New event, everyone can claim it again. Decide if that's
+  intended.
+
+GE-11 [2] Mid-mission alert
+  Steps: Trigger while a team is mid-puzzle.
+  Expect: Alert shows over the mission; after acknowledging, the puzzle
+  still works.
+
+GE-12 [1] Trigger outside IN_GAME
+  Expect: Browser alert "The game is not currently active."
+
+C-01 [1] Cooldowns only in IN_GAME
+  Steps: Leave a registered player in PRE_GAME across a :00 or :30 mark,
+  then Start and cross another mark.
+  Expect: No "You have maintained a low profile." in PRE_GAME. One after
+  Start, -8 heat.
+
+C-02 [1] Six cooldowns max
+  Steps: Over 3+ hours of IN_GAME, check History.
+  Expect: At most 6 cooldown events per player, -48 heat total.
+
+
+======================================================================
+PHASE 7 - PLAYER TO PLAYER
+======================================================================
+
+X-01 [2] Give credits
+  Steps: Leaderboard, GIVE $ on another player, enter 10.
+  Expect: "TRANSFER SUCCESSFUL". Sender -10 ("Transferred 10 credits to
+  ..."), receiver +10 ("Received 10 credits from ...") in History.
+
+X-02 [1] Bad amounts
+  Steps: Try 0, -5, letters, and more than you have.
+  Expect: "Invalid transfer amount." for 0 / negative / letters.
+  "Insufficient credits for transfer." for too much.
+
+X-03 [1] Decimal amount
+  Steps: Enter 12.9.
+  Expect: 12 transferred. Fine?
+
+X-04 [1] Transfer outside IN_GAME
+  Expect: "The game is not currently active."
+
+LA-01 [2] Lawyer advises another player
+  Steps: Lawyer presses ADVISE on a player, confirm.
+  Expect: "COUNSEL APPLIED". Recipient -10 heat, "Received legal advice
+  from <lawyer>." Button becomes ADVISED within a second or two.
+
+LA-02 [1] Advise same player again
+  Expect: Button disabled. (If forced, "Counsel already provided to this
+  agent.")
+
+LA-03 [1] Self-advice
+  Steps: Lawyer presses TAKE ADVICE on own row.
+  Expect: "PROTECTIONS APPLIED", -10 heat, "You took your own legal
+  advice." Only once.
+
+LA-04 [2] Two lawyers, one recipient
+  Expect: Both can advise the same player (cap is per lawyer-recipient
+  pair). Recipient gets -20 total.
+
+LA-05 [1] Non-lawyer
+  Expect: No ADVISE buttons.
+
+LB-01 [2] Leaderboard
+  Expect: Sorted by intel, then lower heat. "(YOU)" on own row. Refreshes
+  within 30s while the tab is open.
+
+HM-01 [2] HQ Monitor
+  Expect: "Number of Players: N", stats update live. Dossier shows items
+  and last 10 events. Pulse ACTIVE / STALE (20 min) / GONE DARK (45 min).
+  Leave one player idle 45+ minutes: GONE DARK should appear even though
+  cooldowns keep arriving (they no longer count as activity).
+
+HS-01 [2] HQ Final Scores
+  Expect: Same order as Leaderboard, gold/silver/bronze on top 3. Tie
+  only when intel AND heat are equal.
+
+HLM-01 [3] HQ Live Missions
+  Expect: Waiting teams "n / 3", running teams "Step X / N", roster names,
+  updates live, cleared on completion or abort.
+
+
+======================================================================
+PHASE 8 - END GAME, UNDO, RESET
+======================================================================
+
+Set up first: one player with 57 credits, one with 9, one with 0, one team
+mid-mission, one waiting room.
+
+L-05 [3] End Game
+  Steps: /hq/game, End Game.
+  Expect:
+  - Mid-mission and waiting players get "MISSION TERMINATED" /
+    "CONNECTION TERMINATED".
+  - 57 credits -> +5 intel, credits 0, History "End-of-game asset
+    liquidation: spare credits converted to intel."
+  - 9 credits stays 9, no event. 0 stays 0.
+  - Intel still capped at 200 / 400.
+  - HQ Final Scores reflects the conversion.
+
+L-06 [1] POST_GAME behaviour
+  Expect: Run R-06, I-05, B-07, X-04, M-01, GE-12 now. All refused.
+  Shred also does nothing (silently).
+
+L-07 [1] Undo End Game
+  Steps: Undo End Game.
+  Expect: IN_GAME. Conversion events gone, credits back. Terminated
+  missions do NOT come back; teams must rejoin.
+
+L-08 [3] End Game during a final decision
+  Steps: A team votes on its last step at the moment you press End Game.
+  Expect: No crash. Rewards may silently not arrive (F6).
+
+L-09 [1] Reset
+  Steps: End Game, then Reset.
+  Expect: PRE_GAME. HQ Monitor empty. Every phone shows the registration
+  form on reload. Items catalog intact (manifest still shows everything).
+
+
+======================================================================
+PHASE 9 - CONCURRENCY AND STRESS
+======================================================================
+
+These need 3 people scanning or tapping at the same moment. Count down
+"3, 2, 1, scan".
+
+CC-01 [3] Three phones scan one mission at once
+  Expect: One team of 3, never two half-teams.
+
+CC-02 [3+] Six phones scan one mission at once (use spare browsers)
+  Expect: Exactly two teams of 3.
+
+CC-03 [2] Two simultaneous signups for a nearly-capped role
+  Steps: Role X leads by 3; two new identities pick X at the same moment.
+  Expect: Exactly one succeeds.
+
+CC-04 [3] Everyone checks in to a global event at once
+  Expect: Everyone gets the reward once, no raw database errors.
+
+CC-05 [2] Two players claim the same Misc item at once
+  Expect: First one wins, second sees RESOURCE EXHAUSTED (unless
+  Scavenger). Nobody sees a raw error.
+
+CC-06 [2] Simultaneous transfers out of one account
+  Steps: Two browsers as the same player (recovery trick, or same phone in
+  two tabs) both send most of the balance at once.
+  Expect: One succeeds, one "Insufficient credits for transfer."
+
+CC-07 [3] All three vote at the same instant
+  Expect: Step resolves once, each player gets exactly one consequence.
+
+CC-08 Database two-session lock test (laptop only)
+  Steps: In two Supabase SQL editor tabs, BEGIN; SELECT join_challenge(...)
+  for different players on the same mission; don't COMMIT the first.
+  Expect: The second waits until the first commits.
+
+
+======================================================================
+PHASE 10 - CONTENT PASS (ALL 25 MISSIONS)
+======================================================================
+
+Disable the collusion caps first (Concession A). Run each mission with a
+trio. For each, check:
+  [ ] Title and description read well
+  [ ] Each player's keypad hint is clear and the 3 together lead to the code
+  [ ] Keypad code is accepted
+  [ ] Puzzle step is solvable on a phone in a reasonable time
+  [ ] Majority decision text and consequences make sense
+  [ ] Final rewards granted match the text (intel/heat/credits)
+  [ ] Gated missions: blocked without the tool, open with it
+
+Mission              Tool                   Steps                         Code
+boardroom_audit      RFID Keycard Repl.     SIGNAL, KEYPAD, DECISION      4936
+cleaning_crew_shift  -                      DEC(maj), KEYPAD, ROTARY, DEC 4991
+compliance_gamble    -                      KEYPAD, DEC(maj), DECISION    3819
+dark_site_uplink     Micro Recon Drone      SIGNAL, KEYPAD, DECISION      1740
+deep_freeze_hub      Laser Cutting Tool     SLIDER, KEYPAD, DECISION      8318
+executive_flight     Biometric Voice Mod.   KEYPAD, MEMORY, DECISION      2623
+executive_wash       Biometric Voice Mod.   SIGNAL, KEYPAD, DECISION      2599
+ghost_protocol       Laser Cutting Tool     KEYPAD, MASTERMIND, DECISION  7142
+laundromat_drop      -                      KEYPAD, DEC(maj), DECISION    4412
+lobby_infiltration   -                      MEMORY, KEYPAD, DECISION      3068
+park_bench_drop      -                      KEYPAD, DEC(maj), DECISION    1212
+patent_office_probe  -                      KEYPAD, SLIDER, DECISION      5319
+personnel_purge      RFID Keycard Repl.     MASTERMIND, KEYPAD, DECISION  2008
+pharma_splicing      Tranquilizer Dart Gun  KEYPAD, MATRIX, DECISION      2373
+project_aegis        -                      SIGNAL, KEYPAD, DECISION      1448
+project_archimedes   -                      KEYPAD, SLIDER, DECISION      8712
+project_hyperion     -                      KEYPAD, ROTARY, DECISION      3029
+proxy_hijack         -                      KEYPAD, MATRIX, DECISION      2129
+server_room_sprint   -                      DEC(maj), SIGNAL, KEYPAD, DEC 2650
+shadow_grid          Micro Recon Drone      KEYPAD, MATRIX, DECISION      7157
+shell_entity         -                      DEC(maj), KEYPAD, DECISION    7913
+sub_level_four       Tranquilizer Dart Gun  MEMORY, KEYPAD, DECISION      0400
+tax_loophole_breach  -                      ROTARY, KEYPAD, DECISION      7545
+terminal_b_drop      -                      KEYPAD, DEC(maj), DECISION    0620
+warehouse_sweep      -                      MASTERMIND, KEYPAD, DECISION  4335
+
+Shortcut: every mission needs 3 players to start, but 3 browser windows on
+one laptop count as 3 players. You can run most of this pass alone that
+way, and save phones for checking how the puzzles feel on a touch screen.
+
+Also check:
+  [ ] SIGNAL puzzles 0-4 are all solvable (boardroom 1, dark_site 2,
+      executive_wash 0, aegis 3, server_room 4)
+  [ ] SLIDER colours look right (hues 100, 850, 500)
+  [ ] Each of the 10 Misc items: name, intel/heat/credits match the sheet
+  [ ] Each Tool: price on confirm matches the manifest
+  [ ] Each global event: alert text and reward match
+
+
+======================================================================
+FINAL - PRE-PARTY RESET AND GO / NO-GO
+======================================================================
+
+[ ] All Phase 1-9 FAILs fixed and re-tested
+[ ] Collusion functions restored (re-run check_team_collusion.sql and
+    check_pair_collusion.sql from data/functions/)
+[ ] get_agent_pulse.sql (2026-10-21 cooldown filter) applied in Supabase
+[ ] /hq/game: End Game, then Reset (Reset only works from POST_GAME).
+    Status PRE_GAME
+[ ] Delete QA events (after Reset, so no player_event rows point at them):
+      DELETE FROM event WHERE id IN
+        ('0a000000-0000-4000-8000-000000000001',
+         '0a000000-0000-4000-8000-000000000002');
+[ ] HQ Monitor shows 0 players; Live Missions empty
+[ ] No leftover global_event rows (Reset deletes them)
+[ ] pg_cron jobs present: SELECT jobname, schedule FROM cron.job;
+    (cooldown-1 to cooldown-6)
+[ ] Manifest printed, every QR scanned once from paper on
+    a phone
+[ ] Party and HQ passcodes set as intended in Vercel env vars (party code
+    in UPPERCASE)
+[ ] Production deploy is the latest main
+[ ] One full rehearsal: register 3, Start, one mission, one global event,
+    End, check scores, then End + Reset again
