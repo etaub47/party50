@@ -1,6 +1,13 @@
 CREATE OR REPLACE FUNCTION public.trigger_specific_cooldown(p_event_id UUID)
     RETURNS void AS $$
 BEGIN
+    -- cron fires around the clock; only hand out cooldowns while the game is
+    -- live, so early registrants don't burn them before Start Game. Silent
+    -- return rather than assert_game_in_progress() so cron logs stay clean.
+    IF current_game_status() IS DISTINCT FROM 'IN_GAME' THEN
+        RETURN;
+    END IF;
+
     INSERT INTO public.player_event (player_id, event_id)
     SELECT p.id, p_event_id
     FROM public.player p
