@@ -2,6 +2,19 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
+
+const supabase = createClient();
+
+// HQ pages never pass through '/', which is where a session normally gets
+// established, so a browser whose anonymous session expired would leave every
+// HQ query waiting on auth. Make sure one exists before rendering, but never
+// block HQ for more than a few seconds on it.
+const ensureSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session)
+        await supabase.auth.signInAnonymously();
+};
 
 export default function HQLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -9,18 +22,29 @@ export default function HQLayout({ children }: { children: React.ReactNode }) {
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
     useEffect(() => {
-        const checkHQAccess = () => {
+        let isActive = true;
+
+        const checkHQAccess = async () => {
             const hasHQAccess = document.cookie.includes("hq_access=true");
 
             if (!hasHQAccess && pathname !== '/hq/login') {
                 router.replace('/hq/login');
                 setIsAuthorized(false);
-            } else {
-                setIsAuthorized(true);
+                return;
             }
+
+            await Promise.race([
+                ensureSession().catch(err => console.error("HQ session check failed:", err)),
+                new Promise(resolve => setTimeout(resolve, 5000)),
+            ]);
+            if (isActive)
+                setIsAuthorized(true);
         };
 
-        checkHQAccess();
+        void checkHQAccess();
+        return () => {
+            isActive = false;
+        };
     }, [pathname, router]);
 
     // simple loading state to prevent "G-d Mode" from flickering on screen

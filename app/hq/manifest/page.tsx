@@ -11,6 +11,7 @@ export default function ManifestPage() {
     const [items, setItems] = useState<any[]>([]);
     const [missions, setMissions] = useState<{ id: string, title: string, description: string }[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     const specialEvents = [
         { id: 'mission-funding-qr', title: 'MISSION FUNDING', sub: 'Meet your contact here at the proper time.' },
@@ -19,15 +20,23 @@ export default function ManifestPage() {
     ];
 
     useEffect(() => {
+        // every exit must clear loading, or the page sits on SCANNING DATABASE
+        // forever with no hint of what broke
         const fetchAll = async () => {
-            const [itemRes, missionList] = await Promise.all([
-                supabase.from('item').select('*').neq('type', 'Intel').order('type', { ascending: true }),
-                listMissions(),
-            ]) as [any, any[]];
-            if (itemRes.data)
-                setItems(itemRes.data);
-            setMissions(missionList);
-            setLoading(false);
+            try {
+                const [itemRes, missionList] = await Promise.all([
+                    supabase.from('item').select('*').neq('type', 'Intel').order('type', { ascending: true }),
+                    listMissions(),
+                ]) as [any, any[]];
+                if (itemRes.error)
+                    throw new Error(`Item lookup failed: ${itemRes.error.message}`);
+                setItems(itemRes.data ?? []);
+                setMissions(missionList);
+            } catch (err) {
+                setLoadError(err instanceof Error && err.message ? err.message : 'Unknown error loading the manifest.');
+            } finally {
+                setLoading(false);
+            }
         };
         void fetchAll();
     }, []);
@@ -35,6 +44,12 @@ export default function ManifestPage() {
     const baseUrl = "https://party50.vercel.app"; // fallback for QR generation
 
     if (loading) return <div className="p-8 font-mono text-blue-500 animate-pulse">SCANNING DATABASE...</div>;
+    if (loadError) return (
+        <div className="p-8 font-mono text-red-400">
+            <p>MANIFEST UNAVAILABLE: {loadError}</p>
+            <button onClick={() => window.location.reload()} className="mt-4 underline">Reload</button>
+        </div>
+    );
 
     return (
         <div className="p-8 bg-white min-h-screen text-black">
@@ -68,7 +83,7 @@ export default function ManifestPage() {
                     <QRCard
                         key={item.id}
                         title={item.name}
-                        subtitle={`${item.type.toUpperCase()} | COST: ${item.cost}`}
+                        subtitle={item.type === 'Tool' ? `TOOL | COST: ${item.cost}` : 'HIDDEN ITEM'}
                         url={`${baseUrl}/scan/${item.type === 'Tool' ? 'buy' : 'find'}/${item.id}`}
                     />
                 ))}
@@ -88,7 +103,7 @@ export default function ManifestPage() {
                     <QRCard
                         key={e.id}
                         title={e.title}
-                        subtitle={`GLOBAL EVENT | ${e.sub}`}
+                        subtitle={e.sub}
                         url={`${baseUrl}/scan/global/${e.id}`}
                     />
                 ))}
@@ -108,9 +123,6 @@ function QRCard({ title, subtitle, url }: { title: string, subtitle: string, url
                 </h3>
                 <p className="text-[10px] font-mono text-gray-500 text-center mt-1">
                     {subtitle}
-                </p>
-                <p className="text-[8px] text-gray-300 mt-2 break-all max-w-full italic">
-                    {url}
                 </p>
             </div>
         </div>

@@ -189,8 +189,19 @@ H-03 [1] Manifest
   Steps: /hq/manifest. Check every QR has a title. Press PRINT SHEET.
   Expect: QR codes for REGISTRATION, every Tool (buy), every Miscellaneous
   item (find), all 25 missions, and 3 global events. Print preview is clean.
-  Check the 3 global-event captions read as in-fiction instructions
-  (e.g. "Stash your evidence here at the proper time.").
+  - Tools say "TOOL | COST: <n>".
+  - Miscellaneous items say "HIDDEN ITEM", with no type or cost.
+  - Global events show only an in-fiction caption (e.g. "Stash your
+    evidence here at the proper time."), with no "GLOBAL EVENT" label.
+  - No URLs printed under any QR.
+
+H-05 [1] HQ in a stale or fresh browser
+  Steps: In a browser with site data cleared (or one unused for days),
+  enter the party code, then go straight to /hq/manifest and log in. Do NOT
+  visit / first.
+  Expect: Manifest loads within a few seconds. If anything fails, a
+  "MANIFEST UNAVAILABLE: <reason>" message appears instead of an endless
+  "SCANNING DATABASE...". Repeat for /hq/monitor and /hq/game.
 
 H-04 [1] Scan manifest codes
   Steps: With a player phone, scan one of each kind straight off the laptop
