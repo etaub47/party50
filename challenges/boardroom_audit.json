@@ -30,7 +30,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Financial access confirmed. Grab the black-budget records or redirect an off-the-books fee into your own account.",
+        "instruction": "Financial access confirmed. Grab the black-budget records or doctor the advisory retainer ledger to route a fee into your own account.",
         "voting": "individual",
         "options": [
           { "id": "audit_a", "label": "Black-Budget Ledger", "item_id": "694e6036-e203-4e82-8746-93d2bbf42962" },

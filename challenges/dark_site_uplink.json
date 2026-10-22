@@ -30,7 +30,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Satellite array optimized. Choose whether to secure a backdoor for easy entry or siphon offshore holdings for profit.",
+        "instruction": "Satellite array optimized. Choose whether to secure a backdoor for easy entry or siphon the operator's telecom holdings for profit.",
         "voting": "individual",
         "options": [
           { "id": "uplink_a", "label": "Satellite Access Patch", "item_id": "3130bafe-27ac-47cd-8bdb-0003d6cac56c" },

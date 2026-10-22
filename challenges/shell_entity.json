@@ -34,7 +34,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Mapping complete. Download the shell company network map, or finish the anonymous wire transfer.",
+        "instruction": "Mapping complete. Download the shell company network map, or wire a cut of the funds out anonymously.",
         "voting": "individual",
         "options": [
           { "id": "shell_a", "label": "Shell Entity Network Map", "item_id": "6adafb78-e823-4625-8354-af46425154c4" },

@@ -1,7 +1,7 @@
 {
   "id": "warehouse_sweep",
   "title": "Warehouse Sweep",
-  "description": "Infiltrate the localized terminal to pull real-time container delivery timetables and routes.",
+  "description": "Infiltrate the warehouse logistics terminal to pull real-time container delivery timetables and routes.",
   "requirements": {
     "required_players": 3
   },

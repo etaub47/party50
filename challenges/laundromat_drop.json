@@ -1,7 +1,7 @@
 {
   "id": "laundromat_drop",
   "title": "Laundromat Drop",
-  "description": "Swap a data drive for another under cover of a casual public exchange.",
+  "description": "Swap data drives with a courier between the dryers at a busy laundromat.",
   "requirements": {
     "required_players": 3
   },

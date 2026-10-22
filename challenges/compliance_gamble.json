@@ -34,7 +34,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Backup complete. Choose what to take.",
+        "instruction": "The servers are handled. Choose what to take.",
         "voting": "individual",
         "options": [
           { "id": "comp_a", "label": "Shredded SEC Memo", "item_id": "4f1e2f5b-72a2-48d6-93be-8b4ca172cc38" },

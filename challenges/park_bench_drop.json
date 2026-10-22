@@ -22,7 +22,7 @@
       "order": 2,
       "type": "DECISION",
       "config": {
-        "instruction": "Security patrol patterns shift. Do you ditch the tracking beacon now, or risk a high-pressure breakout?",
+        "instruction": "A patrol is sweeping the park. Ditch the device to slip past the checkpoint, or try to smuggle it out under the guard's nose?",
         "voting": "majority",
         "options": [
           { "id": "bench_drop", "label": "Ditch Hardware Asset", "event_id": "f0fd022d-4716-44de-b63b-ccdffff8719a" },
@@ -34,7 +34,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Container secured. Take the synced calendar data, or grab the courier's laundered cash.",
+        "instruction": "You're clear of the park, and the device synced before you lost it. Take the calendar data, or grab the courier's laundered cash.",
         "voting": "individual",
         "options": [
           { "id": "bench_a", "label": "Calendar Schedule Sync", "item_id": "d3781bca-9095-4546-a90b-e352c702e7c0" },

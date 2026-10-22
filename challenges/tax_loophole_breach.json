@@ -27,7 +27,7 @@
       "order": 3,
       "type": "DECISION",
       "config": {
-        "instruction": "Billing database exposed. Export the off-grid tracking map, or drain funds straight from a Cayman account.",
+        "instruction": "Billing database exposed. Export the offshore tax shield map, or drain funds straight from a Cayman account.",
         "voting": "individual",
         "options": [
           { "id": "tax_a", "label": "Offshore Tax Shield Map", "item_id": "4e2f23e6-832e-4cee-8c93-9f6d6d442222" },

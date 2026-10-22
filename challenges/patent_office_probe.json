@@ -1,7 +1,7 @@
 {
   "id": "patent_office_probe",
   "title": "Patent Office Probe",
-  "description": "Download unreleased competitor patent designs directly from the legal substation portal.",
+  "description": "Download unreleased competitor patent designs directly from the legal department portal.",
   "requirements": {
     "required_players": 3
   },

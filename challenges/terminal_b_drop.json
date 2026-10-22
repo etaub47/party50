@@ -1,7 +1,7 @@
 {
   "id": "terminal_b_drop",
   "title": "Terminal B Drop",
-  "description": "Retrieve a hidden encryption device from a dead-drop locker while dodging surveillance.",
+  "description": "Retrieve a hidden encryption device from an airport dead-drop locker and tap its contents before surveillance picks up the signal.",
   "requirements": {
     "required_players": 3
   },
