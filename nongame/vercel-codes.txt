@@ -1,0 +1,8 @@
+These codes are your backup way into Vercel if you lose access to your passkey or authenticator app. Save them in a password manager or another secure place outside this browser.
+
+a77af17a-f38f36ae
+f42eca4e-b4199906
+b2988804-463fd0e5
+96f967a8-1f5d724a
+1fd9b60a-c631c747
+c6cc624a-7adc0be9
