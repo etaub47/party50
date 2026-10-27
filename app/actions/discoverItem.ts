@@ -22,11 +22,16 @@ export async function handleItemDiscovery(playerId: string, itemId: string): Pro
     // get the item details (so we know what it is)
     const { data: itemData, error: itemError } = await supabase
         .from('item')
-        .select('name')
+        .select('name, type')
         .eq('id', itemId)
         .single();
     if (itemError || !itemData)
         return { type: 'ERROR', title: 'INVALID SIGNATURE', message: "This scan point is unrecognized." };
+
+    // Tools are sold, never found: their QR codes go to /scan/buy, and this path
+    // skips the funds check, so editing the URL would buy one on credit
+    if (itemData.type === 'Tool')
+        return { type: 'ERROR', title: 'INVALID SIGNATURE', message: "This asset must be acquired through a vendor." };
 
     // find ONLY the very first person who ever grabbed this item
     const { data: firstFinderData, error: firstFinderError } = await supabase

@@ -65,9 +65,9 @@ F2. Collusion, the HQ gate, and admin RPCs (start, end, reset, trigger)
     can reset their own player_attempt row, or fire guesses in parallel
     before the count lands. Verify with M-14 and M-25.
 
-F3. Typing /scan/find/<tool-id> by hand grants a Tool without paying, and
-    the balance can go negative. Printed codes for Tools use /scan/buy, so
-    only reachable by URL-typing. Same accepted class as F2.
+F3. FIXED 2026-10-27. Editing a Tool's /scan/buy URL to /scan/find
+    skipped the funds check (a Tool on credit, balance could go negative).
+    handleItemDiscovery now refuses Tools. Verify with I-07.
 
 F4. A blocked team (missing tool, repeat trio, repeat pair): the first
     teammate to close the overlay deletes the whole team, and the others
@@ -348,6 +348,12 @@ I-05 [1] Find outside IN_GAME
 I-06 [1] Bad item id
   Steps: Visit /scan/find/00000000-0000-0000-0000-000000000000.
   Expect: "INVALID SIGNATURE" / "This scan point is unrecognized."
+
+I-07 [1] Find a Tool by URL (F3)
+  Steps: Scan any Tool's QR, cancel, then change "buy" to "find" in the
+  address bar.
+  Expect: "INVALID SIGNATURE" / "This asset must be acquired through a
+  vendor." Nothing added, credits unchanged.
 
 B-01 [1] Buy a Tool
   Steps: Player with enough credits scans a Tool, CONFIRM.
