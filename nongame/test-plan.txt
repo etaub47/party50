@@ -102,13 +102,14 @@ Every browser first needs the party passcode at /gatekeeper (stored for 7
 days). HQ needs the HQ passcode at /hq/login (24 hours).
 
 Concession A - collusion caps (trio once ever, any pair at most 4 times)
-- Phases 4-5: leave them ON, since M-tests check them. Use fresh identities
-  to make new trios.
-- Phase 10 (25 missions with the same few people): temporarily disable
-  them. In the Supabase SQL editor, re-run check_team_collusion and
-  check_pair_collusion with "RETURN FALSE;" added as the first line after
-  BEGIN. Re-apply the originals from data/functions/ in the Final
-  checklist.
+Test mode (/hq/game) skips both caps, so the same trio can replay missions
+and keep its intel and heat. It can only be turned ON in PRE_GAME, can be
+turned OFF any time, and Reset turns it off. See TM-01 to TM-03.
+- Phases 1-7: your choice. To play with the same trio throughout, turn it
+  on before L-02. Turn it OFF before M-18 and M-19; it then stays off
+  until Phase 8's Reset.
+- Phase 10 (25 missions with the same few people): after L-09's Reset,
+  turn test mode on before Start Game.
 
 Concession B - role-balance cap
 register_player refuses a role once it leads the runner-up by 4. With many
@@ -187,6 +188,21 @@ L-03 [1] Start Game twice
 L-04 [1] Cancel a confirm
   Steps: Press any button, Cancel the browser confirm.
   Expect: Nothing happens.
+
+TM-01 [1] Turn test mode on (PRE_GAME; do it before L-02 if you want it)
+  Steps: /hq/game shows "Test mode: OFF". Press Turn Test Mode On, confirm.
+  Expect: "Test mode on complete." Line reads "ON (collusion caps off)".
+  After a reload, every phone shows a yellow "TEST MODE" tag bottom-left
+  that doesn't block taps. The tag is not in /hq/manifest print preview.
+
+TM-02 [1] Test mode can't be turned on mid-game
+  Steps: (In IN_GAME or POST_GAME, with test mode off.) Look at /hq/game.
+  Expect: Turn Test Mode On is greyed out. Turn Test Mode Off, when shown,
+  works in any phase and the phone tag is gone after a reload.
+
+TM-03 [3] Caps skipped in test mode
+  Steps: With test mode on, the same trio plays two missions in a row.
+  Expect: No "MISSION COMPROMISED"; the second mission starts normally.
 
 (L-05 to L-09 come at the end, in Phase 8, once there is data to convert.)
 
@@ -514,16 +530,17 @@ M-17 [3] Gated mission with the tool
   Steps: One teammate owns the tool; scan again.
   Expect: Mission starts. Tool still in inventory afterwards.
 
-M-18 [3] Repeat trio
+M-18 [3] Repeat trio (test mode OFF)
   Steps: The trio from M-09 tries any other mission together.
   Expect: "MISSION COMPROMISED" / "This specific trio is drawing too much
   suspicion..."
 
 M-19 [3] Repeat pair (5th time)
-  Steps: Players A and B finish 4 missions together with different third
-  players, then try a 5th.
+  Steps: Players A and B finish 4 missions together (in test mode the
+  third player can be the same each time). Turn test mode OFF. A, B and a
+  third player who has never played with both of them try a 5th.
   Expect: "MISSION COMPROMISED" / "Two members of this team have partnered
-  up too many times..." Note: expensive; do it alongside Phase 10.
+  up too many times..."
 
 M-20 [1] Heat lockout
   Steps: Give a player the +500 QA heat spike. Check Profile, then scan a
@@ -784,6 +801,7 @@ L-09 [1] Reset
   Steps: End Game, then Reset.
   Expect: PRE_GAME. HQ Monitor empty. Every phone shows the registration
   form on reload. Items catalog intact (manifest still shows everything).
+  "Test mode: OFF" even if it was on. Turn it on now for Phase 10 (TM-01).
 
 
 ======================================================================
@@ -828,8 +846,7 @@ CC-08 Database two-session lock test (laptop only)
 PHASE 10 - CONTENT PASS (ALL 25 MISSIONS)
 ======================================================================
 
-Disable the collusion caps first (Concession A). Run each mission with a
-trio. For each, check:
+Test mode on first (Concession A, TM-01). Run each mission with a trio. For each, check:
   [ ] Title and description read well
   [ ] Each player's keypad hint is clear and the 3 together lead to the code
   [ ] Keypad code is accepted
@@ -883,10 +900,8 @@ FINAL - PRE-PARTY RESET AND GO / NO-GO
 ======================================================================
 
 [ ] All Phase 1-9 FAILs fixed and re-tested
-[ ] Collusion functions restored (re-run check_team_collusion.sql and
-    check_pair_collusion.sql from data/functions/)
 [ ] /hq/game: End Game, then Reset (Reset only works from POST_GAME).
-    Status PRE_GAME
+    Status PRE_GAME, "Test mode: OFF", no TEST MODE tag on phones
 [ ] Delete QA events (after Reset, so no player_event rows point at them):
       DELETE FROM event WHERE id IN
         ('0a000000-0000-4000-8000-000000000001',

@@ -1,6 +1,7 @@
 import AppGuard from "@/components/AppGuard";
 import GlobalAlertListener from "@/components/GlobalAlertListener";
 import ReckoningListener from "@/components/ReckoningListener";
+import TestModeBadge from "@/components/TestModeBadge";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import React from "react";
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <AppGuard>
                     <ReckoningListener />
                     <GlobalAlertListener />
+                    <TestModeBadge />
                     {children}
                 </AppGuard>
             </body>

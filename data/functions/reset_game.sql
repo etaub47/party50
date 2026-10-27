@@ -7,7 +7,9 @@ CREATE OR REPLACE FUNCTION reset_game()
 DECLARE
     v_updated INTEGER;
 BEGIN
-    UPDATE game_state SET status = 'PRE_GAME', updated_at = NOW()
+    -- testing mode never survives a Reset: every new game starts as a real
+    -- one unless HQ opts in again
+    UPDATE game_state SET status = 'PRE_GAME', test_mode = false, updated_at = NOW()
         WHERE id = 1 AND status = 'POST_GAME';
     GET DIAGNOSTICS v_updated = ROW_COUNT;
 

@@ -7,27 +7,30 @@ const supabase = createClient();
 
 export default function GameControlPage() {
     const [ status, setStatus ] = useState<string | null>(null);
+    const [ testMode, setTestMode ] = useState<boolean | null>(null);
     const [ isBusy, setIsBusy ] = useState(false);
 
     const refreshStatus = async () => {
         const { data } = await supabase
             .from('game_state')
-            .select('status')
+            .select('status, test_mode')
             .eq('id', 1)
-            .single<{ status: string }>();
+            .single<{ status: string, test_mode: boolean }>();
         setStatus(data?.status ?? null);
+        setTestMode(data?.test_mode ?? null);
     };
 
     useEffect(() => {
         void refreshStatus();
     }, []);
 
-    const runTransition = async (rpcName: string, label: string, confirmMessage: string) => {
+    const runTransition = async (rpcName: string, label: string, confirmMessage: string,
+                                 args?: Record<string, unknown>) => {
         if (!confirm(confirmMessage))
             return;
 
         setIsBusy(true);
-        const { data, error } = await supabase.rpc(rpcName);
+        const { data, error } = await supabase.rpc(rpcName, args);
 
         if (error) {
             alert(error.message);
@@ -49,6 +52,11 @@ export default function GameControlPage() {
                 </h1>
                 <p className="text-xs text-slate-500 mt-2">
                     Current phase: <span className="text-slate-200 font-bold">{status ?? 'LOADING...'}</span>
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                    Test mode: <span className={`font-bold ${testMode ? 'text-yellow-400' : 'text-slate-200'}`}>
+                        {testMode === null ? 'LOADING...' : testMode ? 'ON (collusion caps off)' : 'OFF'}
+                    </span>
                 </p>
             </header>
 
@@ -105,6 +113,44 @@ export default function GameControlPage() {
                 >
                     Reset (Wipes Everything)
                 </button>
+            </div>
+
+            <div className="mt-12 border-t border-slate-800 pt-6">
+                {/* ON is only allowed before the game starts; OFF is always allowed,
+                    since it only makes the game stricter */}
+                {testMode ? (
+                    <button
+                        disabled={isBusy}
+                        onClick={() => runTransition(
+                            'set_test_mode',
+                            'Test mode off',
+                            'Turn test mode off? Collusion caps apply again from the next mission, ' +
+                            'counting every mission already played. It cannot be turned back on ' +
+                            'until the game is Reset.',
+                            { p_enabled: false }
+                        )}
+                        className="w-full bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-600 px-6 py-4 rounded-xl font-bold uppercase text-sm tracking-widest disabled:opacity-50 transition-all active:scale-95"
+                    >
+                        Turn Test Mode Off
+                    </button>
+                ) : (
+                    <button
+                        disabled={isBusy || status !== 'PRE_GAME'}
+                        onClick={() => runTransition(
+                            'set_test_mode',
+                            'Test mode on',
+                            'Turn test mode on? Collusion caps are skipped for this whole game, and ' +
+                            'every agent sees a TEST MODE tag. Reset turns it off again.',
+                            { p_enabled: true }
+                        )}
+                        className="w-full bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-600 px-6 py-4 rounded-xl font-bold uppercase text-sm tracking-widest disabled:opacity-50 transition-all active:scale-95"
+                    >
+                        Turn Test Mode On
+                    </button>
+                )}
+                <p className="text-[10px] text-slate-600 mt-2 text-center">
+                    Test mode can only be turned on before Start Game.
+                </p>
             </div>
 
             <footer className="mt-12 text-center">

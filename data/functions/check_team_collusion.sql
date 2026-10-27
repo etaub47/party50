@@ -4,6 +4,11 @@ DECLARE
     v_current_player_ids UUID[];
     v_collusion_exists BOOLEAN;
 BEGIN
+    -- testing concession: the same trio may replay missions
+    IF is_test_mode() THEN
+        RETURN FALSE;
+    END IF;
+
     -- identify the players currently assigned to this team_id
     SELECT array_agg(player_id ORDER BY player_id)
     INTO v_current_player_ids

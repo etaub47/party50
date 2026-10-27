@@ -6,6 +6,11 @@ DECLARE
     v_p2 UUID;
     v_prior_pair_count INTEGER;
 BEGIN
+    -- testing concession: no cap on how often a pair teams up
+    IF is_test_mode() THEN
+        RETURN FALSE;
+    END IF;
+
     -- identify the players currently assigned to this team_id
     SELECT array_agg(player_id ORDER BY player_id)
     INTO v_current_player_ids
