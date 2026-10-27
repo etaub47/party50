@@ -31,10 +31,9 @@ function sameVotes(a: PlayerVote[], b: PlayerVote[]): boolean {
     return left.every((k, i) => k === right[i]);
 }
 
-export default function MissionRunner({teamId, missionData, playerRole, initialStep, playerId, hasAssetValidator, onAbort, onTerminate}: {
+export default function MissionRunner({teamId, missionData, initialStep, playerId, hasAssetValidator, onAbort, onTerminate}: {
     teamId: string,
     missionData: Mission,
-    playerRole: string,
     initialStep: number,
     playerId: string,
     hasAssetValidator: boolean,
@@ -305,10 +304,8 @@ export default function MissionRunner({teamId, missionData, playerRole, initialS
                 <KeypadView
                     key={`keypad-${currentStepIndex}`}
                     currentStep={currentStep}
-                    missionId={missionData.id}
                     playerId={playerId}
                     teamId={teamId}
-                    playerRole={playerRole}
                     onSuccess={advanceMyStep}
                     onFailure={(props) => setOverlayProps(props)}
                     setOverlayProps={setOverlayProps}

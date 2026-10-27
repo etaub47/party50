@@ -53,10 +53,17 @@ F1. Cooldowns fired outside the game. FIXED 2026-10-21
     (trigger_specific_cooldown.sql) and applied to Supabase. Verify with
     R-04 and C-01.
 
-F2. Collusion, keypad attempt limits, the HQ gate, and admin RPCs (start,
-    end, reset, trigger) are all enforced only in the browser, or callable
-    by any signed-in client. Same "nobody opens devtools" class you already
-    accepted (old README 17/19). Listed so the acceptance is explicit.
+F2. Collusion, the HQ gate, and admin RPCs (start, end, reset, trigger)
+    are all enforced only in the browser, or callable by any signed-in
+    client. Same "nobody opens devtools" class you already accepted (old
+    README 17/19). Listed so the acceptance is explicit. The widest part:
+    player_event RLS lets a player insert any event for themselves and
+    delete their own, i.e. mint intel or erase heat, from the console.
+    Keypad: PARTLY FIXED 2026-10-27. The solution no longer reaches the
+    browser; submitKeypadCode checks it on the server, using the stored
+    role and the stored attempt count. Still open (devtools only): a player
+    can reset their own player_attempt row, or fire guesses in parallel
+    before the count lands. Verify with M-14 and M-25.
 
 F3. Typing /scan/find/<tool-id> by hand grants a Tool without paying, and
     the balance can go negative. Printed codes for Tools use /scan/buy, so
@@ -535,6 +542,14 @@ M-24 [3] Rapid double scan
   Steps: Scan a mission QR and immediately scan again / double-tap.
   Expect: One waiting room, no "MISSION IN PROGRESS" error.
 
+M-25 [1] Keypad solution stays on the server (F2)
+  Steps: On a laptop, open devtools Network tab, join and start a KEYPAD
+  mission. Search all responses for the mission's code (Phase 10 table).
+  Then enter a right code and a wrong code.
+  Expect: The code appears in no response. Right code advances, wrong code
+  behaves as in M-13/M-14. A server hiccup shows "TRANSMISSION ERROR" and
+  does not use up an attempt.
+
 
 ======================================================================
 PHASE 5 - EACH STEP TYPE
@@ -566,7 +581,7 @@ P-ROT [3] ROTARY (project_hyperion)
   Expect: 5 rings. LOCK DIAL near 12 o'clock locks a ring; a miss sends
   you back to ring 1. Ring 5 solves it. Try on a slow phone too.
 
-P-KEY KEYPAD: covered by M-07, M-08, M-13, M-14. Also try a code with a
+P-KEY KEYPAD: covered by M-07, M-08, M-13, M-14, M-25. Also try a code with a
   leading zero (sub_level_four "0400", terminal_b_drop "0620").
 
 P-DEC-01 [3] Majority decision, 2-1 split (cleaning_crew_shift step 1)

@@ -3,6 +3,7 @@
 import { Mission } from "@/types/types";
 import { promises as fs } from 'fs'
 import path from 'path'
+import { readMission } from "@/utils/missionFile";
 
 export async function listMissions(): Promise<{ id: string, title: string, description: string }[]> {
     const dir = path.join(process.cwd(), 'challenges');
@@ -19,12 +20,14 @@ export async function listMissions(): Promise<{ id: string, title: string, descr
     return missions.sort((a, b) => a.title.localeCompare(b.title));
 }
 
+// what the browser gets: keypad solutions are stripped, they're checked by submitKeypadCode
 export async function getMissionManifest(challengeId: string):
     Promise<{data?: Mission, success: boolean, error?: string}> {
     try {
-        const filePath = path.join(process.cwd(), 'challenges', `${challengeId}.json`);
-        const fileContent = await fs.readFile(filePath, 'utf8');
-        return { success: true, data: JSON.parse(fileContent) as Mission };
+        const mission = await readMission(challengeId);
+        for (const step of mission.steps)
+            delete step.config.solution;
+        return { success: true, data: mission };
     } catch (error) {
         console.error("FAILED TO LOAD MISSION:", error);
         return { success: false, error: "Mission file not found" };

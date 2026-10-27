@@ -4,23 +4,20 @@ import { MissionStep } from "@/types/types";
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { OverlayProps } from "@/components/Overlay";
+import { submitKeypadCode } from "@/app/actions/submitKeypadCode";
 
 const supabase = createClient();
 
-export default function KeypadView({ currentStep, missionId, playerId, teamId, playerRole, onSuccess,
-                                     onFailure, setOverlayProps
+export default function KeypadView({ currentStep, playerId, teamId, onSuccess, onFailure, setOverlayProps
 }: {
     currentStep: MissionStep;
-    missionId: string;
     playerId: string;
     teamId: string;
-    playerRole: string;
     onSuccess: () => Promise<void>;
     onFailure: (props: OverlayProps) => void;
     setOverlayProps: (props: OverlayProps | null) => void;
 }) {
     const [ code, setCode ] = useState('');
-    const [ localAttempts, setLocalAttempts ] = useState(0);
     const [ isSubmitting, setIsSubmitting ] = useState(false);
     const [ playerHint, setPlayerHint ] = useState<string | null>(null);
 
@@ -28,16 +25,6 @@ export default function KeypadView({ currentStep, missionId, playerId, teamId, p
         let isActive = true;
 
         const initializeKeypad = async () => {
-
-            // fetch historical attempts
-            const { data: attemptData } = await supabase
-                .from('player_attempt')
-                .select('attempts_used')
-                .eq('player_id', playerId)
-                .eq('challenge_id', missionId)
-                .maybeSingle();
-            if (attemptData && isActive)
-                setLocalAttempts(attemptData.attempts_used);
 
             // fetch team lineup to determine this player's specific hint; our own
             // row may not be visible yet while the team is starting, so retry a
@@ -66,7 +53,7 @@ export default function KeypadView({ currentStep, missionId, playerId, teamId, p
         return () => {
             isActive = false;
         };
-    }, [missionId, teamId, playerId, currentStep]);
+    }, [teamId, playerId, currentStep]);
 
     // user has submitted a code on the keypad
     const handleSubmitCode = async () => {
@@ -76,31 +63,27 @@ export default function KeypadView({ currentStep, missionId, playerId, teamId, p
             return;
         setIsSubmitting(true);
 
-        // success Check
-        if (code === currentStep.config.solution) {
+        // the solution never reaches the browser; the server checks the code, counts
+        // the attempt against this player's stored role, and fails the team if
+        // that was the last one (teammates pick that up from the FAILED status)
+        const outcome = await submitKeypadCode(teamId, code)
+            .catch((): { result: 'ERROR', error: string } => ({ result: 'ERROR', error: 'Connection lost.' }));
+
+        if (outcome.result === 'CORRECT') {
             await onSuccess();
-            setIsSubmitting(false);
-            return;
-        }
-
-        // failure Path
-        const maxAllowed = playerRole === 'Hacker' ? 3 : 1;
-        const nextCount = localAttempts + 1;
-        await supabase.from('player_attempt').upsert(
-            { player_id: playerId, challenge_id: missionId, attempts_used: nextCount },
-            { onConflict: 'player_id, challenge_id' }
-        );
-
-        // failure differs if the player is a hacker
-        setLocalAttempts(nextCount);
-        if (nextCount >= maxAllowed) {
-            await supabase.from('player_challenge').update({ status: 'FAILED' }).eq('team_id', teamId);
-        } else {
+        } else if (outcome.result === 'WRONG') {
             setCode('');
             onFailure({
                 title: 'ACCESS DENIED',
-                message: `Attempts remaining: ${maxAllowed - nextCount}`,
+                message: `Attempts remaining: ${outcome.attemptsRemaining}`,
                 type: 'INFO',
+                onClose: () => setOverlayProps(null)
+            });
+        } else if (outcome.result === 'ERROR') {
+            onFailure({
+                title: 'TRANSMISSION ERROR',
+                message: `${outcome.error} Try again.`,
+                type: 'ERROR',
                 onClose: () => setOverlayProps(null)
             });
         }
