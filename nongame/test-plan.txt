@@ -46,8 +46,9 @@ fix at your desk.
 FINDINGS TO DECIDE ON BEFORE TESTING
 ======================================================================
 
-The code survey for this plan turned up the items below. F1 is already
-fixed. The rest are judgment calls.
+The code survey for this plan turned up the items below. All are now
+fixed, accepted or decided; they stay listed so the decisions are on
+record.
 
 F1. Cooldowns fired outside the game. FIXED 2026-10-21
     (trigger_specific_cooldown.sql) and applied to Supabase. Verify with
@@ -69,20 +70,17 @@ F3. FIXED 2026-10-27. Editing a Tool's /scan/buy URL to /scan/find
     skipped the funds check (a Tool on credit, balance could go negative).
     handleItemDiscovery now refuses Tools. Verify with I-07.
 
-F4. A blocked team (missing tool, repeat trio, repeat pair): the first
-    teammate to close the overlay deletes the whole team, and the others
-    see "CONNECTION TERMINATED". Probably fine, but confirm you like it
-    during M-tests.
+F4. DECIDED 2026-10-27, no change. A blocked team (missing tool, repeat
+    trio, repeat pair): the first teammate to close the overlay deletes the
+    whole team, and the others see "CONNECTION TERMINATED". See M-16.
 
-F5. Keypad attempts are counted per player per mission, and the count
-    survives abort and rejoin. For non-Hackers this never matters: one
-    wrong guess fails the mission, and it can't be rejoined. It matters for
-    a Hacker who uses 2 of 3 attempts, aborts, and rejoins with only 1 left.
-    Decide whether that is intended (M-15).
+F5. DECIDED 2026-10-27, intended. Keypad attempts are counted per player
+    per mission, and the count survives abort and rejoin, so a Hacker can't
+    abort and retry to get more attempts. See M-15.
 
-F6. Ending the game mid-mission: end_game deletes active mission rows, and
-    any reward insert in flight fails silently (RLS needs IN_GAME). By
-    design, but worth seeing once (see L-08).
+F6. ACCEPTED 2026-10-27. Ending the game mid-mission: end_game deletes
+    active mission rows, and any reward insert in flight fails silently
+    (RLS needs IN_GAME). See L-08.
 
 
 ======================================================================
@@ -421,7 +419,8 @@ SH-02 [1] No shred button
 SH-03 [1] Shred making credits negative
   Steps: Own a credit-carrying Intel reward (e.g. Advisory Retainer
   Ledger 6/1/35), spend credits, then shred it.
-  Expect: Note the result; balance may go negative. Decide if that's OK.
+  Expect: Balance may go negative. Accepted 2026-10-27 (too unlikely to
+  matter); just confirm nothing crashes.
 
 
 ======================================================================
@@ -503,7 +502,7 @@ M-14 [3] Wrong keypad code, Hacker
 
 M-15 [3] Hacker attempts across abort (F5)
   Steps: Hacker uses 2 attempts, team aborts, team rejoins.
-  Expect: Hacker has 1 attempt left. Decide if intended.
+  Expect: Hacker has 1 attempt left (intended).
 
 M-16 [3] Gated mission without the tool
   Steps: Trio with no RFID Keycard Replicator scans boardroom_audit.
@@ -663,9 +662,12 @@ GE-09 [2] All three templates
   intel, missed nothing.
 
 GE-10 [2] Same template twice
-  Steps: Trigger MISSION FUNDING again after the first expires.
-  Expect: New event, everyone can claim it again. Decide if that's
-  intended.
+  Steps: After GE-01, reload /hq/triggers.
+  Expect: MISSION FUNDING button is grey and reads "DEPLOYED". Pressing it
+  asks "WARNING: MISSION FUNDING has already been deployed this game, and
+  every agent can claim it again. Deploy anyway?" Cancel sends nothing.
+  OK deploys a new event that everyone can claim again (needed for
+  GE-11 and CC-04).
 
 GE-11 [2] Mid-mission alert
   Steps: Trigger while a team is mid-puzzle.

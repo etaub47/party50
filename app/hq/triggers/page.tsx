@@ -1,15 +1,48 @@
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 const supabase = createClient();
 
 export default function GlobalTriggersPage() {
     const [ isSending, setIsSending ] = useState(false);
+    const [ deployed, setDeployed ] = useState<Set<string>>(new Set());
+
+    // Reset wipes global_event, so any row for a template means it already ran
+    // this game; a second run lets everyone claim it again, so it takes an
+    // explicit override (testing still needs repeats)
+    const fetchDeployed = async (): Promise<Set<string> | null> => {
+        const { data, error } = await supabase.from('global_event').select('target_scan_id');
+        if (error) {
+            console.error("DEPLOYED_LOOKUP_ERROR:", error.message);
+            return null;
+        }
+        return new Set(data.map(row => row.target_scan_id));
+    };
+
+    useEffect(() => {
+        let isActive = true;
+        void fetchDeployed().then(found => {
+            if (found && isActive)
+                setDeployed(found);
+        });
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     const executeTrigger = async (template: any) => {
-        const confirmDeploy = confirm(`Confirm deployment of ${template.title}? This will alert all active agents.`);
+        // re-check at click time in case another HQ screen already deployed it
+        const found = await fetchDeployed();
+        if (!found) {
+            alert("Could not check whether this event already ran. Try again.");
+            return;
+        }
+        setDeployed(found);
+        const confirmDeploy = found.has(template.target_scan_id)
+            ? confirm(`WARNING: ${template.title} has already been deployed this game, and every agent can claim it again. Deploy anyway?`)
+            : confirm(`Confirm deployment of ${template.title}? This will alert all active agents.`);
         if (!confirmDeploy)
             return;
 
@@ -26,6 +59,7 @@ export default function GlobalTriggersPage() {
         if (error) {
             alert(error.message);
         } else {
+            setDeployed(prev => new Set(prev).add(template.target_scan_id));
             alert("Global event triggered");
         }
 
@@ -80,10 +114,11 @@ export default function GlobalTriggersPage() {
                         </div>
                         <button
                             disabled={isSending}
+                            data-deployed={deployed.has(t.target_scan_id)}
                             onClick={() => executeTrigger(t)}
-                            className="bg-red-700 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold uppercase text-xs tracking-widest disabled:opacity-50 transition-all shadow-lg active:scale-95"
+                            className="bg-red-700 hover:bg-red-600 text-white data-[deployed=true]:bg-slate-700 data-[deployed=true]:hover:bg-slate-600 px-6 py-3 rounded-xl font-bold uppercase text-xs tracking-widest disabled:opacity-50 transition-all shadow-lg active:scale-95"
                         >
-                            {isSending ? "EXECUTING..." : "DEPLOY"}
+                            {deployed.has(t.target_scan_id) ? "DEPLOYED" : isSending ? "EXECUTING..." : "DEPLOY"}
                         </button>
                     </div>
                 ))}
