@@ -43,7 +43,7 @@ fix at your desk.
 
 
 ======================================================================
-FINDINGS TO DECIDE ON BEFORE TESTING
+FINDINGS (ALL SETTLED)
 ======================================================================
 
 The code survey for this plan turned up the items below. All are now
@@ -62,9 +62,12 @@ F2. Collusion, the HQ gate, and admin RPCs (start, end, reset, trigger)
     delete their own, i.e. mint intel or erase heat, from the console.
     Keypad: PARTLY FIXED 2026-10-27. The solution no longer reaches the
     browser; submitKeypadCode checks it on the server, using the stored
-    role and the stored attempt count. Still open (devtools only): a player
-    can reset their own player_attempt row, or fire guesses in parallel
-    before the count lands. Verify with M-14 and M-25.
+    role and the stored attempt count. Accepted 2026-10-27: a player can
+    still reset their own player_attempt row (devtools), and teammates who
+    submit at the same instant each get their guess checked. Collusion has
+    no bypass without devtools; aborted missions don't count toward the
+    caps (accepted, rewards before the last step are tiny). Verify with
+    M-14 and M-25.
 
 F3. FIXED 2026-10-27. Editing a Tool's /scan/buy URL to /scan/find
     skipped the funds check (a Tool on credit, balance could go negative).
@@ -163,8 +166,8 @@ G-03 [1] Any page without the party cookie
 
 H-01 [1] HQ login
   Steps: /hq, wrong passcode, then correct passcode.
-  Expect: Wrong = nothing happens (no message, field not cleared; note
-  whether that's acceptable). Correct = HQ dashboard with 6 tiles: GAME
+  Expect: Wrong = nothing happens (no message, field not cleared; accepted
+  2026-10-27, HQ is host-only). Correct = HQ dashboard with 6 tiles: GAME
   CONTROL, FINAL SCORES, OPERATIONS MANIFEST, AGENT MONITOR, LIVE MISSIONS,
   GLOBAL TRIGGERS.
 
