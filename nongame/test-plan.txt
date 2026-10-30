@@ -155,14 +155,17 @@ G-01 [1] Party gate, wrong code
   Steps: Fresh private window, open the site, enter a wrong passcode.
   Expect: Red border, field cleared, "INVALID KEY. SECURITY PROTOCOL
   INITIATED."
+VERIFIED
 
 G-02 [1] Party gate, right code in lowercase
   Steps: Enter the correct passcode in lowercase.
   Expect: Accepted (input is uppercased), lands on the registration page.
+VERIFIED
 
 G-03 [1] Any page without the party cookie
   Steps: Fresh private window, go straight to /hq or /scan/find/x.
   Expect: Redirect to /gatekeeper.
+VERIFIED
 
 H-01 [1] HQ login
   Steps: /hq, wrong passcode, then correct passcode.
@@ -170,42 +173,51 @@ H-01 [1] HQ login
   2026-10-27, HQ is host-only). Correct = HQ dashboard with 6 tiles: GAME
   CONTROL, FINAL SCORES, OPERATIONS MANIFEST, AGENT MONITOR, LIVE MISSIONS,
   GLOBAL TRIGGERS.
+VERIFIED
 
 H-02 [1] HQ nav
   Steps: Click DASHBOARD and EXIT TO FIELD in the HQ header.
   Expect: Go to /hq and / respectively.
+VERIFIED
 
 L-01 [1] Lifecycle buttons in the wrong state (PRE_GAME)
   Steps: /hq/game. Press End Game, Undo End Game, Reset (confirm each).
   Expect: Each says "<Label> had no effect -- the game wasn't in the right
   state for it." Status still PRE_GAME.
+VERIFIED
 
 L-02 [1] Start Game
   Steps: Press Start Game, confirm.
   Expect: "Start Game complete." Status IN_GAME.
+VERIFIED
 
 L-03 [1] Start Game twice
   Steps: Press Start Game again.
   Expect: "had no effect" message. Status unchanged.
+VERIFIED
 
 L-04 [1] Cancel a confirm
   Steps: Press any button, Cancel the browser confirm.
   Expect: Nothing happens.
+VERIFIED
 
 TM-01 [1] Turn test mode on (PRE_GAME; do it before L-02 if you want it)
   Steps: /hq/game shows "Test mode: OFF". Press Turn Test Mode On, confirm.
   Expect: "Test mode on complete." Line reads "ON (collusion caps off)".
   After a reload, every phone shows a yellow "TEST MODE" tag bottom-left
   that doesn't block taps. The tag is not in /hq/manifest print preview.
+VERIFIED
 
 TM-02 [1] Test mode can't be turned on mid-game
   Steps: (In IN_GAME or POST_GAME, with test mode off.) Look at /hq/game.
   Expect: Turn Test Mode On is greyed out. Turn Test Mode Off, when shown,
   works in any phase and the phone tag is gone after a reload.
+VERIFIED
 
 TM-03 [3] Caps skipped in test mode
   Steps: With test mode on, the same trio plays two missions in a row.
   Expect: No "MISSION COMPROMISED"; the second mission starts normally.
+DEFERRED
 
 (L-05 to L-09 come at the end, in Phase 8, once there is data to convert.)
 
@@ -218,6 +230,7 @@ H-03 [1] Manifest
   - Global events show only an in-fiction caption (e.g. "Stash your
     evidence here at the proper time."), with no "GLOBAL EVENT" label.
   - No URLs printed under any QR.
+VERIFIED
 
 H-05 [1] HQ in a stale or fresh browser
   Steps: In a browser with site data cleared (or one unused for days),
@@ -226,6 +239,7 @@ H-05 [1] HQ in a stale or fresh browser
   Expect: Manifest loads within a few seconds. If anything fails, a
   "MANIFEST UNAVAILABLE: <reason>" message appears instead of an endless
   "SCANNING DATABASE...". Repeat for /hq/monitor and /hq/game.
+VERIFIED
 
 H-04 [1] Scan manifest codes
   Steps: With a player phone, scan one of each kind straight off the laptop
@@ -233,6 +247,7 @@ H-04 [1] Scan manifest codes
   each routes to the right page; the outcomes are tested later. Back out
   of each.
   Expect: /scan/buy, /scan/find, /scan/challenge, /scan/global pages open.
+VERIFIED
 
 
 ======================================================================
@@ -245,20 +260,24 @@ R-01 [1] Happy path
   Steps: New identity, enter a name, pick a role, Register.
   Expect: Tabs appear (Profile, Inventory, Leaderboard, History). Profile
   shows 25 credits, 0 intel ("Intel: 0 / 200"), 0 heat.
+VERIFIED
 
 R-02 [1] Missing fields
   Steps: Try Register with no name, then with no role.
   Expect: Browser blocks submit (required fields).
+VERIFIED
 
 R-03 [1] Reload after registering
   Steps: Reload the page; close and reopen the browser.
   Expect: Still registered, same player, no form.
+VERIFIED
 
 R-04 [1] Registration in PRE_GAME
   Steps: (Do this before L-02 if you can, or after a Reset.) Register while
   PRE_GAME.
   Expect: Allowed. No cooldown events appear in History
   while PRE_GAME, even across a :00 or :30 mark.
+VERIFIED
 
 R-05 [1] Role-balance cap
   Steps: With fresh identities, register 4 players as the same role while
@@ -267,32 +286,38 @@ R-05 [1] Role-balance cap
   right now. Pick a different role -- <Role> opens back up once another role
   catches up." Pick another role, it works. Register one of a different role
   and the blocked role opens again.
+DEFERRED
 
 R-06 [1] Registration in POST_GAME
   Steps: (Run during Phase 8 while POST_GAME.) Try to register a new
   identity.
   Expect: "Registration is closed -- the game is not currently accepting
   new agents."
+DEFERRED
 
 R-07 [1] Bad connection while registering
   Steps: Turn on airplane mode, press Register.
   Expect: An error in the "Registration Failed" box, never an endless
   "Loading Game...". Turn the network back on and retry: it works.
+VERIFIED
 
 S-01 [1] Connection indicator
   Steps: On Profile, toggle airplane mode on for 10 seconds, then off.
   Expect: "Link Unstable" while off, "Link Active" within ~5-10s after.
   Data changes made by another player meanwhile show up.
+VERIFIED
 
 S-02 [1] Profile bars
   Steps: Watch the bars as intel/heat/credits change in later phases.
   Expect: Intel bar "X / 200" (400 with 8TB Thumb Drive). Heat bar pulses at
   80+. Credits bar full at 250. Every bar shows a sliver at 0.
+DEFERRED
 
 S-03 [1] History tab
   Steps: Open History with no events, then after events.
   Expect: "No mission events recorded." then cards with time, description,
   and +/- INTEL, HEAT, CREDITS badges (only nonzero ones).
+VERIFIED
 
 REC-01 [2] Recovery happy path
   Steps: Player A registered on device 1. HQ Monitor, open A's dossier,
@@ -301,10 +326,16 @@ REC-01 [2] Recovery happy path
   Expect: "Syncing Field Identity..." then device 2 is player A, with all
   items, events and missions. Device 1 drops back to the registration form.
   If device 2 had a player B, B is gone from HQ Monitor (deleted).
+VERIFIED
+  2026-10-30: the page now confirms before recovering. Re-test: device 2
+  with player B shows "Erase This Agent?" (red) naming B and A; device 2
+  with no player shows "Assume Identity?" naming A. CONFIRM recovers as
+  above.
 
 REC-02 [2] Recovery of a mid-mission player
   Steps: Player A in an IN_PROGRESS mission. Recover A onto another device.
   Expect: The new device resumes the mission at the current step.
+DEFERRED
 
 REC-03 [1] Recovery failure (never exercised before)
   Steps: After REC-01, scan the same recovery QR again from a third
@@ -313,10 +344,23 @@ REC-03 [1] Recovery failure (never exercised before)
   Expect: Overlay "Recovery Failed" / "Target player identity not found."
   CONFIRM retries, CANCEL goes home. No endless "Syncing" screen. The
   scanning device's own player is NOT deleted (the transaction rolls back).
+VERIFIED
+  2026-10-30: re-test. "Recovery Failed" now shows straight away, with no
+  confirm step first, since the page looks up the target before asking.
 
 REC-04 [1] Same device scans its own recovery QR
   Steps: Scan player A's recovery QR on A's own device.
   Expect: Goes home, nothing changes.
+VERIFIED
+  2026-10-30: re-test. Still goes straight home, with no confirm step.
+
+REC-05 [1] Wrong phone scans a recovery token, then cancels
+  Steps: Player A and player C registered on different devices. Open A's
+  recovery token in HQ and scan it with C's device.
+  Expect: "Erase This Agent?" naming C and A. CANCEL goes home. C is
+  unchanged in HQ Monitor (items, events, missions intact) and A's device
+  is still A. Reloading the token URL asks again; nothing runs until
+  CONFIRM.
 
 
 ======================================================================
