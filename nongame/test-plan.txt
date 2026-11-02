@@ -373,66 +373,80 @@ QR-01 [1] Scanner basics
   Steps: Profile, Scan. Deny camera permission once, then allow.
   Expect: Denied: "ACCESS DENIED: ..." Allowed: "INITIALIZING OPTICAL
   SENSOR..." then "SENSOR ACTIVE". "Abort Scan" closes it.
+DEFERRED
 
 QR-02 [1] Foreign QR codes
   Steps: Scan a random QR (a product, a Wi-Fi code, plain text).
   Expect: Ignored, scanner keeps running.
+VERIFIED
 
 QR-03 [1] Preview / localhost host
   Steps: On a Vercel preview URL (or laptop localhost with webcam), scan a
   printed production code.
   Expect: Routes within the preview / localhost site, not to production.
+DEFERRED
 
 I-01 [1] Find a Misc item
   Steps: Scan a Miscellaneous item QR.
   Expect: "ITEM SECURED" / "You secured the <name>. Item added to
   inventory." Inventory and Profile update.
+VERIFIED
 
 I-02 [1] Find it again
   Steps: Same player scans the same QR.
   Expect: "DATA ALREADY SYNCED" / "You have already recovered the <name>."
+VERIFIED
 
 I-03 [2] Someone else found it first (non-Scavenger)
   Steps: Second player (not Scavenger) scans the same item.
   Expect: "RESOURCE EXHAUSTED" / "<first player> already stripped this
   location at HH:MM. The <name> is gone."
+DEFERRED
 
 I-04 [2] Scavenger bonus
   Steps: A Scavenger scans an item someone else found first.
   Expect: "Scavenger Bonus: You recovered the <name> overlooked by
   <first player>!" Scanning again gives DATA ALREADY SYNCED.
+DEFERRED
 
 I-05 [1] Find outside IN_GAME
   Steps: (During Phase 8, POST_GAME) scan an unclaimed Misc item.
   Expect: "OPERATION INACTIVE" / "The operation is over." Nothing added.
   (In PRE_GAME the message is "The operation hasn't started yet.")
+VERIFIED
 
 I-06 [1] Bad item id
   Steps: Visit /scan/find/00000000-0000-0000-0000-000000000000.
   Expect: "INVALID SIGNATURE" / "This scan point is unrecognized."
+VERIFIED
 
 I-07 [1] Find a Tool by URL (F3)
   Steps: Scan any Tool's QR, cancel, then change "buy" to "find" in the
   address bar.
   Expect: "INVALID SIGNATURE" / "This asset must be acquired through a
   vendor." Nothing added, credits unchanged.
+VERIFIED
 
 B-01 [1] Buy a Tool
   Steps: Player with enough credits scans a Tool, CONFIRM.
   Expect: "CONFIRM ACQUISITION" / "Authorize transfer of <cost> credits for
   the <name>?" then "TRANSACTION COMPLETE". Credits drop by the cost.
+VERIFIED
 
 B-02 [1] Cancel a purchase
   Steps: Scan a Tool, press CANCEL.
   Expect: Goes home, credits unchanged.
+VERIFIED
 
 B-03 [1] Already owned
   Steps: Scan the same Tool again.
   Expect: "OWNERSHIP DETECTED".
+VERIFIED
 
 B-04 [1] Not enough credits
   Steps: Player with 25 credits scans an 80-credit Tool.
   Expect: "INSUFFICIENT FUNDS".
+VERIFIED
 
 B-05 [1] Bargain Hunter price
   Steps: Bargain Hunter scans the 50-credit Recon Readout.

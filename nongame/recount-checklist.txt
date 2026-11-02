@@ -1,0 +1,60 @@
+RECOUNT CHECKLIST - house counts behind KEYPAD solutions
+Format: [ ] expected  item  (mission file in challenges/, current solution)
+A range = any count in it still works.
+
+BASEMENT
+[ ] 1      mezuzot on doorways                           (dark_site_uplink 1740)
+[ ] 9      blue birds in tree heart painting             (boardroom_audit 4936)
+[ ] 25     Lego vehicles on display                      (executive_wash 2599)
+[ ] 14     Charlie Brown encyclopedias in bookcase       (ghost_protocol 7142)
+[ ] 44     Wii U-playable games                          (laundromat_drop 4412)
+[ ] 3      Sandy-signed paintings on wall                (pharma_splicing 2373)
+[ ] 29     jigsaw puzzles visible                        (project_hyperion 3029)
+[ ] 13     stair mats                                    (shell_entity 7913)
+[ ] 12     Brodney paintings, basement + main combined   (park_bench_drop 1212)
+
+MAIN FLOOR
+[ ] 7      mezuzot on doorways                           (dark_site_uplink 1740)
+[ ] 3      paintings with the identical vase             (deep_freeze_hub 8318)
+[ ] 26     shot glasses in display case                  (executive_flight 2623)
+[ ] 22-32  boats in living room paintings                (laundromat_drop 4412)
+[ ] 5      working clocks, any type                      (patent_office_probe 5319)
+[ ] 23     thumbtacks on bulletin board by front door    (pharma_splicing 2373)
+[ ] 7      teapots in china cabinet                      (pharma_splicing 2373)
+[ ] 6      birds in china cabinet                        (terminal_b_drop 0620)
+[ ] 14     tomatoes in dining room painting              (project_aegis 1458)
+[ ] 9      A/C vents                                     (proxy_hijack 2129)
+[ ] 15     fireplace width, vertical bricks              (shadow_grid 7157)
+[ ] 7      fireplace width, horizontal bricks            (shadow_grid 7157)
+[ ] 7      James Bond DVDs in case under TV              (shell_entity 7913)
+[ ] 9      Tarantino DVDs in case under TV               (shell_entity 7913)
+[ ] 10     Star Wars DVDs in case under TV               (sub_level_four 0400)
+[ ] 4      Terminator DVDs in case under TV              (sub_level_four 0400)
+[ ] 10     Superhero                                     (Marvel/DC) DVDs in case under TV   (sub_level_four 0400)
+[ ] 3      Lego assemblies on display                    (personnel_purge 2008)
+[ ] 2      fish-themed paintings                         (personnel_purge 2008)
+[ ] 20     words in framed "It does not really matter..." sentence (terminal_b_drop 0620)
+[ ] yes    book with "19 weeks" in title on bookshelf    (patent_office_probe 5319)
+[ ] yes    board games on shelf: Aeon's End: War Eternal, Lost Ruins of Arnak,
+           Fields of Arle, Under Falling Skies           (tax_loophole_breach 7545)
+
+STAIRWELL TO UPSTAIRS
+[ ] 2      A/C vents                                     (proxy_hijack 2129)
+
+UPSTAIRS
+[ ] 4      mezuzot on doorways                           (dark_site_uplink 1740)
+[ ] 0      mezuzot in attic                              (dark_site_uplink 1740)
+[ ] 2      Slinkys on bookshelf                          (executive_flight 2623)
+[ ] 2      dream catchers across bedrooms                (ghost_protocol 7142)
+[ ] 13-18  horses in bedroom paintings                   (lobby_infiltration 3068)
+[ ] 12     Brodney paintings across 4 bedrooms           (park_bench_drop 1212)
+[ ] 5      hand-held Asian fans in Nathan's bedroom      (project_aegis 1458)
+[ ] 8      fans in the painting in Nathan's bedroom      (project_aegis 1458)
+[ ] 0      vampires in paintings                         (project_hyperion 3029)
+[ ] 12     A/C vents, excl. closets and stairwell        (proxy_hijack 2129)
+
+WHOLE HOUSE
+[ ] 3      televisions                                   (not monitors)                    (executive_flight 2623)
+[ ] 3      latch hook wall hangings                      (patent_office_probe 5319)
+[ ] 3      fuzzy dice                                    (project_hyperion 3029)
+[ ] 25     non-hidden mission QR codes posted            (server_room_sprint 2650, entered doubled)
