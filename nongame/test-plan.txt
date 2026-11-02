@@ -404,7 +404,8 @@ I-04 [2] Scavenger bonus
 
 I-05 [1] Find outside IN_GAME
   Steps: (During Phase 8, POST_GAME) scan an unclaimed Misc item.
-  Expect: "LINK FAILURE" / "Transmission interrupted." Nothing added.
+  Expect: "OPERATION INACTIVE" / "The operation is over." Nothing added.
+  (In PRE_GAME the message is "The operation hasn't started yet.")
 
 I-06 [1] Bad item id
   Steps: Visit /scan/find/00000000-0000-0000-0000-000000000000.

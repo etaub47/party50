@@ -68,6 +68,15 @@ export async function handleItemDiscovery(playerId: string, itemId: string): Pro
         };
     }
 
+    // RLS refuses the insert outside IN_GAME, so say why instead of a generic LINK FAILURE
+    const { data: status } = await supabase.rpc('current_game_status');
+    if (status !== 'IN_GAME')
+        return {
+            type: 'ERROR',
+            title: 'OPERATION INACTIVE',
+            message: status === 'POST_GAME' ? "The operation is over." : "The operation hasn't started yet."
+        };
+
     // the award
     const { error: insertError } = await supabase
         .from('player_item')
