@@ -12,7 +12,7 @@
       "config": {
         "solution": "4412",
         "hints": [
-          "The code begins with the exact number of games in the basement playable on the Wii U.",
+          "The code begins with the exact number of games in the basement playable on the Wii U. This includes Wii and Wii U games but excludes GameCube games.",
           "The code ends with X divided by 11 (dropping any remainder) and then multiplied by 6.",
           "X = the number of boats across all paintings in the main floor living room."
         ]
