@@ -21,7 +21,7 @@ MAIN FLOOR
 [ ] 5      working clocks, any type                      (patent_office_probe 5319)
 [ ] 23     thumbtacks on bulletin board by front door    (pharma_splicing 2373)
 [ ] 7      teapots in china cabinet                      (pharma_splicing 2373)
-[ ] 6      birds in china cabinet                        (terminal_b_drop 0620)
+[ ] 7      birds in china cabinet                        (terminal_b_drop 0620)
 [ ] 14     tomatoes in dining room painting              (project_aegis 1458)
 [ ] 9      A/C vents                                     (proxy_hijack 2129)
 [ ] 15     fireplace width, vertical bricks              (shadow_grid 7157)
@@ -51,7 +51,7 @@ UPSTAIRS
 [ ] 5      hand-held Asian fans in Nathan's bedroom      (project_aegis 1458)
 [ ] 8      fans in the painting in Nathan's bedroom      (project_aegis 1458)
 [ ] 0      vampires in paintings                         (project_hyperion 3029)
-[ ] 12     A/C vents, excl. closets and stairwell        (proxy_hijack 2129)
+[ ] 11     A/C vents, excl. closets and stairwell        (proxy_hijack 2129)
 
 WHOLE HOUSE
 [ ] 3      televisions                                   (not monitors)                    (executive_flight 2623)
