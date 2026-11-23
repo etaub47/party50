@@ -57,4 +57,4 @@ WHOLE HOUSE
 [ ] 3      televisions                                   (not monitors)                    (executive_flight 2623)
 [ ] 3      latch hook wall hangings                      (patent_office_probe 5319)
 [ ] 3      fuzzy dice                                    (project_hyperion 3029)
-[ ] 25     non-hidden mission QR codes posted            (server_room_sprint 2650, entered doubled)
+[ ] 25     non-hidden mission QR codes posted            (server_room_sprint 6050, entered doubled)

@@ -32,6 +32,13 @@
     },
     {
       "order": 3,
+      "type": "MATCH",
+      "config": {
+        "icons": ["🎫", "🛄", "🚕", "⏰", "🎧", "📡"]
+      }
+    },
+    {
+      "order": 4,
       "type": "DECISION",
       "config": {
         "instruction": "The transfer window is closing. Choose what to keep.",

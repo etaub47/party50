@@ -8,14 +8,19 @@ const supabase = createClient();
 
 // Multipliers are now based on degrees per second for precise browser normalization
 const RING_CONFIGS = [
-    { id: 0, speed: 180, direction: 1, name: 'Outer Core Ring', color: '#3b82f6', size: 'w-64 h-64' },
-    { id: 1, speed: 240, direction: -1, name: 'Vector Relay Ring', color: '#a855f7', size: 'w-52 h-52' },
-    { id: 2, speed: 300, direction: 1, name: 'Mainframe Intercept', color: '#06b6d4', size: 'w-40 h-40' },
-    { id: 3, speed: 360, direction: -1, name: 'Sub-Sector Gate', color: '#f59e0b', size: 'w-28 h-28' },
-    { id: 4, speed: 420, direction: 1, name: 'Kernel Node Ring', color: '#ec4899', size: 'w-16 h-16' },
+    { id: 0, speed: 150, direction: 1, name: 'Outer Core Ring', color: '#3b82f6', size: 'w-64 h-64' },
+    { id: 1, speed: 195, direction: -1, name: 'Vector Relay Ring', color: '#a855f7', size: 'w-52 h-52' },
+    { id: 2, speed: 240, direction: 1, name: 'Mainframe Intercept', color: '#06b6d4', size: 'w-40 h-40' },
+    { id: 3, speed: 285, direction: -1, name: 'Sub-Sector Gate', color: '#f59e0b', size: 'w-28 h-28' },
+    { id: 4, speed: 330, direction: 1, name: 'Kernel Node Ring', color: '#ec4899', size: 'w-16 h-16' },
 ];
 
-const HIT_TOLERANCE = 14;
+// Degrees either side of 12 o'clock that count as a hit.
+const HIT_TOLERANCE = 18;
+
+// Ignore a second lock press arriving this soon after the last one (ms).
+// Safety net against any browser still delivering a duplicate event per tap.
+const LOCK_DEBOUNCE_MS = 200;
 
 export default function RotaryEnigmaView({
     missionData, teamId, playerId, currentStepIndex, votes, onComplete
@@ -35,6 +40,7 @@ export default function RotaryEnigmaView({
     const animationFrameRef = useRef<number | null>(null);
     const lastTimeRef = useRef<number | null>(null);
     const currentAnglesRef = useRef<number[]>([0, 0, 0, 0, 0]);
+    const lastLockTimeRef = useRef<number>(0);
 
     const hasRegisteredSuccess = votes.some(v => v.player_id === playerId);
     const requiredPlayers = missionData?.requirements?.required_players || 0;
@@ -81,10 +87,17 @@ export default function RotaryEnigmaView({
         };
     }, [currentRing, isSolved, hasRegisteredSuccess]);
 
-    // Instant Action Contact Evaluation Handler (Instant Tap Fix)
-    const handleLockDial = (e: React.MouseEvent | React.TouchEvent) => {
-        e.preventDefault(); // Stop secondary click ghosts on mobile layouts
+    // Fires on press (not release). Uses pointer events only: binding both
+    // touchstart and mousedown made phones fire twice per tap, because React's
+    // touch listeners are passive (preventDefault is ignored) and the browser
+    // then sends an emulated mousedown when the finger lifts.
+    const handleLockDial = (e: React.PointerEvent) => {
+        if (!e.isPrimary || e.button !== 0) return;
         if (hasRegisteredSuccess || isSolved) return;
+
+        const now = performance.now();
+        if (now - lastLockTimeRef.current < LOCK_DEBOUNCE_MS) return;
+        lastLockTimeRef.current = now;
 
         const currentAngle = currentAnglesRef.current[currentRing];
         const distanceToTarget = Math.min(currentAngle, 360 - currentAngle);
@@ -185,8 +198,8 @@ export default function RotaryEnigmaView({
             <div className="space-y-3">
                 {!isSolved && !hasRegisteredSuccess && (
                     <button
-                        onMouseDown={handleLockDial}   // ✅ Instant Capture on Desktop Click Down
-                        onTouchStart={handleLockDial}  // ✅ Instant Capture on Mobile Glass Tap Down
+                        onPointerDown={handleLockDial}
+                        onContextMenu={e => e.preventDefault()}
                         className="w-full py-4 bg-purple-900/30 hover:bg-purple-800/50 border border-purple-500/50 hover:border-purple-400 text-purple-300 active:scale-95 transition-all text-xs font-black tracking-widest rounded-lg uppercase user-select-none select-none touch-none"
                     >
                         🔒 LOCK DIAL

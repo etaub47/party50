@@ -30,7 +30,7 @@
         "instruction": "Container isolation dropped. Copy the core framework, or intercept unclaimed R&D funding.",
         "voting": "individual",
         "options": [
-          { "id": "hype_a", "label": "Hyperion Framework Blueprint", "item_id": "4f6834c8-8ebd-420f-8c65-a5e4280e7e69" },
+          { "id": "hype_a", "label": "Hyperion Core Blueprint", "item_id": "4f6834c8-8ebd-420f-8c65-a5e4280e7e69" },
           { "id": "hype_b", "label": "Hyperion R&D Vendor Grant", "item_id": "0e0ce49e-4c81-4cf6-9c70-2d77ddbd534c" }
         ]
       }

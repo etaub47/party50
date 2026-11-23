@@ -29,9 +29,9 @@
       "order": 3,
       "type": "KEYPAD",
       "config": {
-        "solution": "2650",
+        "solution": "6050",
         "hints": [
-          "For the first half of the code, complete the pattern: 312831303??",
+          "For the first half of the code, flip through a calendar and complete the pattern: 3128313031??",
           "The second half of the code is the total number of missions in this game.",
           "Warning: Both halves of the code must be independently doubled before entering!"
         ]

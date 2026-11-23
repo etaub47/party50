@@ -24,7 +24,8 @@ export interface MissionStep {
         options?: Option[],
         puzzle?: number,
         baseHue?: number,
-        label?: string
+        label?: string,
+        icons?: string[]
     }
 }
 

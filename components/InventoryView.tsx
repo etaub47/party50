@@ -58,7 +58,9 @@ export default function InventoryView({ items, playerId, playerRole, isConnected
                         className="px-3 py-2 bg-yellow-100 border border-slate-800 rounded-xl flex flex-col gap-2 font-mono shadow-sm"
                     >
                         <div className="flex items-center justify-between min-w-0">
-            <span className="text-black font-bold text-sm tracking-wide uppercase truncate">
+            {/* wraps rather than truncates: narrow phones and iOS Display Zoom
+                leave room for only ~22 characters, and some names are longer */}
+            <span className="text-black font-bold text-sm tracking-wide uppercase min-w-0 break-words leading-snug">
                 {i.item!.name}
             </span>
                         </div>

@@ -5,6 +5,7 @@ import DecisionView from "@/components/missionsteps/DecisionView";
 import GridMatrixView from "@/components/missionsteps/GridMatrixView";
 import KeypadView from "@/components/missionsteps/KeypadView";
 import MastermindView from "@/components/missionsteps/MastermindView";
+import MatchCardsView from "@/components/missionsteps/MatchCardsView";
 import PatternMemoryView from "@/components/missionsteps/PatternMemoryView";
 import RotaryEnigmaView from "@/components/missionsteps/RotaryEnigmaView";
 import SignalPathView from "@/components/missionsteps/SignalPathView";
@@ -378,6 +379,18 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
             {currentStep.type === 'SLIDER' && (
                 <SliderPuzzleView
                     key={`slider-${currentStepIndex}`}
+                    missionData={missionData}
+                    teamId={teamId}
+                    playerId={playerId}
+                    currentStepIndex={currentStepIndex}
+                    votes={votes}
+                    onComplete={advanceMyStep}
+                />
+            )}
+
+            {currentStep.type === 'MATCH' && (
+                <MatchCardsView
+                    key={`match-${currentStepIndex}`}
                     missionData={missionData}
                     teamId={teamId}
                     playerId={playerId}

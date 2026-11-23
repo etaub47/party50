@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { GLOBAL_ALERT_RESYNC_EVENT } from '@/components/GlobalAlertListener';
 
 const supabase = createClient();
 
@@ -25,6 +26,10 @@ export default function GlobalScanPage() {
             const { data, error } = await supabase.rpc('process_global_checkin', {
                 p_target_slug: eventId
             });
+
+            // the check-in has committed (or failed) by now; have the banner
+            // re-check so it clears instead of showing a pre-check-in read
+            window.dispatchEvent(new Event(GLOBAL_ALERT_RESYNC_EVENT));
 
             if (error) {
                 console.log(error);

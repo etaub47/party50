@@ -331,6 +331,7 @@ VERIFIED
   with player B shows "Erase This Agent?" (red) naming B and A; device 2
   with no player shows "Assume Identity?" naming A. CONFIRM recovers as
   above.
+VERIFIED
 
 REC-02 [2] Recovery of a mid-mission player
   Steps: Player A in an IN_PROGRESS mission. Recover A onto another device.
@@ -347,12 +348,14 @@ REC-03 [1] Recovery failure (never exercised before)
 VERIFIED
   2026-10-30: re-test. "Recovery Failed" now shows straight away, with no
   confirm step first, since the page looks up the target before asking.
+VERIFIED
 
 REC-04 [1] Same device scans its own recovery QR
   Steps: Scan player A's recovery QR on A's own device.
   Expect: Goes home, nothing changes.
 VERIFIED
   2026-10-30: re-test. Still goes straight home, with no confirm step.
+VERIFIED
 
 REC-05 [1] Wrong phone scans a recovery token, then cancels
   Steps: Player A and player C registered on different devices. Open A's
@@ -361,6 +364,7 @@ REC-05 [1] Wrong phone scans a recovery token, then cancels
   unchanged in HQ Monitor (items, events, missions intact) and A's device
   is still A. Reloading the token URL asks again; nothing runs until
   CONFIRM.
+VERIFIED
 
 
 ======================================================================
@@ -427,6 +431,15 @@ I-07 [1] Find a Tool by URL (F3)
   vendor." Nothing added, credits unchanged.
 VERIFIED
 
+I-08 [1] Long item names wrap (new 2026-11-23)
+  Steps: On an iPhone set Display Zoom to "Larger Text" (Settings >
+  Display & Brightness > Display Zoom), or use the narrowest phone you
+  have. Hold Keycard Master Access Map (lobby_infiltration reward) and
+  Infrared Mitigation Device.
+  Expect: Long names wrap onto a second line, never cut off with "...".
+  Badges and SHRED/VIEW button stay on their own row below and look tidy.
+  Also: Hyperion's intel reward now reads "Hyperion Core Blueprint".
+
 B-01 [1] Buy a Tool
   Steps: Player with enough credits scans a Tool, CONFIRM.
   Expect: "CONFIRM ACQUISITION" / "Authorize transfer of <cost> credits for
@@ -452,11 +465,13 @@ B-05 [1] Bargain Hunter price
   Steps: Bargain Hunter scans the 50-credit Recon Readout.
   Expect: Confirm says 35 credits; balance drops by 35; inventory badge
   shows -35.
+VERIFIED
 
 B-06 [1] Double-tap CONFIRM
   Steps: Tap CONFIRM twice fast.
   Expect: One purchase, one charge. Second tap shows PROCESSING or a clean
   error, never a double charge.
+VERIFIED
 
 B-07 [1] Buy outside IN_GAME
   Steps: (POST_GAME) scan an unowned Tool, CONFIRM.
@@ -466,21 +481,25 @@ T-01 [1] 8TB Thumb Drive
   Steps: Buy it.
   Expect: Profile shows "Intel: X / 400". If intel was capped at 200, the
   extra now shows.
+DEFERRED
 
 T-02 [1] Agent Dossier
   Steps: Check Leaderboard before and after buying.
   Expect: Before: names only. After: role and INT / HEA / CRD for everyone.
+VERIFIED
 
 T-03 [1] Recon Readout
   Steps: Visit /recon-readout before buying (type the URL), then buy and
   press VIEW in Inventory.
   Expect: Before: "ACCESS RESTRICTED". After: "<n> / 10" hidden assets, and
   every mission with READY / ACTIVE / CLEARED / FAILED plus squad names.
+VERIFIED
 
 T-04 [1] Infrared Mitigation Device
   Steps: Note heat, buy it.
   Expect: Heat drops 30 (floor 0). Confirm the -30 being permanent while
   owned is what you want.
+DEFERRED
 
 T-05 Asset Validator: tested in P-DEC-04.
 
@@ -489,16 +508,19 @@ SH-01 [1] Shred Intel
   CONFIRM.
   Expect: "CONFIRM DESTRUCTION" overlay, item gone, its intel, heat and
   credits removed.
+DEFERRED
 
 SH-02 [1] No shred button
   Steps: Look at Tools, Misc items and Intel with heat 0.
   Expect: No SHRED button on any of them.
+DEFERRED
 
 SH-03 [1] Shred making credits negative
   Steps: Own a credit-carrying Intel reward (e.g. Advisory Retainer
   Ledger 6/1/35), spend credits, then shred it.
   Expect: Balance may go negative. Accepted 2026-10-27 (too unlikely to
   matter); just confirm nothing crashes.
+DEFERRED
 
 
 ======================================================================
@@ -513,12 +535,14 @@ M-01 [1] Join while not IN_GAME
   Steps: (PRE_GAME or POST_GAME) scan a mission.
   Expect: "GAME NOT ACTIVE" / "The game is not currently running. Check
   with your handler before attempting to join a mission."
+DEFERRED
 
 M-02 [1] Join, wait alone
   Steps: Player 1 scans the mission.
   Expect: Waiting room "Team Formation in Progress", "Waiting for 2 more
   agent(s)...", 3 dots. HQ Live Missions shows "1 / 3 required agents
   present".
+VERIFIED
 
 M-03 [1] Re-scan while waiting
   Steps: Player 1 scans the same mission again; also reload the app.
@@ -533,6 +557,7 @@ M-05 [3] Team fills and starts
   Steps: Players 2 and 3 scan the mission.
   Expect: All three see "Team assembled. Commencing mission..." then step 1.
   HQ Live Missions shows "Step 1 / 3".
+VERIFIED
 
 M-06 [3] Fourth player
   Steps: A 4th identity scans the same mission after M-05.
@@ -543,16 +568,19 @@ M-07 [3] Keypad hints
   Steps: On the KEYPAD step compare all 3 screens.
   Expect: Each player sees a different hint (hint 1 = first to join).
   No one stuck on "Decrypting hint..." and no "No intel available."
+VERIFIED
 
 M-08 [3] Advance and catch-up
   Steps: One player enters the correct code.
   Expect: That player advances. The other two catch up within ~4s.
+VERIFIED
 
 M-09 [3] Final decision and completion
   Steps: Finish the remaining steps, each choose a final reward.
   Expect: "Waiting for teammates (n/3)..." until all vote. Each gets their
   OWN chosen item. "MISSION ACCOMPLISHED". Items show in Inventory and
   Profile.
+VERIFIED
 
 M-10 [1] Rejoin a completed mission
   Steps: Any of the trio scans it again.
@@ -577,6 +605,7 @@ M-14 [3] Wrong keypad code, Hacker
   Steps: New trio with a Hacker; Hacker enters 2 wrong codes, then the
   right one.
   Expect: "ACCESS DENIED" / "Attempts remaining: 2", then 1, then success.
+VERIFIED
 
 M-15 [3] Hacker attempts across abort (F5)
   Steps: Hacker uses 2 attempts, team aborts, team rejoins.
@@ -590,12 +619,14 @@ M-16 [3] Gated mission without the tool
 
 M-17 [3] Gated mission with the tool
   Steps: One teammate owns the tool; scan again.
-  Expect: Mission starts. Tool still in inventory afterwards.
+  Expect: Mission starts. Tool still in inventory afterward.
+VERIFIED
 
 M-18 [3] Repeat trio (test mode OFF)
   Steps: The trio from M-09 tries any other mission together.
   Expect: "MISSION COMPROMISED" / "This specific trio is drawing too much
   suspicion..."
+VERIFIED
 
 M-19 [3] Repeat pair (5th time)
   Steps: Players A and B finish 4 missions together (in test mode the
@@ -646,10 +677,12 @@ step advances when all three confirm. Suggested missions in brackets.
 P-SIG [3] SIGNAL (project_aegis)
   Expect: Tapping rotates a tile. Button "SIGNAL INTERRUPTED" until a path
   connects top-left to bottom-right, then rotation locks.
+VERIFIED
 
 P-MEM [3] MEMORY (lobby_infiltration)
   Expect: Simon pattern to length 9 ("Progress: n / 9"). A wrong tap
   restarts at length 1. Try one wrong tap on purpose.
+VERIFIED
 
 P-MM [3] MASTERMIND (warehouse_sweep)
   Expect: 4 digits 1-5, green/yellow pegs, "N ATTEMPTS LEFT". Burn all 10
@@ -657,16 +690,45 @@ P-MM [3] MASTERMIND (warehouse_sweep)
 
 P-MAT [3] MATRIX (proxy_hijack)
   Expect: Lights-out 4x4, tap toggles a cross. Solved when all off.
+VERIFIED
 
 P-SLD [3] SLIDER (project_archimedes = numbers; deep_freeze_hub = letters)
-  Expect: 15-puzzle solvable; numbers vs letters as configured.
+  Expect: 3x3 8-puzzle (tiles 1-8 or A-H), solvable, starts well scrambled
+  (never solved, at most 2 tiles already glowing); numbers vs letters as configured.
+VERIFIED
+  2026-11-23: re-test. Was 4x4. Now 3x3 with a guaranteed scramble (at least 12
+  moves from solved). Check it feels quicker but not trivial, on all three
+  phones (each gets its own shuffle).
 
 P-ROT [3] ROTARY (project_hyperion)
   Expect: 5 rings. LOCK DIAL near 12 o'clock locks a ring; a miss sends
   you back to ring 1. Ring 5 solves it. Try on a slow phone too.
+VERIFIED
+  2026-11-23: re-test. Rings slowed ~20% and hit window widened (+/-14 to +/-18
+  degrees). On a phone (iOS Safari especially):
+    - A quick tap locks exactly ONE ring. Lifting your finger does nothing.
+    - A long hold (2-3 s) locks one ring; releasing does nothing.
+    - Two deliberate taps in a row both register (anything >200 ms apart).
+    - Long-press on LOCK DIAL shows no menu.
+  Judge difficulty: hard but beatable, not a wall.
+
+P-MATCH [3] MATCH (compliance_gamble, laundromat_drop, park_bench_drop,
+  shell_entity, terminal_b_drop) - new 2026-11-23
+  Expect: 4x3 face-down cards, 6 pairs, each phone its own shuffle. Tap
+  two: a match stays up (green), a mismatch shows ~1 s then flips back.
+  "Pairs: n / 6". Button "PAIRING INCOMPLETE" until all 6, then CONFIRM
+  BYPASS. No fail state.
+  Also try:
+    - Tap a third card while a mismatch is showing: ignored.
+    - Tap the same face-up card twice: not a match, nothing happens.
+    - Tap a matched card: nothing happens.
+    - Tap very fast across several cards: board never gets confused.
+    - Every emoji draws as a colour picture (no empty boxes), including
+      on the oldest Android available.
 
 P-KEY KEYPAD: covered by M-07, M-08, M-13, M-14, M-25. Also try a code with a
   leading zero (sub_level_four "0400", terminal_b_drop "0620").
+VERIFIED
 
 P-DEC-01 [3] Majority decision, 2-1 split (cleaning_crew_shift step 1)
   Expect: All three get the winning option's event. Losing option's effect
@@ -677,6 +739,7 @@ P-DEC-02 [3] Majority decision, unanimous
 
 P-DEC-03 [3] Individual final decision, mixed picks
   Expect: Each player gets the item they personally picked.
+VERIFIED
 
 P-DEC-04 [3] Asset Validator
   Steps: One player owns Asset Validator.
@@ -688,8 +751,16 @@ P-DEC-05 [3] Double-tap a vote
   Expect: One vote recorded.
 
 P-ALL [3] Two steps of the same type in a row
-  No mission does this today, so nothing to run. The 2026-10-21 key fix
-  covers it.
+  As of 2026-11-23 no mission does this (the 4 back-to-back DECISION
+  missions now have MATCH between the two votes), so nothing to run. The
+  2026-10-21 key fix covers it.
+  Open bug: in playtesting, on a DECISION > DECISION mission one player
+  never saw the final reward vote and left the mission; the other two
+  waited forever until abort. Moving MATCH between the votes removes that
+  trigger, not necessarily the cause. Watch for any player skipping a step
+  after a vote, especially vote > MATCH (step 2 > 3) in the 5 MATCH
+  missions. If seen, note mission, step, and what that phone was doing
+  (locked? switched apps?).
 
 
 ======================================================================
@@ -702,15 +773,23 @@ GE-01 [2] Trigger
   Steps: /hq/triggers, DEPLOY MISSION FUNDING, confirm.
   Expect: "Global event triggered". Every player phone: full-screen
   "PRIORITY ALERT", m:ss countdown, vibrate (Android). HQ pages show nothing.
+VERIFIED
 
 GE-02 [1] Acknowledge
   Steps: ACKNOWLEDGE on a phone.
   Expect: Sticky top banner with countdown; nothing covers the top nav.
+VERIFIED
 
 GE-03 [1] Check in on time
   Steps: Scan mission-funding-qr.
   Expect: "OBJECTIVE COMPLETE" / "You completed the objective within the
   time limit. Well done." +50 credits. Banner gone.
+VERIFIED
+  2026-11-23: re-test. Fixed a race where the banner (and ACKNOWLEDGE card) could
+  stay after a successful scan. Scan with the PHONE CAMERA app (it opens a
+  fresh page, which is the case that raced). Expect: banner and ACKNOWLEDGE
+  card disappear as soon as the result shows, and stay gone after "Return
+  to Field". Repeat on 2-3 phones; it was timing-dependent.
 
 GE-04 [1] Check in twice
   Steps: Scan it again.
@@ -752,6 +831,7 @@ GE-11 [2] Mid-mission alert
   Steps: Trigger while a team is mid-puzzle.
   Expect: Alert shows over the mission; after acknowledging, the puzzle
   still works.
+VERIFIED
 
 GE-12 [1] Trigger outside IN_GAME
   Expect: Browser alert "The game is not currently active."
@@ -760,11 +840,13 @@ C-01 [1] Cooldowns only in IN_GAME
   Steps: Leave a registered player in PRE_GAME across a :00 or :30 mark,
   then Start and cross another mark.
   Expect: No "You have maintained a low profile." in PRE_GAME. One after
-  Start, -8 heat.
+  Start, -5 heat. (Was -8 before 2026-11-23.)
 
 C-02 [1] Six cooldowns max
   Steps: Over 3+ hours of IN_GAME, check History.
-  Expect: At most 6 cooldown events per player, -48 heat total.
+  Expect: At most 6 cooldown events per player, -30 heat total.
+  Before the party, confirm on Supabase:
+    SELECT id, heat FROM event WHERE type = 'COOLDOWN';  -- six rows, -5
 
 
 ======================================================================
@@ -920,15 +1002,15 @@ Test mode on first (Concession A, TM-01). Run each mission with a trio. For each
 Mission              Tool                   Steps                         Code
 boardroom_audit      RFID Keycard Repl.     SIGNAL, KEYPAD, DECISION      4936
 cleaning_crew_shift  -                      DEC(maj), KEYPAD, ROTARY, DEC 4991
-compliance_gamble    -                      KEYPAD, DEC(maj), DECISION    3819
+compliance_gamble    -                      KEYPAD, DEC(maj), MATCH, DEC  3819
 dark_site_uplink     Micro Recon Drone      SIGNAL, KEYPAD, DECISION      1740
 deep_freeze_hub      Laser Cutting Tool     SLIDER, KEYPAD, DECISION      8318
 executive_flight     Biometric Voice Mod.   KEYPAD, MEMORY, DECISION      2623
 executive_wash       Biometric Voice Mod.   SIGNAL, KEYPAD, DECISION      2599
 ghost_protocol       Laser Cutting Tool     KEYPAD, MASTERMIND, DECISION  7142
-laundromat_drop      -                      KEYPAD, DEC(maj), DECISION    4412
+laundromat_drop      -                      KEYPAD, DEC(maj), MATCH, DEC  4412
 lobby_infiltration   -                      MEMORY, KEYPAD, DECISION      3068
-park_bench_drop      -                      KEYPAD, DEC(maj), DECISION    1212
+park_bench_drop      -                      KEYPAD, DEC(maj), MATCH, DEC  1212
 patent_office_probe  -                      KEYPAD, SLIDER, DECISION      5319
 personnel_purge      RFID Keycard Repl.     MASTERMIND, KEYPAD, DECISION  2008
 pharma_splicing      Tranquilizer Dart Gun  KEYPAD, MATRIX, DECISION      2373
@@ -936,12 +1018,12 @@ project_aegis        -                      SIGNAL, KEYPAD, DECISION      1448
 project_archimedes   -                      KEYPAD, SLIDER, DECISION      8712
 project_hyperion     -                      KEYPAD, ROTARY, DECISION      3029
 proxy_hijack         -                      KEYPAD, MATRIX, DECISION      2129
-server_room_sprint   -                      DEC(maj), SIGNAL, KEYPAD, DEC 2650
+server_room_sprint   -                      DEC(maj), SIGNAL, KEYPAD, DEC 6050
 shadow_grid          Micro Recon Drone      KEYPAD, MATRIX, DECISION      7157
-shell_entity         -                      DEC(maj), KEYPAD, DECISION    7913
+shell_entity         -                      DEC(maj), MATCH, KEYPAD, DEC  7913
 sub_level_four       Tranquilizer Dart Gun  MEMORY, KEYPAD, DECISION      0400
 tax_loophole_breach  -                      ROTARY, KEYPAD, DECISION      7545
-terminal_b_drop      -                      KEYPAD, DEC(maj), DECISION    0620
+terminal_b_drop      -                      KEYPAD, DEC(maj), MATCH, DEC  0620
 warehouse_sweep      -                      MASTERMIND, KEYPAD, DECISION  4335
 
 Shortcut: every mission needs 3 players to start, but 3 browser windows on
@@ -952,7 +1034,16 @@ Also check:
   [ ] SIGNAL puzzles 0-4 are all solvable (boardroom 1, dark_site 2,
       executive_wash 0, aegis 3, server_room 4)
   [ ] SLIDER colours look right (hues 100, 850, 500)
-  [ ] Each of the 10 Misc items: name, intel/heat/credits match the sheet
+  [ ] MATCH card sets fit each mission's story and all render (P-MATCH)
+  [ ] server_room_sprint keypad (changed 2026-11-23): hint now says "flip
+      through a calendar and complete the pattern: 3128313031??" -> 30,
+      doubled = 60; second half 25 missions doubled = 50; code 6050.
+      Check testers can get started on it now.
+  [ ] Each of the 10 Misc items: name, intel/heat/credits match
+      data/tables/item.sql (all raised ~40-50% on 2026-11-23)
+  [ ] Final reward intel matches data/tables/item.sql: on 2026-11-23 each
+      mission's intel+heat reward item went +3 on gated missions and -2 on
+      ungated ones (cash items unchanged)
   [ ] Each Tool: price on confirm matches the manifest
   [ ] Each global event: alert text and reward match
 

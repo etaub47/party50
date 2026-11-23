@@ -32,6 +32,13 @@
     },
     {
       "order": 3,
+      "type": "MATCH",
+      "config": {
+        "icons": ["📁", "💰", "📊", "🔒", "📝", "🏦"]
+      }
+    },
+    {
+      "order": 4,
       "type": "DECISION",
       "config": {
         "instruction": "The servers are handled. Choose what to take.",

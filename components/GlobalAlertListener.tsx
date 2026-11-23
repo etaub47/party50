@@ -4,9 +4,16 @@ import { GlobalEvent } from "@/types/dbtypes";
 import { createClient } from '@/utils/supabase/client';
 import { RealtimeChannel } from "@supabase/realtime-js";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const supabase = createClient();
+
+// Window event the global scan page fires once its check-in RPC has finished.
+// Needed because a camera scan opens a fresh page whose mount-time sync races
+// the check-in: if the sync reads first, it shows the banner, and nothing else
+// would re-check before expiry ("Return to Field" is a client-side navigation,
+// so this listener never remounts).
+export const GLOBAL_ALERT_RESYNC_EVENT = 'party50:global-alert-resync';
 
 type GlobalEventWithParticipation = GlobalEvent & {
     global_event_participation: { id: string }[]
@@ -22,6 +29,10 @@ export default function GlobalAlertListener() {
 
     const pathname = usePathname();
     const isInSafeZone = pathname?.startsWith('/hq');
+
+    // syncs overlap (mount, focus, post-check-in); only the newest may apply its
+    // result, so a slow pre-check-in read can't put the banner back afterwards
+    const syncSeqRef = useRef(0);
 
     // shared with the countdown timer below: whichever path notices the alert is
     // gone (timer tick or a resync) is responsible for settling any expired,
@@ -41,6 +52,7 @@ export default function GlobalAlertListener() {
     const syncExistingAlert = useCallback(async () => {
         if (isInSafeZone)
             return;
+        const mySeq = ++syncSeqRef.current;
         const { data: { session } } = await supabase.auth.getSession();
         const playerId = session?.user?.id;
         if (!playerId)
@@ -54,6 +66,9 @@ export default function GlobalAlertListener() {
             .order('expires_at', { ascending: false })
             .limit(1)
             .maybeSingle();
+
+        if (mySeq !== syncSeqRef.current)
+            return;
 
         const eventData = data as GlobalEventWithParticipation | null;
         const hasParticipated = eventData?.global_event_participation &&
@@ -128,6 +143,7 @@ export default function GlobalAlertListener() {
 
         void setupRealtime();
         window.addEventListener('focus', syncExistingAlert);
+        window.addEventListener(GLOBAL_ALERT_RESYNC_EVENT, syncExistingAlert);
         return () => {
             // must flip before removeChannel: unsubscribing fires the status
             // callback with CLOSED, which would otherwise schedule a retry
@@ -137,6 +153,7 @@ export default function GlobalAlertListener() {
             if (channel)
                 void supabase.removeChannel(channel);
             window.removeEventListener('focus', syncExistingAlert)
+            window.removeEventListener(GLOBAL_ALERT_RESYNC_EVENT, syncExistingAlert);
         };
     }, [syncExistingAlert]);
 

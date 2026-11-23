@@ -20,6 +20,13 @@
     },
     {
       "order": 2,
+      "type": "MATCH",
+      "config": {
+        "icons": ["🏢", "💳", "💸", "📈", "🔐", "📠"]
+      }
+    },
+    {
+      "order": 3,
       "type": "KEYPAD",
       "config": {
         "solution": "7913",
@@ -31,7 +38,7 @@
       }
     },
     {
-      "order": 3,
+      "order": 4,
       "type": "DECISION",
       "config": {
         "instruction": "Mapping complete. Download the shell company network map, or wire a cut of the funds out anonymously.",

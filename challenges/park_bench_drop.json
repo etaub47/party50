@@ -32,6 +32,13 @@
     },
     {
       "order": 3,
+      "type": "MATCH",
+      "config": {
+        "icons": ["🌳", "📱", "🚓", "🐦", "⛲", "💼"]
+      }
+    },
+    {
+      "order": 4,
       "type": "DECISION",
       "config": {
         "instruction": "You're clear of the park, and the device synced before you lost it. Take the calendar data, or grab the courier's laundered cash.",
