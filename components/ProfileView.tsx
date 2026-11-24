@@ -44,9 +44,9 @@ export default function ProfileView({ playerStats, isConnected }: {
                 {playerStats.is_locked_out && (
                     <div
                         role="alert"
-                        className="w-full mt-3 p-3 border-2 border-red-600 bg-red-950/40 rounded-lg font-mono text-xs text-red-400"
+                        className="w-full mt-3 p-3 border-2 border-red-600 bg-red-950 rounded-lg font-mono text-sm text-red-100"
                     >
-                        <span className="block font-bold uppercase tracking-widest mb-1">
+                        <span className="block font-bold uppercase tracking-widest mb-1 text-red-400">
                             Surveillance Critical
                         </span>
                         You are too hot to run operations. Missions will refuse you until your

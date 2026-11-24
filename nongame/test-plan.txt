@@ -217,7 +217,7 @@ VERIFIED
 TM-03 [3] Caps skipped in test mode
   Steps: With test mode on, the same trio plays two missions in a row.
   Expect: No "MISSION COMPROMISED"; the second mission starts normally.
-DEFERRED
+VERIFIED
 
 (L-05 to L-09 come at the end, in Phase 8, once there is data to convert.)
 
@@ -259,7 +259,7 @@ Game state: IN_GAME (from L-02), except where a test says otherwise.
 R-01 [1] Happy path
   Steps: New identity, enter a name, pick a role, Register.
   Expect: Tabs appear (Profile, Inventory, Leaderboard, History). Profile
-  shows 25 credits, 0 intel ("Intel: 0 / 200"), 0 heat.
+  shows 25 credits, 0 intel ("Intel: 0 / 150"), 0 heat.
 VERIFIED
 
 R-02 [1] Missing fields
@@ -309,9 +309,9 @@ VERIFIED
 
 S-02 [1] Profile bars
   Steps: Watch the bars as intel/heat/credits change in later phases.
-  Expect: Intel bar "X / 200" (400 with 8TB Thumb Drive). Heat bar pulses at
+  Expect: Intel bar "X / 150" (300 with 8TB Thumb Drive). Heat bar pulses at
   80+. Credits bar full at 250. Every bar shows a sliver at 0.
-DEFERRED
+VERIFIED
 
 S-03 [1] History tab
   Steps: Open History with no events, then after events.
@@ -479,8 +479,8 @@ B-07 [1] Buy outside IN_GAME
 
 T-01 [1] 8TB Thumb Drive
   Steps: Buy it.
-  Expect: Profile shows "Intel: X / 400". If intel was capped at 200, the
-  extra now shows.
+  Expect: Profile shows "Intel: X / 300". If intel was capped at 150, the
+  extra now shows. (Cap lowered from 200/400 to 150/300 on 2026-11-24.)
 DEFERRED
 
 T-02 [1] Agent Dossier
@@ -499,7 +499,7 @@ T-04 [1] Infrared Mitigation Device
   Steps: Note heat, buy it.
   Expect: Heat drops 30 (floor 0). Confirm the -30 being permanent while
   owned is what you want.
-DEFERRED
+VERIFIED
 
 T-05 Asset Validator: tested in P-DEC-04.
 
@@ -508,19 +508,19 @@ SH-01 [1] Shred Intel
   CONFIRM.
   Expect: "CONFIRM DESTRUCTION" overlay, item gone, its intel, heat and
   credits removed.
-DEFERRED
+VERIFIED
 
 SH-02 [1] No shred button
   Steps: Look at Tools, Misc items and Intel with heat 0.
   Expect: No SHRED button on any of them.
-DEFERRED
+VERIFIED
 
 SH-03 [1] Shred making credits negative
   Steps: Own a credit-carrying Intel reward (e.g. Advisory Retainer
   Ledger 6/1/35), spend credits, then shred it.
   Expect: Balance may go negative. Accepted 2026-10-27 (too unlikely to
   matter); just confirm nothing crashes.
-DEFERRED
+VERIFIED
 
 
 ======================================================================
@@ -640,6 +640,7 @@ M-20 [1] Heat lockout
   mission.
   Expect: Profile banner "Surveillance Critical". Join refused: "SURVEILLANCE
   CRITICAL" / "Your heat has maxed out...". Item scanning still works.
+VERIFIED
 
 M-21 [3] Lockout mid-mission
   Steps: Player in a running mission gets the heat spike, then reloads.
@@ -699,6 +700,11 @@ VERIFIED
   2026-11-23: re-test. Was 4x4. Now 3x3 with a guaranteed scramble (at least 12
   moves from solved). Check it feels quicker but not trivial, on all three
   phones (each gets its own shuffle).
+  2026-11-24: 3x3 re-tested OK. Then: scramble minimum lowered 12 -> 10, and
+  multi-slide added. Re-test: tapping a tile in the gap's row/column slides
+  every tile between it and the gap (e.g. gap top-left, tap bottom-left: both
+  left-column tiles move up). Diagonal taps do nothing. Solving still enables
+  the confirm button.
 
 P-ROT [3] ROTARY (project_hyperion)
   Expect: 5 rings. LOCK DIAL near 12 o'clock locks a ring; a miss sends
@@ -761,6 +767,18 @@ P-ALL [3] Two steps of the same type in a row
   after a vote, especially vote > MATCH (step 2 > 3) in the 5 MATCH
   missions. If seen, note mission, step, and what that phone was doing
   (locked? switched apps?).
+  2026-11-24: FIXED (likely the same cause). Reproduced on
+  cleaning_crew_shift: after the step 1 vote, the team was pushed from the
+  keypad (step 2) straight to step 3. Cause: DecisionView awaits the
+  consequence server call before calling onComplete; if catch-up had already
+  moved that player to the next step, onComplete's "current + 1" skipped it,
+  and catch-up dragged the team along. onComplete is now bound to the step it
+  was rendered for, so a late call does nothing. Re-test:
+  - cleaning_crew_shift with players 1-3: the keypad stays up until the code
+    is entered. VERIFIED 2026-11-24.
+  - Any vote > next step mission (e.g. park_bench_drop step 2 > MATCH): no one
+    skips the step after the vote.
+  - The final reward vote still completes the mission for each player.
 
 
 ======================================================================
@@ -925,7 +943,7 @@ L-05 [3] End Game
   - 57 credits -> +5 intel, credits 0, History "End-of-game asset
     liquidation: spare credits converted to intel."
   - 9 credits stays 9, no event. 0 stays 0.
-  - Intel still capped at 200 / 400.
+  - Intel still capped at 150 / 300.
   - HQ Final Scores reflects the conversion.
 
 L-06 [1] POST_GAME behaviour

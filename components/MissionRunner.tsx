@@ -84,11 +84,13 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
     }, [teamId, missionData.id, currentStepIndex]);
 
     // advance self
-    const advanceMyStep = useCallback(async (targetStep?: number) => {
-        const nextStep = targetStep ?? (stepRef.current + 1);
-        if (!targetStep && nextStep <= stepRef.current)
-            return;
-        if (targetStep && targetStep <= stepRef.current)
+    // Always takes an explicit target. "Current step + 1" read at call time is
+    // wrong when the call comes late: DecisionView awaits processStepConsequences
+    // before calling onComplete, and if catch-up moved this player on meanwhile,
+    // "+1" skipped the step they had just been pulled into (and dragged the whole
+    // team along with it, via catch-up).
+    const advanceMyStep = useCallback(async (nextStep: number) => {
+        if (nextStep <= stepRef.current)
             return;
         console.log(`🚀 DB WRITE: Advancing to step ${nextStep}`);
         const hasNextStep = missionData.steps.some(s => s.order === nextStep);
@@ -114,6 +116,13 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
             });
         }
     }, [missionData, playerId]);
+
+    // what each step view calls when it is done: bound to the step it was
+    // rendered for, so a late call from a step we already left is a no-op
+    const completeCurrentStep = useCallback(
+        () => advanceMyStep(currentStepIndex + 1),
+        [advanceMyStep, currentStepIndex]
+    );
 
     // manual Refresh on Step Change
     // This ensures that when the step moves forward, we immediately clear
@@ -307,7 +316,7 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     currentStep={currentStep}
                     playerId={playerId}
                     teamId={teamId}
-                    onSuccess={advanceMyStep}
+                    onSuccess={completeCurrentStep}
                     onFailure={(props) => setOverlayProps(props)}
                     setOverlayProps={setOverlayProps}
                 />
@@ -323,14 +332,14 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     playerId={playerId}
                     votes={votes}
                     hasAssetValidator={hasAssetValidator}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                 />
             )}
 
             {currentStep.type === 'SIGNAL' && (
                 <SignalPathView
                     key={`signal-${currentStepIndex}`}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                     puzzle={currentStep.config.puzzle}
                     votes={votes}
                     teamId={teamId}
@@ -348,7 +357,7 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     playerId={playerId}
                     currentStepIndex={currentStepIndex}
                     votes={votes}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                 />
             )}
 
@@ -360,7 +369,7 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     playerId={playerId}
                     currentStepIndex={currentStepIndex}
                     votes={votes}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                 />
             )}
 
@@ -372,7 +381,7 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     playerId={playerId}
                     currentStepIndex={currentStepIndex}
                     votes={votes}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                 />
             )}
 
@@ -384,7 +393,7 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     playerId={playerId}
                     currentStepIndex={currentStepIndex}
                     votes={votes}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                 />
             )}
 
@@ -396,7 +405,7 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     playerId={playerId}
                     currentStepIndex={currentStepIndex}
                     votes={votes}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                 />
             )}
 
@@ -408,7 +417,7 @@ export default function MissionRunner({teamId, missionData, initialStep, playerI
                     playerId={playerId}
                     currentStepIndex={currentStepIndex}
                     votes={votes}
-                    onComplete={advanceMyStep}
+                    onComplete={completeCurrentStep}
                 />
             )}
 

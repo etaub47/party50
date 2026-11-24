@@ -13,21 +13,10 @@ const CELLS = SIZE * SIZE;
 // Scramble acceptance rules. Manhattan distance is a lower bound on the moves
 // needed, so MIN_MANHATTAN guarantees the start is at least that many moves
 // from solved. Checked against all 181,440 solvable states: accepted starts
-// need 12-31 optimal moves (average ~22.7). MAX_TILES_IN_PLACE stops a start
-// that already shows several glowing "correct" tiles.
-const MIN_MANHATTAN = 12;
+// need 10-31 optimal single-tile moves (average ~22.3). MAX_TILES_IN_PLACE
+// stops a start that already shows several glowing "correct" tiles.
+const MIN_MANHATTAN = 10;
 const MAX_TILES_IN_PLACE = 2;
-
-function getNeighbors(idx: number) {
-    const neighbors = [];
-    const r = Math.floor(idx / SIZE);
-    const c = idx % SIZE;
-    if (r > 0) neighbors.push(idx - SIZE);
-    if (r < SIZE - 1) neighbors.push(idx + SIZE);
-    if (c > 0) neighbors.push(idx - 1);
-    if (c < SIZE - 1) neighbors.push(idx + 1);
-    return neighbors;
-}
 
 // On an odd-width board a layout is solvable iff its tile inversion count is even.
 function isSolvable(grid: number[]) {
@@ -59,7 +48,8 @@ function isSolvedGrid(grid: number[]) {
 }
 
 // Uniformly random solvable layout, re-rolled until it meets the scramble rules
-// (~60% of layouts pass, so this takes a couple of tries on average).
+// (~45% of shuffles pass: half are unsolvable, ~91% of the rest meet the
+// rules, so this takes a couple of tries on average).
 function generateScrambledGrid(): number[] {
     while (true) {
         const grid = Array.from({ length: CELLS }, (_, i) => (i + 1) % CELLS);
@@ -104,16 +94,22 @@ export default function SliderPuzzleView({
     const handleTileClick = (idx: number) => {
         if (hasRegisteredSuccess) return;
         const emptyIdx = grid.indexOf(0);
-        const neighbors = getNeighbors(emptyIdx);
+        const sameRow = Math.floor(idx / SIZE) === Math.floor(emptyIdx / SIZE);
+        const sameCol = idx % SIZE === emptyIdx % SIZE;
+        if (idx === emptyIdx || (!sameRow && !sameCol)) return;
 
-        if (neighbors.includes(idx)) {
-            const nextGrid = [...grid];
-            [nextGrid[emptyIdx], nextGrid[idx]] = [nextGrid[idx], nextGrid[emptyIdx]];
-            setGrid(nextGrid);
-            if (isSolvedGrid(nextGrid)) {
-                void setIsSolved(true);
-            }
-        }
+        // slide every tile between the clicked one and the gap one cell toward
+        // the gap: walk from the gap back to the clicked tile, pulling each tile
+        // into the cell in front of it, which leaves the gap where the click was
+        const step = sameRow ? (idx > emptyIdx ? 1 : -1) : (idx > emptyIdx ? SIZE : -SIZE);
+        const nextGrid = [...grid];
+        for (let cell = emptyIdx; cell !== idx; cell += step)
+            nextGrid[cell] = nextGrid[cell + step];
+        nextGrid[idx] = 0;
+
+        setGrid(nextGrid);
+        if (isSolvedGrid(nextGrid))
+            setIsSolved(true);
     };
 
     const handleRegisterSuccess = async () => {

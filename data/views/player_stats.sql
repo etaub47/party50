@@ -34,11 +34,11 @@ FROM (
             COALESCE((SELECT SUM(e.heat) FROM player_event pe JOIN event e ON pe.event_id = e.id WHERE pe.player_id = p.id), 0)
         )) AS total_heat,
 
-        ( 200 +
+        ( 150 +
             CASE WHEN EXISTS (
                 SELECT 1 FROM player_item pi JOIN item i ON pi.item_id = i.id
                 WHERE pi.player_id = p.id AND i.name = '8TB Thumb Drive'
-            ) THEN 200 ELSE 0 END
+            ) THEN 150 ELSE 0 END
         ) AS max_intel,
 
         ( CASE WHEN (
